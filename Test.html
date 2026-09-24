@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ahora Sí — Test unificado</title>
+<style>
+  :root {
+    --bg: #0C2F26; --bg2: #123F34; --paper: #EEF2E8;
+    --gold: #E3BC55; --sky: #8DB7D8; --dim: #A9C2B6; --ink: #0A1F1A;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--paper);
+    font: 400 15px/1.6 system-ui, -apple-system, sans-serif;
+    padding: 20px 16px 60px; -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; color: var(--gold); }
+  h2 { font-size: 15px; margin: 26px 0 8px; color: var(--gold); }
+  .lead { color: var(--dim); margin: 0 0 20px; font-size: 14px; }
+
+  #login { max-width: 420px; margin: 40px auto; padding: 24px;
+           background: var(--bg2); border-radius: 12px;
+           display: flex; flex-direction: column; gap: 10px; }
+  #botones-usuario { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-usuario {
+    padding: 10px 22px; border: 1.5px solid var(--gold);
+    background: transparent; color: var(--gold);
+    border-radius: 999px; cursor: pointer; font-weight: 600; font-size: 15px;
+  }
+  .btn-usuario[aria-pressed="true"] { background: var(--gold); color: var(--ink); }
+  input {
+    padding: 11px 14px; font: inherit; border-radius: 10px;
+    border: 1.5px solid rgba(238,242,232,.4); background: transparent;
+    color: var(--paper); font-size: 15px; width: 100%;
+  }
+  input:focus { outline: 3px solid var(--sky); outline-offset: 2px; }
+  button[type="submit"] {
+    padding: 12px 18px; font: inherit; border: 0; border-radius: 10px;
+    background: var(--gold); color: var(--ink); font-weight: 600; cursor: pointer;
+    font-size: 15px;
+  }
+  #login-estado { min-height: 1.4em; font-size: 13px; color: var(--dim); margin: 4px 0 0; }
+
+  .suite {
+    color: var(--gold); font-weight: 700; font-size: 12px;
+    text-transform: uppercase; letter-spacing: .05em;
+    margin: 24px 0 6px; border-bottom: 1px solid rgba(227,188,85,.3);
+    padding-bottom: 4px;
+  }
+  .caso {
+    padding: 8px 12px; margin: 4px 0; border-radius: 6px;
+    background: var(--bg2); border-left: 3px solid transparent;
+    font-size: 14px; display: flex; align-items: flex-start; gap: 10px;
+  }
+  .caso.ok { border-left-color: #4ade80; }
+  .caso.fallo { border-left-color: #f87171; }
+  .caso.corriendo { border-left-color: var(--sky); }
+  .caso .simbolo { font-weight: 700; flex-shrink: 0; }
+  .caso.ok .simbolo { color: #4ade80; }
+  .caso.fallo .simbolo { color: #f87171; }
+  .caso.corriendo .simbolo { color: var(--sky); }
+  .caso .detalle { color: var(--dim); font-size: 12px; margin-top: 4px; }
+
+  #resumen {
+    margin-top: 24px; padding: 16px; background: var(--bg2);
+    border-radius: 10px; font-weight: 600; font-size: 15px;
+    border-left: 4px solid var(--gold);
+  }
+  #resumen.ok { border-left-color: #4ade80; }
+  #resumen.fallo { border-left-color: #f87171; }
+
+  #rerun {
+    margin-top: 16px; padding: 10px 20px; font: inherit;
+    border: 1.5px solid var(--gold); background: transparent;
+    color: var(--gold); border-radius: 999px; cursor: pointer;
+    font-weight: 600;
+  }
+  #rerun:hover { background: var(--gold); color: var(--ink); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Test unificado</h1>
+  <p class="lead">Batería completa del núcleo, repositorios, vistas y Realtime.</p>
+
+  <section id="login">
+    <div id="botones-usuario" role="group" aria-label="Selecciona usuario">
+      <button type="button" class="btn-usuario" data-email="luciviteri@elisekai.com">Luci</button>
+      <button type="button" class="btn-usuario" data-email="yayoqs@elisekai.com">Yayo</button>
+    </div>
+    <input type="password" id="password" placeholder="contraseña" required autocomplete="current-password">
+    <button type="button" id="btn-entrar">Iniciar sesión y correr tests</button>
+    <p id="login-estado"></p>
+  </section>
+
+  <section id="tests" hidden>
+    <div id="resultados"></div>
+    <div id="resumen"></div>
+    <button type="button" id="rerun" hidden>Re-ejecutar</button>
+  </section>
+</main>
+
+<script src="../js/appwrite.min.js"></script>
+
+<script type="module">
+/* ================================================================
+   Ahora Sí — TEST UNIFICADO (ES6 inline)
+   Archivo: tests/test.html
+   Versión: 1.0.0
+   Propósito: batería completa del núcleo, configuración, sesión,
+              repositorios, vistas y Realtime. Un solo archivo para
+              correr cada vez que se cambie algo grande.
+              No crea perfiles ni toca el espacio real. Crea un
+              espacio de prueba aislado y lo elimina al final.
+   ================================================================ */
+
+import { CONFIG, validarConfig } from '../js/config/config.js';
+import { iniciarSesion, cerrarSesion, obtenerUsuarioActual } from '../js/datos/sesion.js';
+import { asegurarEspacioCompartido } from '../js/arranque/espacio-inicial.js';
+import { obtener, establecer } from '../js/nucleo/almacen.js';
+import { crearLogger } from '../js/nucleo/logger.js';
+
+import * as repoPlanes from '../js/datos/repositorios/planes.js';
+import * as repoKit from '../js/datos/repositorios/kit.js';
+import * as repoHitos from '../js/datos/repositorios/hitos.js';
+import * as repoCarta from '../js/datos/repositorios/carta.js';
+import * as repoRespuestas from '../js/datos/repositorios/respuestas.js';
+import * as repoFauna from '../js/datos/repositorios/fauna.js';
+import * as repoFlora from '../js/datos/repositorios/flora.js';
+import * as repoRitmos from '../js/datos/repositorios/ritmos.js';
+import * as repoEspacios from '../js/datos/repositorios/espacios.js';
+
+import * as vistaCarta from '../js/vistas/carta.js';
+import * as vistaPlanes from '../js/vistas/planes.js';
+import * as vistaHitos from '../js/vistas/hitos.js';
+import * as vistaKit from '../js/vistas/kit.js';
+import * as vistaFauna from '../js/vistas/fauna.js';
+import * as vistaFlora from '../js/vistas/flora.js';
+import * as vistaPercusion from '../js/vistas/percusion.js';
+import * as vistaRespuesta from '../js/vistas/respuesta.js';
+
+import * as realtime from '../js/datos/realtime.js';
+
+const log = crearLogger('test:unificado');
+
+const cont = document.getElementById('resultados');
+const resumen = document.getElementById('resumen');
+const estadoLogin = document.getElementById('login-estado');
+const sectionTests = document.getElementById('tests');
+const btnRerun = document.getElementById('rerun');
+
+let pasaron = 0;
+let fallaron = 0;
+const creados = {
+  planes: [], kit: [], hitos: [], carta: [], respuestas: [],
+  fauna: [], flora: [], ritmos: [],
+};
+
+const marca = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function actualizarResumen() {
+  resumen.textContent = `${pasaron} pasaron, ${fallaron} fallaron`;
+  resumen.className = fallaron === 0 && pasaron > 0 ? 'ok' : (pasaron > 0 ? 'fallo' : '');
+}
+
+function suite(nombre) {
+  const div = document.createElement('div');
+  div.className = 'suite';
+  div.textContent = nombre;
+  cont.append(div);
+}
+
+function caso(nombre, fn) {
+  const div = document.createElement('div');
+  div.className = 'caso corriendo';
+  div.innerHTML = `<span class="simbolo">…</span><span>${nombre}</span>`;
+  cont.append(div);
+  div.scrollIntoView({ block: 'nearest' });
+
+  const exito = () => {
+    div.className = 'caso ok';
+    div.innerHTML = `<span class="simbolo">✓</span><span>${nombre}</span>`;
+    pasaron++;
+    actualizarResumen();
+  };
+
+  const fallo = (e) => {
+    div.className = 'caso fallo';
+    div.innerHTML = `<span class="simbolo">✗</span><span>${nombre}<div class="detalle">${e.message || e}</div></span>`;
+    fallaron++;
+    actualizarResumen();
+  };
+
+  try {
+    const r = fn();
+    if (r instanceof Promise) return r.then(exito).catch(fallo);
+    exito();
+  } catch (e) {
+    fallo(e);
+  }
+}
+
+function exigir(cond, msg) {
+  if (!cond) throw new Error(msg);
+}
+
+async function limpiarTodo() {
+  for (const [clave, ids] of Object.entries(creados)) {
+    const repo = {
+      planes: repoPlanes, kit: repoKit, hitos: repoHitos,
+      carta: repoCarta, fauna: repoFauna, flora: repoFlora, ritmos: repoRitmos,
+    }[clave];
+    if (!repo) continue;
+    for (const id of ids) {
+      try { await repo.eliminar(id); } catch (e) { log.warn('Limpieza falló:', clave, id); }
+    }
+    creados[clave] = [];
+  }
+}
+
+async function prepararContexto(usuario) {
+  await limpiarTodo();
+
+  const r = await repoEspacios.crear({
+    nombre: 'Espacio test ' + marca(),
+    miembros: [usuario.$id],
+  });
+  exigir(r.exito, 'No se pudo crear el espacio de prueba: ' + r.error);
+  const espacioPrueba = r.datos;
+
+  establecer('usuarioActual', usuario);
+  establecer('espacio', espacioPrueba);
+  return espacioPrueba;
+}
+
+// =================================================================
+// SUITES
+// =================================================================
+
+async function suiteSanidad() {
+  suite('A. Sanidad del núcleo');
+
+  await caso('bundle UMD de Appwrite cargado', () => {
+    exigir(window.Appwrite, 'window.Appwrite no existe');
+    exigir(typeof window.Appwrite.Client === 'function', 'Client no disponible');
+  });
+
+  await caso('Channel disponible', () => {
+    exigir(typeof window.Appwrite.Channel === 'function', 'Channel no está en el bundle');
+  });
+
+  await caso('config válida', () => {
+    exigir(validarConfig(), 'validarConfig falló');
+  });
+
+  await caso('config tiene usuarios yayo y luci', () => {
+    exigir(CONFIG.usuarios.yayo, 'falta yayo');
+    exigir(CONFIG.usuarios.luci, 'falta luci');
+  });
+}
+
+async function suiteRepositorios() {
+  suite('B. Repositorios: planes');
+
+  let planId = null;
+  await caso('planes.crear', async () => {
+    const r = await repoPlanes.crear({ titulo: 'Plan ' + marca(), descripcion: 'test' });
+    exigir(r.exito, r.error);
+    exigir(r.datos.estado === 'pendiente', 'estado inicial incorrecto');
+    planId = r.datos.id;
+    creados.planes.push(planId);
+  });
+
+  await caso('planes.listar', async () => {
+    const r = await repoPlanes.listar();
+    exigir(r.exito, r.error);
+    exigir(r.datos.some((p) => p.id === planId), 'el plan creado no aparece');
+  });
+
+  await caso('planes.actualizar', async () => {
+    const r = await repoPlanes.actualizar(planId, { descripcion: 'actualizado' });
+    exigir(r.exito, r.error);
+    exigir(r.datos.descripcion === 'actualizado', 'descripción no cambió');
+  });
+
+  await caso('planes.cambiarEstado', async () => {
+    const r = await repoPlanes.cambiarEstado(planId, 'si');
+    exigir(r.exito, r.error);
+    exigir(r.datos.estado === 'si', 'estado no cambió');
+  });
+
+  await caso('planes.eliminar', async () => {
+    const r = await repoPlanes.eliminar(planId);
+    exigir(r.exito, r.error);
+    creados.planes = creados.planes.filter((x) => x !== planId);
+    planId = null;
+  });
+
+  suite('C. Repositorios: kit');
+
+  let kitId = null;
+  await caso('kit.crear', async () => {
+    const r = await repoKit.crear({ categoria: 'Dormir', item: 'Carpa ' + marca() });
+    exigir(r.exito, r.error);
+    exigir(r.datos.listo === false, 'item debería empezar no listo');
+    kitId = r.datos.id;
+    creados.kit.push(kitId);
+  });
+
+  await caso('kit.marcar', async () => {
+    const r = await repoKit.marcar(kitId, true);
+    exigir(r.exito, r.error);
+    exigir(r.datos.listo === true, 'no quedó listo');
+  });
+
+  await caso('kit.eliminar', async () => {
+    const r = await repoKit.eliminar(kitId);
+    exigir(r.exito, r.error);
+    creados.kit = creados.kit.filter((x) => x !== kitId);
+  });
+
+  suite('D. Repositorios: hitos');
+
+  let hitoId = null;
+  await caso('hitos.crear y marcar', async () => {
+    const r = await repoHitos.crear({ titulo: 'Hito ' + marca() });
+    exigir(r.exito, r.error);
+    hitoId = r.datos.id;
+    creados.hitos.push(hitoId);
+    const r2 = await repoHitos.marcar(hitoId, true);
+    exigir(r2.exito, r2.error);
+    exigir(r2.datos.cumplido === true, 'no quedó cumplido');
+  });
+
+  await caso('hitos.eliminar', async () => {
+    const r = await repoHitos.eliminar(hitoId);
+    exigir(r.exito, r.error);
+    creados.hitos = creados.hitos.filter((x) => x !== hitoId);
+  });
+
+  suite('E. Repositorios: carta');
+
+  let cartaId = null;
+  await caso('carta.crear (base)', async () => {
+    const r = await repoCarta.crear({ tipo: 'base', titulo: 'Manifiesto ' + marca(), contenido: 'test' });
+    exigir(r.exito, r.error);
+    exigir(r.datos.tipo === 'base', 'tipo no es base');
+    cartaId = r.datos.id;
+    creados.carta.push(cartaId);
+  });
+
+  await caso('carta.listarBase', async () => {
+    const r = await repoCarta.listarBase();
+    exigir(r.exito, r.error);
+    exigir(r.datos.some((p) => p.id === cartaId), 'base no aparece');
+  });
+
+  await caso('carta.eliminar', async () => {
+    const r = await repoCarta.eliminar(cartaId);
+    exigir(r.exito, r.error);
+    creados.carta = creados.carta.filter((x) => x !== cartaId);
+  });
+
+  suite('F. Repositorios: respuestas');
+
+  await caso('respuestas.crear', async () => {
+    const r = await repoRespuestas.crear({ eleccion: 'hablar', nota: 'test' });
+    exigir(r.exito, r.error);
+    exigir(r.datos.eleccion === 'hablar', 'elección no coincide');
+  });
+
+  await caso('respuestas.crear inválida falla', async () => {
+    const r = await repoRespuestas.crear({ eleccion: 'inventado' });
+    exigir(!r.exito, 'debería haber fallado');
+  });
+
+  suite('G. Repositorios: fauna y flora');
+
+  let faunaId = null;
+  await caso('fauna.crear', async () => {
+    const r = await repoFauna.crear({ nombre: 'Chincol ' + marca(), tipo: 'ave' });
+    exigir(r.exito, r.error);
+    faunaId = r.datos.id;
+    creados.fauna.push(faunaId);
+  });
+
+  await caso('fauna.listar', async () => {
+    const r = await repoFauna.listar();
+    exigir(r.exito, r.error);
+    exigir(r.datos.some((x) => x.id === faunaId), 'fauna no aparece');
+  });
+
+  await caso('fauna.eliminar', async () => {
+    const r = await repoFauna.eliminar(faunaId);
+    exigir(r.exito, r.error);
+    creados.fauna = creados.fauna.filter((x) => x !== faunaId);
+  });
+
+  let floraId = null;
+  await caso('flora.crear', async () => {
+    const r = await repoFlora.crear({ nombre: 'Quillay ' + marca(), tipo: 'arbol' });
+    exigir(r.exito, r.error);
+    floraId = r.datos.id;
+    creados.flora.push(floraId);
+  });
+
+  await caso('flora.eliminar', async () => {
+    const r = await repoFlora.eliminar(floraId);
+    exigir(r.exito, r.error);
+    creados.flora = creados.flora.filter((x) => x !== floraId);
+  });
+
+  suite('H. Repositorios: ritmos');
+
+  let ritmoId = null;
+  await caso('ritmos.crear con patrón', async () => {
+    const patron = [[1,0,0,1,0,0,1,0],[0,0,1,0,1,0,0,1],[0,1,0,0,0,1,0,0],[1,0,1,1,0,1,1,0]];
+    const r = await repoRitmos.crear({ nombre: 'Ritmo ' + marca(), bpm: 96, patron });
+    exigir(r.exito, r.error);
+    exigir(Array.isArray(r.datos.patron), 'patrón no es array');
+    exigir(r.datos.patron.length === 4, 'patrón debería tener 4 filas');
+    ritmoId = r.datos.id;
+    creados.ritmos.push(ritmoId);
+  });
+
+  await caso('ritmos.eliminar', async () => {
+    const r = await repoRitmos.eliminar(ritmoId);
+    exigir(r.exito, r.error);
+    creados.ritmos = creados.ritmos.filter((x) => x !== ritmoId);
+  });
+}
+
+async function suiteVistas() {
+  suite('I. Vistas: ciclo activar/limpiar');
+
+  const contenedor = document.createElement('div');
+  document.body.append(contenedor);
+
+  const pruebas = [
+    { nombre: 'carta', modulo: vistaCarta },
+    { nombre: 'planes', modulo: vistaPlanes },
+    { nombre: 'hitos', modulo: vistaHitos },
+    { nombre: 'kit', modulo: vistaKit },
+    { nombre: 'fauna', modulo: vistaFauna },
+    { nombre: 'flora', modulo: vistaFlora },
+    { nombre: 'percusion', modulo: vistaPercusion },
+    { nombre: 'respuesta', modulo: vistaRespuesta },
+  ];
+
+  for (const { nombre, modulo } of pruebas) {
+    await caso(`vista ${nombre}: activar y limpiar`, async () => {
+      await modulo.activar(contenedor);
+      exigir(contenedor.children.length > 0, 'la vista no dibujó nada');
+      modulo.limpiar();
+      exigir(contenedor.children.length === 0, 'la vista dejó basura tras limpiar');
+    });
+  }
+
+  contenedor.remove();
+}
+
+async function suiteRealtime() {
+  suite('J. Realtime');
+
+  await caso('iniciar suscripciones', async () => {
+    const espacio = obtener('espacio');
+    exigir(espacio, 'sin espacio en almacén');
+    await realtime.iniciar(espacio);
+    exigir(realtime.estaActivo(), 'Realtime no quedó activo');
+  });
+
+  await caso('detener suscripciones', async () => {
+    await realtime.detener();
+    exigir(!realtime.estaActivo(), 'Realtime no se detuvo');
+  });
+}
+
+// =================================================================
+// ORQUESTACIÓN
+// =================================================================
+
+async function ejecutar(usuario) {
+  pasaron = 0;
+  fallaron = 0;
+  cont.replaceChildren();
+  resumen.textContent = '';
+  resumen.className = '';
+  btnRerun.hidden = true;
+
+  let espacioPrueba = null;
+  try {
+    espacioPrueba = await prepararContexto(usuario);
+  } catch (e) {
+    log.error('No se pudo preparar el contexto:', e.message);
+    const div = document.createElement('div');
+    div.className = 'caso fallo';
+    div.innerHTML = `<span class="simbolo">✗</span><span>Preparación del contexto<div class="detalle">${e.message}</div></span>`;
+    cont.append(div);
+    fallaron = 1;
+    actualizarResumen();
+    return;
+  }
+
+  await suiteSanidad();
+  await suiteRepositorios();
+  await suiteVistas();
+  await suiteRealtime();
+
+  suite('K. Limpieza final');
+  await caso('eliminar espacio de prueba', async () => {
+    exigir(espacioPrueba, 'sin espacio de prueba');
+    await limpiarTodo();
+    const r = await repoEspacios.eliminar(espacioPrueba.id);
+    exigir(r.exito, r.error);
+  });
+
+  actualizarResumen();
+  btnRerun.hidden = false;
+}
+
+// =================================================================
+// LOGIN
+// =================================================================
+
+let emailSeleccionado = '';
+
+document.querySelectorAll('.btn-usuario').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.btn-usuario').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+    btn.setAttribute('aria-pressed', 'true');
+    emailSeleccionado = btn.dataset.email;
+    document.getElementById('password').focus();
+  });
+});
+
+async function entrarYCorrer() {
+  estadoLogin.textContent = 'Iniciando sesión…';
+  estadoLogin.style.color = '';
+  try {
+    const password = document.getElementById('password').value;
+    if (!emailSeleccionado) {
+      estadoLogin.textContent = 'Primero elige un usuario.';
+      estadoLogin.style.color = '#f87171';
+      return;
+    }
+    if (!password) {
+      estadoLogin.textContent = 'Escribe la contraseña.';
+      estadoLogin.style.color = '#f87171';
+      return;
+    }
+    await iniciarSesion(emailSeleccionado, password);
+    const usuario = obtenerUsuarioActual();
+    if (!usuario) throw new Error('Sin usuario tras login');
+    estadoLogin.textContent = '';
+    document.getElementById('login').hidden = true;
+    sectionTests.hidden = false;
+    await ejecutar(usuario);
+  } catch (e) {
+    log.error('Error en login:', e.message);
+    estadoLogin.textContent = 'Error: ' + e.message;
+    estadoLogin.style.color = '#f87171';
+  }
+}
+
+document.getElementById('btn-entrar').addEventListener('click', entrarYCorrer);
+document.getElementById('password').addEventListener('keydown', (ev) => {
+  if (ev.key === 'Enter') entrarYCorrer();
+});
+
+btnRerun.addEventListener('click', async () => {
+  const usuario = obtenerUsuarioActual();
+  if (!usuario) {
+    btnRerun.hidden = true;
+    document.getElementById('login').hidden = false;
+    return;
+  }
+  try {
+    await cerrarSesion();
+  } catch (e) {
+    log.warn('Error al cerrar sesión:', e.message);
+  }
+  location.reload();
+});
+</script>
+</body>
+</html>

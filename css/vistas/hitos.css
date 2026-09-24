@@ -1,0 +1,18 @@
+/* ================================================================
+   Ahora Sí — CSS
+   Archivo: css/vistas/hitos.css
+   Versión: 1.0.0
+   Propósito: estilos específicos de la vista de hitos. El botón
+              de cumplido verde cuando está activo.
+   ================================================================ */
+
+.vista--hitos .vista__item .acciones button[aria-pressed="true"] {
+  background: var(--verde);
+  border-color: var(--verde);
+  color: var(--ink);
+}
+
+.vista--hitos .vista__item .acciones button[aria-pressed="false"]:hover {
+  border-color: var(--verde);
+  color: var(--verde);
+}

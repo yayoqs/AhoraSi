@@ -1,0 +1,93 @@
+/* ================================================================
+   Ahora Sí — CSS
+   Archivo: css/vistas/respuesta.css
+   Versión: 1.0.0
+   Propósito: estilos específicos del panel de respuesta. Las
+              tres opciones son tarjetas grandes seleccionables.
+   ================================================================ */
+
+.vista--respuesta .vista__choices {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-3);
+  margin: var(--sp-5) 0;
+}
+
+.vista__choice {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: var(--sp-4) var(--sp-5);
+  border-radius: var(--r-lg);
+  border: 2px solid rgba(238, 242, 232, .25);
+  background: var(--pcb2);
+  color: var(--paper);
+  cursor: pointer;
+  transition: border-color var(--t-media), background var(--t-media), transform var(--t-rapida);
+}
+.vista__choice:hover {
+  border-color: var(--gold);
+  transform: translateY(-1px);
+}
+.vista__choice strong {
+  font-size: 16px;
+  font-weight: 700;
+}
+.vista__choice small {
+  color: var(--dim);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.vista__choice[aria-pressed="true"] {
+  background: var(--gold);
+  color: var(--ink);
+  border-color: var(--gold);
+}
+.vista__choice[aria-pressed="true"] small {
+  color: var(--ink);
+  opacity: .8;
+}
+
+.vista--respuesta .vista__textarea {
+  width: 100%;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  border: 1.5px solid rgba(238, 242, 232, .3);
+  background: rgba(238, 242, 232, .04);
+  color: var(--paper);
+  font-size: 15px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+  margin-bottom: var(--sp-3);
+  transition: border-color var(--t-rapida), background var(--t-rapida);
+}
+.vista--respuesta .vista__textarea:focus {
+  border-color: var(--sky);
+  background: rgba(238, 242, 232, .08);
+  outline: none;
+}
+
+.vista__boton-enviar {
+  padding: 12px 26px;
+  border-radius: var(--r-md);
+  background: var(--gold);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 15px;
+  transition: filter var(--t-rapida), transform var(--t-rapida);
+}
+.vista__boton-enviar:hover:not(:disabled) { filter: brightness(1.05); }
+.vista__boton-enviar:active:not(:disabled) { transform: translateY(1px); }
+.vista__boton-enviar:disabled {
+  background: rgba(238, 242, 232, .18);
+  color: var(--dim);
+  cursor: not-allowed;
+}
+
+@media (min-width: 640px) {
+  .vista--respuesta .vista__choices {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

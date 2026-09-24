@@ -1,0 +1,27 @@
+/* ================================================================
+   Ahora Sí — CSS
+   Archivo: css/vistas/fauna.css
+   Versión: 1.0.0
+   Propósito: estilos específicos de la vista de fauna. El tipo
+              se muestra como etiqueta pequeña al lado del nombre.
+   ================================================================ */
+
+.vista--fauna .tipo-etiqueta {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: var(--r-pill);
+  background: rgba(141, 183, 216, .2);
+  color: var(--sky);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.vista--fauna .vista__item .meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: center;
+  margin-top: var(--sp-2);
+}

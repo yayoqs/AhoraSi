@@ -1,0 +1,30 @@
+/* ================================================================
+   Ahora Sí — CSS
+   Archivo: css/vistas/kit.css
+   Versión: 1.0.0
+   Propósito: estilos específicos de la vista de kit. Los items
+              van agrupados por categoría con encabezado propio.
+   ================================================================ */
+
+.vista--kit .vista__progreso {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+  background: rgba(227, 188, 85, .15);
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: var(--sp-5);
+}
+
+.vista--kit .vista__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.vista--kit .vista__item .acciones {
+  margin-top: 0;
+  flex-shrink: 0;
+}

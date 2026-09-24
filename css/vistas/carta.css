@@ -1,0 +1,42 @@
+/* ================================================================
+   Ahora Sí — CSS
+   Archivo: css/vistas/carta.css
+   Versión: 1.0.0
+   Propósito: estilos específicos de la vista de carta.
+              Manifiesto con borde dorado lateral, anexos con
+              mismo estilo de lista que el resto.
+   ================================================================ */
+
+.vista--carta .vista__carta-base {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+
+.vista--carta .vista__pieza {
+  padding: var(--sp-4) var(--sp-5);
+  border-radius: var(--r-md);
+  background: var(--pcb3);
+  border-left: 4px solid var(--gold);
+}
+
+.vista--carta .vista__pieza h3 {
+  color: var(--gold);
+  font-size: 17px;
+  margin-bottom: var(--sp-2);
+}
+
+.vista--carta .vista__pieza-contenido {
+  margin: 0 0 var(--sp-2);
+  white-space: pre-wrap;
+  line-height: 1.7;
+}
+
+.vista--carta .vista__pieza .meta {
+  color: var(--dim);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

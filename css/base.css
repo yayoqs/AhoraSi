@@ -1,0 +1,123 @@
+/* ================================================================
+   Ahora Sí — CSS
+   Archivo: css/base.css
+   Versión: 1.0.0
+   Propósito: reset mínimo, variables de diseño, tipografía base.
+              Todo el resto del CSS depende de estas variables.
+              Mobile-first.
+   ================================================================ */
+
+/* -------- Reset ------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body, h1, h2, h3, h4, p, figure, blockquote, dl, dd { margin: 0; }
+ul, ol { padding: 0; margin: 0; list-style: none; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+input, select, textarea { font: inherit; color: inherit; }
+img, picture, svg { max-width: 100%; display: block; }
+
+/* -------- Variables --------------------------------------------- */
+:root {
+  /* Paleta principal */
+  --pcb: #0C2F26;          /* verde profundo, fondo principal */
+  --pcb2: #123F34;         /* verde medio, superficies elevadas */
+  --pcb3: #0e3529;         /* verde oscuro, contenedores internos */
+  --paper: #EEF2E8;        /* blanco hueso, texto principal */
+  --ink: #0A1F1A;          /* verde casi negro, texto sobre dorado */
+  --gold: #E3BC55;         /* dorado principal */
+  --sky: #8DB7D8;          /* azul cielo para acentos */
+  --rose: #EBA9A2;         /* rosa para acentos suaves */
+  --verde: #4ade80;        /* verde éxito */
+  --rojo: #f87171;         /* rojo error */
+  --dim: #A9C2B6;          /* verde apagado para texto secundario */
+
+  /* Tipografía */
+  --fuente-titulo: 'Bricolage Grotesque', 'Trebuchet MS', system-ui, sans-serif;
+  --fuente-cuerpo: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Espaciado */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+
+  /* Radios */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-pill: 999px;
+
+  /* Sombras */
+  --sombra-suave: 0 2px 8px rgba(0, 0, 0, .2);
+  --sombra-media: 0 4px 16px rgba(0, 0, 0, .3);
+
+  /* Transiciones */
+  --t-rapida: .08s ease;
+  --t-media: .18s ease;
+
+  /* Anchos */
+  --ancho-contenedor: 720px;
+}
+
+/* -------- Tipografía base -------------------------------------- */
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  background: var(--pcb);
+  color: var(--paper);
+  font-family: var(--fuente-cuerpo);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--fuente-titulo);
+  line-height: 1.1;
+  letter-spacing: -.02em;
+}
+
+h1 { font-size: clamp(24px, 5vw, 32px); font-weight: 800; }
+h2 { font-size: clamp(18px, 3.5vw, 22px); font-weight: 700; }
+h3 { font-size: 16px; font-weight: 700; }
+
+p { max-width: 64ch; }
+
+a {
+  color: var(--gold);
+  text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+
+code {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: .92em;
+  background: rgba(238, 242, 232, .1);
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+}
+
+/* -------- Foco accesible ---------------------------------------- */
+:focus-visible {
+  outline: 3px solid var(--sky);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* -------- Preferencia de movimiento reducido -------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

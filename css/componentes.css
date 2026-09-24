@@ -1,0 +1,230 @@
+/* ================================================================
+   Ahora Sí — CSS
+   Archivo: css/componentes.css
+   Versión: 1.0.0
+   Propósito: componentes reutilizables: títulos de vista, forms,
+              listas, items, badges, mensajes, check, botones de
+              acción, distintivo de autor.
+   ================================================================ */
+
+/* -------- Encabezado de vista ----------------------------------- */
+.vista h1 { color: var(--gold); margin-bottom: var(--sp-1); }
+.vista__lead {
+  color: var(--dim);
+  font-size: 14px;
+  margin-bottom: var(--sp-5);
+}
+.vista__subtitulo {
+  color: var(--sky);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin: var(--sp-8) 0 var(--sp-3);
+}
+.vista__subtitulo:first-of-type { margin-top: var(--sp-5); }
+
+/* -------- Formularios ------------------------------------------- */
+.vista__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  max-width: 480px;
+  margin-bottom: var(--sp-6);
+}
+.vista__form input,
+.vista__form select,
+.vista__form textarea {
+  padding: 11px 14px;
+  border-radius: var(--r-md);
+  border: 1.5px solid rgba(238, 242, 232, .3);
+  background: rgba(238, 242, 232, .04);
+  color: var(--paper);
+  font-size: 15px;
+  font-family: inherit;
+  width: 100%;
+  transition: border-color var(--t-rapida), background var(--t-rapida);
+}
+.vista__form input:focus,
+.vista__form select:focus,
+.vista__form textarea:focus {
+  border-color: var(--sky);
+  background: rgba(238, 242, 232, .08);
+  outline: none;
+}
+.vista__form textarea { resize: vertical; min-height: 90px; }
+.vista__form button[type="submit"] {
+  padding: 12px 20px;
+  border-radius: var(--r-md);
+  background: var(--gold);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 15px;
+  transition: filter var(--t-rapida), transform var(--t-rapida);
+}
+.vista__form button[type="submit"]:hover { filter: brightness(1.05); }
+.vista__form button[type="submit"]:active { transform: translateY(1px); }
+
+/* -------- Listas e items ---------------------------------------- */
+.vista__lista {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.vista__item {
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--pcb2);
+  border-left: 3px solid rgba(238, 242, 232, .12);
+  transition: border-color var(--t-rapida), background var(--t-rapida);
+}
+.vista__item:hover { border-left-color: var(--gold); }
+.vista__item--completo {
+  opacity: .6;
+}
+.vista__item--completo strong { text-decoration: line-through; }
+.vista__item-cabecera {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-1);
+}
+.vista__item-cabecera strong { font-size: 15px; }
+.vista__item p { margin: var(--sp-1) 0; }
+.vista__item .meta {
+  color: var(--dim);
+  font-size: 13px;
+}
+.vista__item .acciones {
+  display: flex;
+  gap: var(--sp-1);
+  margin-top: var(--sp-3);
+  flex-wrap: wrap;
+}
+.vista__item .acciones button {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--r-pill);
+  border: 1.5px solid rgba(238, 242, 232, .3);
+  color: var(--paper);
+  transition: background var(--t-rapida), border-color var(--t-rapida), color var(--t-rapida);
+}
+.vista__item .acciones button:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.vista__item .acciones button[aria-pressed="true"] {
+  background: var(--gold);
+  color: var(--ink);
+  border-color: var(--gold);
+  font-weight: 700;
+}
+
+/* -------- Checkbox de kit --------------------------------------- */
+.vista__check {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: center;
+  cursor: pointer;
+}
+.vista__check input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--gold);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.vista__check span { flex: 1; }
+
+/* -------- Grupos de kit ----------------------------------------- */
+.vista__grupos { display: flex; flex-direction: column; gap: var(--sp-5); }
+.vista__grupo h3 {
+  color: var(--sky);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp-2);
+}
+
+/* -------- Vacíos y mensajes ------------------------------------- */
+.vista__vacio {
+  color: var(--dim);
+  font-style: italic;
+  padding: var(--sp-4) 0;
+}
+.vista__error {
+  color: var(--rojo);
+  padding: var(--sp-3) var(--sp-4);
+  background: rgba(248, 113, 113, .1);
+  border-radius: var(--r-md);
+  border-left: 3px solid var(--rojo);
+  margin: 0 0 var(--sp-3);
+  font-size: 14px;
+}
+.vista__ok {
+  color: var(--verde);
+  padding: var(--sp-3) var(--sp-4);
+  background: rgba(74, 222, 128, .1);
+  border-radius: var(--r-md);
+  border-left: 3px solid var(--verde);
+  margin: var(--sp-3) 0;
+  font-size: 14px;
+}
+.vista-error {
+  color: var(--rojo);
+  padding: var(--sp-5);
+  text-align: center;
+}
+
+/* -------- Distintivo de autor ----------------------------------- */
+/* Aplica dentro de cualquier .vista__item-cabecera o similar */
+.autor {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--dim);
+  line-height: 1;
+}
+.autor__inicial {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  flex-shrink: 0;
+}
+.autor--yayo .autor__inicial {
+  background: var(--gold);
+  color: var(--ink);
+}
+.autor--luci .autor__inicial {
+  background: var(--sky);
+  color: var(--ink);
+}
+.autor--desconocido .autor__inicial {
+  background: rgba(238, 242, 232, .2);
+  color: var(--paper);
+}
+
+/* -------- Botón secundario reutilizable ------------------------- */
+.btn-secundario {
+  padding: 9px 16px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid rgba(238, 242, 232, .35);
+  color: var(--paper);
+  font-size: 14px;
+  font-weight: 500;
+  transition: border-color var(--t-rapida), color var(--t-rapida);
+}
+.btn-secundario:hover { border-color: var(--gold); color: var(--gold); }

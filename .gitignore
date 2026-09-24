@@ -1,0 +1,46 @@
+# ================================================================
+# Ahora Sí — .gitignore
+# Archivos y carpetas que Git NO debe versionar.
+# ================================================================
+
+# Sistema operativo
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-workspace
+*.sublime-project
+
+# Logs y temporales
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.cache/
+tmp/
+temp/
+
+# Dependencias (por si en algún momento se agrega npm)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Archivos temporales de test (los que no queramos versionar)
+tests/_*.html
+tests/temp-*.html
+
+# Archivos personales o locales
+.env
+.env.local
+*.local

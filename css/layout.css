@@ -1,0 +1,175 @@
+/* ================================================================
+   Ahora Sí — CSS
+   Archivo: css/layout.css
+   Versión: 1.0.0
+   Propósito: estructura del shell. Header, nav, main, footer.
+              Mobile-first: nav horizontal en móvil, cabe en
+              varias líneas si hace falta.
+   ================================================================ */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+
+/* -------- Header ------------------------------------------------ */
+.shell__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--pcb2);
+  border-bottom: 1px solid rgba(238, 242, 232, .12);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-wrap: wrap;
+}
+
+.shell__marca {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+.shell__nombre {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 17px;
+  color: var(--gold);
+  letter-spacing: -.02em;
+}
+
+.shell__usuario {
+  font-size: 12px;
+  color: var(--dim);
+}
+
+.shell__salir {
+  padding: 6px 14px;
+  font-size: 13px;
+  border: 1.5px solid rgba(238, 242, 232, .35);
+  border-radius: var(--r-pill);
+  color: var(--paper);
+  transition: border-color var(--t-rapida), color var(--t-rapida);
+}
+.shell__salir:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* -------- Nav --------------------------------------------------- */
+.nav {
+  display: flex;
+  gap: var(--sp-1);
+  flex-wrap: wrap;
+  order: 3;
+  width: 100%;
+  margin-top: var(--sp-2);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.nav::-webkit-scrollbar { display: none; }
+
+.nav__enlace {
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: var(--r-sm);
+  color: var(--paper);
+  white-space: nowrap;
+  transition: background var(--t-rapida), color var(--t-rapida);
+}
+.nav__enlace:hover { background: rgba(238, 242, 232, .1); text-decoration: none; }
+.nav__enlace--activo {
+  background: var(--gold);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* -------- Main -------------------------------------------------- */
+.shell__main {
+  flex: 1;
+  padding: var(--sp-5) var(--sp-4) var(--sp-12);
+  max-width: var(--ancho-contenedor);
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* -------- Login ------------------------------------------------- */
+.login {
+  max-width: 380px;
+  margin: var(--sp-12) auto;
+  padding: var(--sp-6);
+  background: var(--pcb2);
+  border-radius: var(--r-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  box-shadow: var(--sombra-suave);
+}
+.login__titulo {
+  color: var(--gold);
+  font-size: 26px;
+  margin-bottom: var(--sp-1);
+}
+.login__lead { color: var(--dim); font-size: 14px; margin-bottom: var(--sp-2); }
+.login__label { font-size: 13px; color: var(--dim); margin-top: var(--sp-1); }
+.login__campo {
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  border: 1.5px solid rgba(238, 242, 232, .3);
+  background: rgba(238, 242, 232, .04);
+  color: var(--paper);
+  font-size: 15px;
+  width: 100%;
+  transition: border-color var(--t-rapida), background var(--t-rapida);
+}
+.login__campo:focus {
+  border-color: var(--sky);
+  background: rgba(238, 242, 232, .08);
+  outline: none;
+}
+.login__boton {
+  margin-top: var(--sp-2);
+  padding: 13px 18px;
+  border-radius: var(--r-md);
+  background: var(--gold);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 15px;
+  transition: filter var(--t-rapida), transform var(--t-rapida);
+}
+.login__boton:hover { filter: brightness(1.05); }
+.login__boton:active { transform: translateY(1px); }
+.login__estado { min-height: 1.4em; font-size: 13px; color: var(--dim); }
+
+/* -------- Error fatal ------------------------------------------- */
+.error-fatal {
+  color: var(--rojo);
+  padding: var(--sp-5);
+  text-align: center;
+  font-size: 15px;
+}
+
+/* -------- Breakpoints ------------------------------------------- */
+@media (min-width: 768px) {
+  .shell__header {
+    padding: var(--sp-3) var(--sp-6);
+    flex-wrap: nowrap;
+  }
+  .nav {
+    order: 2;
+    width: auto;
+    margin-top: 0;
+    flex: 1;
+    justify-content: center;
+  }
+  .shell__salir { order: 3; }
+  .shell__main { padding: var(--sp-8) var(--sp-6) var(--sp-12); }
+}

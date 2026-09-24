@@ -1,0 +1,31 @@
+/* ================================================================
+   Ahora Sí — CSS
+   Archivo: css/vistas/planes.css
+   Versión: 1.0.0
+   Propósito: estilos específicos de la vista de planes. Los
+              botones de estado usan los colores de acción.
+   ================================================================ */
+
+.vista--planes .vista__item .acciones button[data-estado="si"][aria-pressed="true"] {
+  background: var(--verde);
+  border-color: var(--verde);
+  color: var(--ink);
+}
+
+.vista--planes .vista__item .acciones button[data-estado="quiza"][aria-pressed="true"] {
+  background: var(--sky);
+  border-color: var(--sky);
+  color: var(--ink);
+}
+
+.vista--planes .vista__item .acciones button[data-estado="no"][aria-pressed="true"] {
+  background: var(--rose);
+  border-color: var(--rose);
+  color: var(--ink);
+}
+
+.vista--planes .vista__item .acciones button[data-estado="pendiente"][aria-pressed="true"] {
+  background: rgba(238, 242, 232, .3);
+  border-color: rgba(238, 242, 232, .5);
+  color: var(--paper);
+}

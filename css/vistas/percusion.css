@@ -1,0 +1,144 @@
+/* ================================================================
+   Ahora Sí — CSS
+   Archivo: css/vistas/percusion.css
+   Versión: 1.0.0
+   Propósito: estilos específicos de la vista de percusión. Grid
+              del secuenciador, controles, formulario de guardar.
+   ================================================================ */
+
+.vista--percusion .perc__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--pcb3);
+  padding: var(--sp-3);
+  border-radius: var(--r-md);
+  margin: var(--sp-4) 0 var(--sp-4);
+}
+
+.perc__fila {
+  display: grid;
+  grid-template-columns: 74px repeat(8, 1fr);
+  gap: 6px;
+  align-items: center;
+}
+
+.perc__etiqueta {
+  color: var(--dim);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.perc__celda {
+  height: 40px;
+  border-radius: var(--r-sm);
+  border: 1.5px solid rgba(238, 242, 232, .2);
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--t-rapida), border-color var(--t-rapida), box-shadow var(--t-rapida);
+  -webkit-tap-highlight-color: transparent;
+}
+.perc__celda:hover { border-color: rgba(238, 242, 232, .45); }
+.perc__celda--activa {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+.perc__celda--actual {
+  box-shadow: 0 0 0 2px var(--sky) inset;
+}
+
+.perc__controles {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-4);
+}
+
+.perc__play {
+  padding: 11px 26px;
+  border-radius: var(--r-pill);
+  background: var(--gold);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 15px;
+  transition: filter var(--t-rapida), transform var(--t-rapida);
+}
+.perc__play:hover { filter: brightness(1.05); }
+.perc__play:active { transform: translateY(1px); }
+
+.perc__bpm {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--dim);
+  font-size: 13px;
+}
+.perc__bpm input[type="range"] {
+  accent-color: var(--gold);
+  width: 140px;
+}
+.perc__bpm-valor { min-width: 60px; font-weight: 500; color: var(--paper); }
+
+.perc__secundario {
+  padding: 9px 16px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid rgba(238, 242, 232, .35);
+  color: var(--paper);
+  font-size: 14px;
+  font-weight: 500;
+  transition: border-color var(--t-rapida), color var(--t-rapida);
+}
+.perc__secundario:hover { border-color: var(--gold); color: var(--gold); }
+
+.perc__guardar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  background: var(--pcb3);
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  margin-bottom: var(--sp-4);
+  border-left: 3px solid var(--gold);
+}
+.perc__guardar input {
+  padding: 11px 14px;
+  border-radius: var(--r-md);
+  border: 1.5px solid rgba(238, 242, 232, .3);
+  background: rgba(238, 242, 232, .04);
+  color: var(--paper);
+  font-size: 15px;
+}
+.perc__guardar input:focus {
+  border-color: var(--sky);
+  background: rgba(238, 242, 232, .08);
+  outline: none;
+}
+.perc__guardar-botones {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+.perc__guardar-botones button {
+  padding: 9px 18px;
+  border-radius: var(--r-md);
+  font-size: 14px;
+  font-weight: 500;
+  border: 1.5px solid rgba(238, 242, 232, .35);
+  color: var(--paper);
+  transition: border-color var(--t-rapida), color var(--t-rapida);
+}
+.perc__guardar-botones button:hover { border-color: var(--gold); color: var(--gold); }
+.perc__guardar-botones button[type="submit"] {
+  background: var(--gold);
+  color: var(--ink);
+  border-color: var(--gold);
+  font-weight: 700;
+}
+.perc__guardar-botones button[type="submit"]:hover { filter: brightness(1.05); color: var(--ink); }
+
+@media (max-width: 560px) {
+  .perc__fila { grid-template-columns: 58px repeat(8, 1fr); gap: 4px; }
+  .perc__etiqueta { font-size: 11px; }
+  .perc__celda { height: 32px; border-radius: 4px; }
+}
