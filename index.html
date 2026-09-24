@@ -22,9 +22,83 @@
 <link rel="stylesheet" href="css/vistas/flora.css">
 <link rel="stylesheet" href="css/vistas/percusion.css">
 <link rel="stylesheet" href="css/vistas/respuesta.css">
+
+<style>
+  /* Estilos mínimos por si las CSS no cargan, para que igual se vea algo */
+  body { margin: 0; background: #0C2F26; color: #EEF2E8; font-family: system-ui, sans-serif; }
+  #app { padding: 24px; }
+  #cargando { padding: 24px; color: #A9C2B6; }
+  #captura-error {
+    display: none;
+    margin: 20px;
+    padding: 16px;
+    background: #3a1d1d;
+    border-left: 4px solid #f87171;
+    border-radius: 10px;
+    color: #fecaca;
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  #captura-error strong { color: #f87171; display: block; margin-bottom: 8px; font-size: 14px; }
+</style>
 </head>
 <body>
-<div id="app" class="shell">Cargando…</div>
+<div id="app">
+  <div id="cargando">Cargando…</div>
+</div>
+
+<div id="captura-error"></div>
+
+<!-- Captura temprana de errores. Va ANTES de los módulos para que
+     cualquier error de carga o de ejecución quede registrado. -->
+<script>
+(function () {
+  'use strict';
+  const captura = document.getElementById('captura-error');
+  const lineas = [];
+
+  function mostrar() {
+    captura.style.display = 'block';
+    captura.innerHTML = '<strong>Error detectado al cargar la app</strong>' + lineas.join('\n');
+  }
+
+  function registrar(origen, mensaje, extra) {
+    const linea = `[${origen}] ${mensaje}` + (extra ? `\n  ${extra}` : '');
+    lineas.push(linea);
+    console.error(origen, mensaje, extra || '');
+    mostrar();
+  }
+
+  window.addEventListener('error', (ev) => {
+    if (ev.target && ev.target.tagName === 'SCRIPT') {
+      registrar('script', `No se pudo cargar: ${ev.target.src}`);
+      return;
+    }
+    if (ev.target && ev.target.tagName === 'LINK') {
+      registrar('css', `No se pudo cargar: ${ev.target.href}`);
+      return;
+    }
+    registrar('error', ev.message || 'Error desconocido', ev.filename ? `${ev.filename}:${ev.lineno}:${ev.colno}` : '');
+  }, true);
+
+  window.addEventListener('unhandledrejection', (ev) => {
+    const razon = ev.reason;
+    const msg = razon?.message || String(razon) || 'Promesa rechazada sin motivo';
+    const stack = razon?.stack ? razon.stack.split('\n').slice(0, 6).join('\n  ') : '';
+    registrar('promesa', msg, stack);
+  });
+
+  // Timeout de seguridad: si en 6 segundos no se quitó "Cargando…", avisar.
+  setTimeout(() => {
+    const c = document.getElementById('cargando');
+    if (c && c.parentNode) {
+      registrar('timeout', 'La app no arrancó en 6 segundos. Revisa los logs de arriba o la consola completa con F12.');
+    }
+  }, 6000);
+})();
+</script>
 
 <script src="js/appwrite.min.js"></script>
 <script type="module" src="js/app.js"></script>
