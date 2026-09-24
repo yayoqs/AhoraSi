@@ -24,7 +24,6 @@
 <link rel="stylesheet" href="css/vistas/respuesta.css">
 
 <style>
-  /* Estilos mínimos por si las CSS no cargan, para que igual se vea algo */
   body { margin: 0; background: #0C2F26; color: #EEF2E8; font-family: system-ui, sans-serif; }
   #app { padding: 24px; }
   #cargando { padding: 24px; color: #A9C2B6; }
@@ -51,8 +50,7 @@
 
 <div id="captura-error"></div>
 
-<!-- Captura temprana de errores. Va ANTES de los módulos para que
-     cualquier error de carga o de ejecución quede registrado. -->
+<!-- Captura temprana de errores. Ignora scripts de terceros (Cloudflare, fonts). -->
 <script>
 (function () {
   'use strict';
@@ -71,12 +69,24 @@
     mostrar();
   }
 
+  function esLocal(url) {
+    if (!url) return false;
+    try {
+      const u = new URL(url, location.href);
+      return u.origin === location.origin;
+    } catch (e) {
+      return false;
+    }
+  }
+
   window.addEventListener('error', (ev) => {
     if (ev.target && ev.target.tagName === 'SCRIPT') {
+      if (!esLocal(ev.target.src)) return;
       registrar('script', `No se pudo cargar: ${ev.target.src}`);
       return;
     }
     if (ev.target && ev.target.tagName === 'LINK') {
+      if (!esLocal(ev.target.href)) return;
       registrar('css', `No se pudo cargar: ${ev.target.href}`);
       return;
     }
@@ -90,11 +100,10 @@
     registrar('promesa', msg, stack);
   });
 
-  // Timeout de seguridad: si en 6 segundos no se quitó "Cargando…", avisar.
   setTimeout(() => {
     const c = document.getElementById('cargando');
     if (c && c.parentNode) {
-      registrar('timeout', 'La app no arrancó en 6 segundos. Revisa los logs de arriba o la consola completa con F12.');
+      registrar('timeout', 'La app no arrancó en 6 segundos.');
     }
   }, 6000);
 })();
