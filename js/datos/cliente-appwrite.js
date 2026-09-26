@@ -1,19 +1,14 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/cliente-appwrite.js
-   Versión: 2.0.0
+   Versión: 2.1.0
    Propósito: instancia única del cliente Appwrite. Expone Client,
-              Account y TablesDB. También reexporta los helpers del
-              SDK (Query, Permission, Role, ID, Realtime, Channel,
-              Operator) para que ningún otro módulo dependa del
+              Account, TablesDB y Storage. Reexporta los helpers
+              del SDK para que ningún otro módulo dependa del
               global window.Appwrite.
-              v2.0.0: se cambia el origen del SDK. Ya no se importa
-                      desde esm.sh. Se toma de window.Appwrite, que
-                      es poblado por js/appwrite.min.js (bundle UMD
-                      v25, cargado como <script> clásico). Se
-                      reexportan helpers. Se agrega verificación de
-                      disponibilidad con mensaje claro.
-              v1.0.1: SDK desde esm.sh@21.
+              v2.1.0: se agrega Storage. Verifica que el bundle
+                      lo exponga.
+              v2.0.0: SDK desde window.Appwrite (UMD local v25).
               v1.0.0: versión inicial.
    ================================================================ */
 
@@ -36,6 +31,9 @@ function obtenerSdk() {
   if (typeof sdk.TablesDB !== 'function') {
     throw new Error('El bundle cargado no expone TablesDB.');
   }
+  if (typeof sdk.Storage !== 'function') {
+    throw new Error('El bundle cargado no expone Storage.');
+  }
   return sdk;
 }
 
@@ -52,6 +50,7 @@ export const Operator = sdk.Operator;
 let cliente = null;
 let account = null;
 let tablesDB = null;
+let storage = null;
 
 export function obtenerCliente() {
   if (!cliente) {
@@ -73,6 +72,11 @@ export function obtenerTablesDB() {
   return tablesDB;
 }
 
+export function obtenerStorage() {
+  if (!storage) storage = new sdk.Storage(obtenerCliente());
+  return storage;
+}
+
 export function obtenerDatabaseId() {
   return CONFIG.appwrite.databaseId;
 }
@@ -81,5 +85,6 @@ export function reiniciar() {
   cliente = null;
   account = null;
   tablesDB = null;
+  storage = null;
   log.info('Cliente Appwrite reiniciado');
 }

@@ -31,6 +31,7 @@ const TABLAS = {
   ahorasi_fauna: 'fauna',
   ahorasi_flora: 'flora',
   ahorasi_ritmos: 'ritmos',
+  ahorasi_ritmos: 'fotos',
 };
 
 let rt = null;

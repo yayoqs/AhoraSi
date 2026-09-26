@@ -1,10 +1,14 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/repositorios/perfiles.js
-   Versión: 1.0.1
+   Versión: 1.1.0
    Propósito: acceso a ahorasi_perfiles. Expone obtenerPorUsuarioId,
               crear, actualizar y eliminar. El perfil se crea una
               sola vez por usuario y se reutiliza siempre.
+              v1.1.0: se deja de enviar `permissions` en crear().
+                      Con Row Security desactivado (D2), los
+                      permisos a nivel de fila no aplican. Sin
+                      cambios en firmas públicas.
               v1.0.1: se agrega eliminar() para uso en tests.
               v1.0.0: versión inicial.
    ================================================================ */
@@ -13,8 +17,6 @@ import {
   obtenerTablesDB,
   obtenerDatabaseId,
   Query,
-  Permission,
-  Role,
 } from '../cliente-appwrite.js';
 import { Resultado } from '../../dominio/resultado.js';
 import { emitir } from '../../nucleo/bus-eventos.js';
@@ -67,11 +69,6 @@ export async function crear(datos) {
         nombre: datos.nombre.trim(),
         rol: datos.rol || 'miembro',
       },
-      permissions: [
-        Permission.read(Role.user(datos.userId)),
-        Permission.update(Role.user(datos.userId)),
-        Permission.delete(Role.user(datos.userId)),
-      ],
     });
     const perfil = normalizar(r);
     emitir('perfiles:creado', perfil);

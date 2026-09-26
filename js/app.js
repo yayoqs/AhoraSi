@@ -1,23 +1,22 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/app.js
-   Versión: 2.6.0
+   Versión: 2.10.0
    Propósito: punto de entrada. Arranca sesión, monta el shell
               de navegación por hash, monta/desmonta las vistas, y
               mantiene Realtime activo mientras hay sesión.
-              v2.6.0: navegar() y iniciarRealtime() ya no bloquean
-                      el arranque con await. El shell aparece tan
-                      pronto como hay usuario y espacio; la vista
-                      por defecto se monta sin bloquear, y Realtime
-                      arranca en background. Mejora notable en FCP
-                      en móvil.
-              v2.5.1: construirShell y principal verifican #app.
-              v2.5.0: se inicia Realtime al arrancar y se detiene
-                      al cerrar sesión.
-              v2.4.1: import corregido de percusión.
-              v2.4.0: se registra percusión.
-              v2.3.0: carta y respuesta.
-              v2.2.0: hitos, kit, fauna, flora, botón Salir.
+              v2.10.0: se agrega la vista Ideas al nav, entre
+                      Planes e Hitos. La lógica estaba en la vista
+                      Planes hasta v1.6.0.
+              v2.9.0: hero como primera vista, una vez por
+                      navegador.
+              v2.8.0: login rediseñado, vista Mi cuenta, nombre
+                      visible en header.
+              v2.7.0: manejarSalir() con mostrarConfirmacion().
+              v2.6.0: navegar() e iniciarRealtime() no bloquean.
+              v2.5.x: Realtime al arrancar y al cerrar sesión.
+              v2.4.x: percusión, carta, respuesta, hitos, kit,
+                      fauna, flora, botón Salir.
               v2.1.0: login integrado.
               v2.0.0: shell con navegación.
               v1.0.0: verificación de arranque.
@@ -29,40 +28,86 @@ import { arrancar as arrancarSesion } from './arranque/sesion-inicial.js';
 import { iniciarSesion, cerrarSesion } from './datos/sesion.js';
 import { iniciar as iniciarRealtime, detener as detenerRealtime } from './datos/realtime.js';
 import { obtener } from './nucleo/almacen.js';
+import { al } from './nucleo/bus-eventos.js';
 import { h, limpiarContenedor } from './nucleo/utils.js';
+import { mostrarConfirmacion } from './nucleo/dialogos.js';
 
+import * as vistaHero from './vistas/hero.js';
 import * as vistaCarta from './vistas/carta.js';
 import * as vistaPlanes from './vistas/planes.js';
+import * as vistaIdeas from './vistas/ideas.js';
 import * as vistaHitos from './vistas/hitos.js';
 import * as vistaKit from './vistas/kit.js';
 import * as vistaFauna from './vistas/fauna.js';
 import * as vistaFlora from './vistas/flora.js';
 import * as vistaRespuesta from './vistas/respuesta.js';
 import * as vistaPercusion from './vistas/percusion.js';
+import * as vistaCuenta from './vistas/cuenta.js';
 
 const log = crearLogger('app');
 
 const VISTAS = {
+  hero: { titulo: 'Bienvenida', modulo: vistaHero, oculta: true },
   carta: { titulo: 'Carta', modulo: vistaCarta },
   planes: { titulo: 'Planes', modulo: vistaPlanes },
+  ideas: { titulo: 'Ideas', modulo: vistaIdeas },
   hitos: { titulo: 'Hitos', modulo: vistaHitos },
   kit: { titulo: 'Kit', modulo: vistaKit },
   fauna: { titulo: 'Fauna', modulo: vistaFauna },
   flora: { titulo: 'Flora', modulo: vistaFlora },
   percusion: { titulo: 'Percusión', modulo: vistaPercusion },
   respuesta: { titulo: 'Respuesta', modulo: vistaRespuesta },
+  cuenta: { titulo: 'Mi cuenta', modulo: vistaCuenta, oculta: true },
 };
 
 const RUTA_DEFECTO = 'carta';
+const CLAVE_HERO_VISTO = 'ahorasi:heroVisto';
 
 const USUARIOS = [
-  { id: 'yayo', nombre: 'Yayo', email: 'yayoqs@elisekai.com' },
-  { id: 'luci', nombre: 'Luci', email: 'luciviteri@elisekai.com' },
+  {
+    id: 'luci',
+    nombre: 'Luci',
+    email: 'luciviteri@elisekai.com',
+    clase: 'login__usuario--luci',
+    inicial: 'L',
+  },
+  {
+    id: 'yayo',
+    nombre: 'Yayo',
+    email: 'yayoqs@elisekai.com',
+    clase: 'login__usuario--yayo',
+    inicial: 'Y',
+  },
 ];
 
 let vistaActiva = null;
 let navContenedor = null;
 let vistasContenedor = null;
+let usuarioElegido = null;
+
+function heroVisto() {
+  try {
+    return localStorage.getItem(CLAVE_HERO_VISTO) === '1';
+  } catch (e) {
+    return true;
+  }
+}
+
+function marcarHeroVisto() {
+  try {
+    localStorage.setItem(CLAVE_HERO_VISTO, '1');
+  } catch (e) {
+    // silencioso
+  }
+}
+
+function rutaInicial() {
+  const hash = (location.hash || '').replace('#', '').trim();
+  if (hash === 'hero' && heroVisto()) return RUTA_DEFECTO;
+  if (VISTAS[hash]) return hash;
+  if (!heroVisto()) return 'hero';
+  return RUTA_DEFECTO;
+}
 
 function rutaDesdeHash() {
   const hash = (location.hash || '').replace('#', '').trim();
@@ -72,6 +117,7 @@ function rutaDesdeHash() {
 function construirNav() {
   limpiarContenedor(navContenedor);
   for (const [id, ruta] of Object.entries(VISTAS)) {
+    if (ruta.oculta) continue;
     navContenedor.append(h('a', {
       href: '#' + id,
       'data-ruta': id,
@@ -84,17 +130,6 @@ function marcarNavActiva(ruta) {
   navContenedor.querySelectorAll('.nav__enlace').forEach((a) => {
     a.classList.toggle('nav__enlace--activo', a.dataset.ruta === ruta);
   });
-}
-
-async function desmontarVistaActual() {
-  if (!vistaActiva) return;
-  try {
-    vistaActiva.modulo.limpiar();
-  } catch (e) {
-    log.error('Error al limpiar vista:', vistaActiva.titulo, e.message);
-  }
-  vistaActiva = null;
-  limpiarContenedor(vistasContenedor);
 }
 
 async function montarVista(ruta) {
@@ -110,17 +145,7 @@ async function montarVista(ruta) {
   }
 }
 
-/**
- * Navega entre vistas.
- * v2.6.0: el desmontaje es síncrono y bloqueante (necesario para
- * evitar que dos vistas coexistan en el DOM). El montaje de la
- * vista se dispara sin await: la vista pinta su esqueleto y luego
- * carga datos en background. El caller puede llamar sin await.
- */
 function navegar(ruta) {
-  // El desmontaje debe completarse antes de montar la nueva. Como
-  // es una operación rápida (limpiar contenedor + abort), la
-  // hacemos síncrona llamando al limpiar de la vista activa.
   if (vistaActiva) {
     try {
       vistaActiva.modulo.limpiar();
@@ -130,6 +155,11 @@ function navegar(ruta) {
     vistaActiva = null;
     limpiarContenedor(vistasContenedor);
   }
+
+  if (ruta !== 'hero') {
+    marcarHeroVisto();
+  }
+
   montarVista(ruta).catch((e) => log.error('Error al montar vista:', e));
   marcarNavActiva(ruta);
 }
@@ -139,7 +169,12 @@ function instalarNavegacion() {
 }
 
 async function manejarSalir() {
-  if (!confirm('¿Cerrar sesión?')) return;
+  const confirmado = await mostrarConfirmacion(
+    'Cerrar sesión',
+    '¿Seguro que quieres cerrar la sesión?',
+    { textoConfirmar: 'Cerrar sesión', claseConfirmar: 'dialogo__boton--primario' }
+  );
+  if (!confirmado) return;
   try {
     await detenerRealtime();
     await cerrarSesion();
@@ -158,19 +193,29 @@ function construirShell(estadoSesion) {
   }
   limpiarContenedor(app);
 
+  const nombreVisible = estadoSesion?.perfil?.nombre
+    || estadoSesion?.usuario?.email
+    || '';
+  const spanUsuario = h('span', { class: 'shell__usuario' }, nombreVisible);
+
   const encabezado = h('header', { class: 'shell__header' },
     h('div', { class: 'shell__marca' },
       h('span', { class: 'shell__nombre' }, CONFIG.app.nombre),
-      estadoSesion?.usuario
-        ? h('span', { class: 'shell__usuario' }, estadoSesion.usuario.email)
-        : null
+      spanUsuario
     ),
     h('nav', { class: 'nav', id: 'nav' }),
-    h('button', {
-      type: 'button',
-      class: 'shell__salir',
-      onclick: manejarSalir,
-    }, 'Salir')
+    h('div', { class: 'shell__acciones' },
+      h('button', {
+        type: 'button',
+        class: 'shell__cuenta',
+        onclick: () => { location.hash = '#cuenta'; },
+      }, 'Mi cuenta'),
+      h('button', {
+        type: 'button',
+        class: 'shell__salir',
+        onclick: manejarSalir,
+      }, 'Salir')
+    )
   );
 
   const main = h('main', { class: 'shell__main', id: 'vistas' });
@@ -180,6 +225,10 @@ function construirShell(estadoSesion) {
   navContenedor = encabezado.querySelector('#nav');
   vistasContenedor = main;
   construirNav();
+
+  al('almacen:perfil', ({ valor }) => {
+    if (valor?.nombre) spanUsuario.textContent = valor.nombre;
+  });
 }
 
 function mostrarLogin() {
@@ -190,23 +239,60 @@ function mostrarLogin() {
   }
   limpiarContenedor(app);
 
+  usuarioElegido = null;
+
   const estado = h('p', { class: 'login__estado', role: 'status' });
-  const form = h('form', { class: 'login', id: 'form-login' },
-    h('h1', { class: 'login__titulo' }, CONFIG.app.nombre),
-    h('p', { class: 'login__lead' }, 'Entra para acceder al espacio compartido.'),
-    h('label', { class: 'login__label' }, '¿Quién eres?'),
-    h('select', { name: 'email', class: 'login__campo', required: true },
-      ...USUARIOS.map((u) => h('option', { value: u.email }, u.nombre))
+
+  const grupoCampo = h('div', { class: 'login__campo-grupo' });
+  const campoPassword = h('input', {
+    type: 'password',
+    name: 'password',
+    class: 'login__campo',
+    placeholder: 'Contraseña',
+    autocomplete: 'current-password',
+  });
+  const botonEntrar = h('button', {
+    type: 'submit',
+    class: 'login__boton',
+  }, 'Entrar');
+  grupoCampo.append(campoPassword, botonEntrar);
+
+  const eleccion = h('div', { class: 'login__eleccion' });
+
+  function pintarEleccion() {
+    limpiarContenedor(eleccion);
+    for (const u of USUARIOS) {
+      eleccion.append(h('button', {
+        type: 'button',
+        class: `login__usuario ${u.clase}`,
+        'data-usuario': u.id,
+        'aria-pressed': String(usuarioElegido === u.id),
+        onclick: () => {
+          usuarioElegido = usuarioElegido === u.id ? null : u.id;
+          pintarEleccion();
+          grupoCampo.classList.toggle('login__campo-grupo--visible', !!usuarioElegido);
+          if (usuarioElegido) setTimeout(() => campoPassword.focus(), 60);
+        },
+      },
+        h('span', { class: 'login__inicial', 'aria-hidden': 'true' }, u.inicial),
+        h('span', { class: 'login__usuario-nombre' }, u.nombre)
+      ));
+    }
+  }
+  pintarEleccion();
+
+  const form = h('form', { class: 'login__caja' },
+    h('header', { class: 'login__cabecera' },
+      h('h1', { class: 'login__titulo' }, CONFIG.app.nombre),
+      h('p', { class: 'login__lead' }, 'Un espacio de los dos.')
     ),
-    h('label', { class: 'login__label' }, 'Contraseña'),
-    h('input', {
-      type: 'password',
-      name: 'password',
-      class: 'login__campo',
-      required: true,
-      autocomplete: 'current-password',
-    }),
-    h('button', { type: 'submit', class: 'login__boton' }, 'Entrar'),
+    h('div', { class: 'login__paso' },
+      h('p', { class: 'login__etiqueta' }, '¿Quién eres?'),
+      eleccion
+    ),
+    h('div', { class: 'login__paso' },
+      grupoCampo
+    ),
     estado
   );
 
@@ -214,21 +300,26 @@ function mostrarLogin() {
 
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
-    const fd = new FormData(form);
-    const email = String(fd.get('email') || '');
-    const password = String(fd.get('password') || '');
-    if (!email || !password) {
-      estado.textContent = 'Completa todos los campos.';
+    const password = campoPassword.value;
+    if (!usuarioElegido) {
+      estado.textContent = 'Elige quién eres.';
       return;
     }
+    if (!password) {
+      estado.textContent = 'Escribe la contraseña.';
+      return;
+    }
+    const usuario = USUARIOS.find((u) => u.id === usuarioElegido);
+    if (!usuario) return;
+
     estado.textContent = 'Entrando…';
     try {
-      await iniciarSesion(email, password);
+      await iniciarSesion(usuario.email, password);
       estado.textContent = 'Bienvenido. Cargando espacio…';
       setTimeout(() => location.reload(), 300);
     } catch (e) {
       log.error('Error de login:', e.message);
-      estado.textContent = 'Error: ' + e.message;
+      estado.textContent = 'Contraseña incorrecta.';
     }
   });
 }
@@ -258,12 +349,10 @@ async function principal() {
     return;
   }
 
-  // v2.6.0: el shell se construye tan pronto como tenemos usuario y
-  // espacio. La vista por defecto y Realtime arrancan sin await.
   construirShell(estadoSesion);
   instalarNavegacion();
 
-  navegar(rutaDesdeHash());
+  navegar(rutaInicial());
 
   log.info('App lista. Espacio:', obtener('espacio')?.id);
 

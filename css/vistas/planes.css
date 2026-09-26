@@ -1,29 +1,50 @@
 /* ================================================================
    Ahora Sí — CSS
    Archivo: css/vistas/planes.css
-   Versión: 1.0.0
-   Propósito: estilos específicos de la vista de planes. Los
-              botones de estado usan los colores de acción.
+   Versión: 1.2.0
+   Propósito: estilos específicos de la vista de planes.
+              v1.2.0: se quitan los estilos de la sección de ideas
+                      (se mueven a ideas.css). Se agrega la
+                      cabecera decorada con retícula de libreta
+                      para dar contexto de orden.
+              v1.1.0: sección de ideas (revertido).
+              v1.0.0: botones de estado.
    ================================================================ */
 
+/* -------- Cabecera decorada ------------------------------------- */
+.vista--planes .vista__cabecera {
+  position: relative;
+  padding: var(--sp-5) var(--sp-4);
+  margin: calc(var(--sp-2) * -1) calc(var(--sp-4) * -1) var(--sp-5);
+  border-radius: var(--r-lg);
+  background-color: var(--pcb3);
+  background-image:
+    linear-gradient(rgba(227, 188, 85, .07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(227, 188, 85, .07) 1px, transparent 1px);
+  background-size: 24px 24px;
+  border: 1px solid rgba(227, 188, 85, .15);
+}
+
+.vista--planes .vista__cabecera h1 {
+  color: var(--gold);
+}
+
+/* -------- Botones de estado (plan) ------------------------------ */
 .vista--planes .vista__item .acciones button[data-estado="si"][aria-pressed="true"] {
   background: var(--verde);
   border-color: var(--verde);
   color: var(--ink);
 }
-
 .vista--planes .vista__item .acciones button[data-estado="quiza"][aria-pressed="true"] {
   background: var(--sky);
   border-color: var(--sky);
   color: var(--ink);
 }
-
 .vista--planes .vista__item .acciones button[data-estado="no"][aria-pressed="true"] {
   background: var(--rose);
   border-color: var(--rose);
   color: var(--ink);
 }
-
 .vista--planes .vista__item .acciones button[data-estado="pendiente"][aria-pressed="true"] {
   background: rgba(238, 242, 232, .3);
   border-color: rgba(238, 242, 232, .5);

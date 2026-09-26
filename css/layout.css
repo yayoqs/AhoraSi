@@ -1,10 +1,16 @@
 /* ================================================================
    Ahora Sí — CSS
    Archivo: css/layout.css
-   Versión: 1.0.0
+   Versión: 1.1.0
    Propósito: estructura del shell. Header, nav, main, footer.
-              Mobile-first: nav horizontal en móvil, cabe en
-              varias líneas si hace falta.
+              Mobile-first.
+              v1.1.0: login rediseñado con dos botones grandes
+                      (Luci / Yayo), campo de contraseña que
+                      aparece al elegir usuario. Se agrega botón
+                      "Mi cuenta" al header, junto a Salir. Se
+                      agrega .shell__usuario--nombre para mostrar
+                      el nombre visible del perfil.
+              v1.0.0: versión inicial.
    ================================================================ */
 
 .shell {
@@ -48,6 +54,19 @@
   color: var(--dim);
 }
 
+.shell__cuenta {
+  padding: 6px 14px;
+  font-size: 13px;
+  border: 1.5px solid rgba(238, 242, 232, .35);
+  border-radius: var(--r-pill);
+  color: var(--paper);
+  transition: border-color var(--t-rapida), color var(--t-rapida);
+}
+.shell__cuenta:hover {
+  border-color: var(--sky);
+  color: var(--sky);
+}
+
 .shell__salir {
   padding: 6px 14px;
   font-size: 13px;
@@ -59,6 +78,12 @@
 .shell__salir:hover {
   border-color: var(--gold);
   color: var(--gold);
+}
+
+.shell__acciones {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: center;
 }
 
 /* -------- Nav --------------------------------------------------- */
@@ -102,24 +127,128 @@
 }
 
 /* -------- Login ------------------------------------------------- */
+/* Pantalla de bienvenida. Dos botones grandes para elegir usuario,
+   campo de contraseña que aparece al elegir uno. Fondo con el
+   mismo patrón de circuito del prototipo original. */
 .login {
-  max-width: 380px;
-  margin: var(--sp-12) auto;
-  padding: var(--sp-6);
-  background: var(--pcb2);
-  border-radius: var(--r-lg);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-6) var(--sp-4);
+  background-color: var(--pcb);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' fill='none' stroke='%23E3BC55' stroke-opacity='.1' stroke-width='1.5'%3E%3Cpath d='M0 30h40l20 20h60M60 50v40l20 20h40M0 90h20'/%3E%3Ccircle cx='40' cy='30' r='3'/%3E%3Ccircle cx='120' cy='50' r='3'/%3E%3Ccircle cx='20' cy='90' r='3'/%3E%3C/svg%3E");
+}
+
+.login__caja {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.login__cabecera {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.login__titulo {
+  font-family: var(--fuente-titulo);
+  color: var(--gold);
+  font-size: clamp(38px, 10vw, 56px);
+  font-weight: 800;
+  letter-spacing: -.04em;
+  line-height: 1;
+  margin: 0;
+}
+
+.login__lead {
+  color: var(--dim);
+  font-size: 14px;
+  margin: 0;
+}
+
+.login__paso {
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
-  box-shadow: var(--sombra-suave);
 }
-.login__titulo {
-  color: var(--gold);
-  font-size: 26px;
-  margin-bottom: var(--sp-1);
+
+.login__etiqueta {
+  color: var(--sky);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin: 0;
 }
-.login__lead { color: var(--dim); font-size: 14px; margin-bottom: var(--sp-2); }
-.login__label { font-size: 13px; color: var(--dim); margin-top: var(--sp-1); }
+
+.login__eleccion {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+}
+
+.login__usuario {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-4) var(--sp-3);
+  border-radius: var(--r-lg);
+  border: 2px solid rgba(238, 242, 232, .2);
+  background: var(--pcb2);
+  color: var(--paper);
+  cursor: pointer;
+  transition: border-color var(--t-media), background var(--t-media), transform var(--t-rapida);
+}
+.login__usuario:hover {
+  border-color: rgba(238, 242, 232, .45);
+  transform: translateY(-1px);
+}
+.login__usuario[aria-pressed="true"] {
+  border-color: var(--gold);
+  background: var(--pcb3);
+}
+
+.login__inicial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-family: var(--fuente-titulo);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+}
+.login__usuario--luci .login__inicial { background: var(--sky); color: var(--ink); }
+.login__usuario--yayo .login__inicial { background: var(--gold); color: var(--ink); }
+
+.login__usuario-nombre {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.login__campo-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity var(--t-media), max-height var(--t-media);
+}
+.login__campo-grupo--visible {
+  opacity: 1;
+  max-height: 200px;
+}
+
 .login__campo {
   padding: 12px 14px;
   border-radius: var(--r-md);
@@ -135,8 +264,8 @@
   background: rgba(238, 242, 232, .08);
   outline: none;
 }
+
 .login__boton {
-  margin-top: var(--sp-2);
   padding: 13px 18px;
   border-radius: var(--r-md);
   background: var(--gold);
@@ -147,7 +276,14 @@
 }
 .login__boton:hover { filter: brightness(1.05); }
 .login__boton:active { transform: translateY(1px); }
-.login__estado { min-height: 1.4em; font-size: 13px; color: var(--dim); }
+
+.login__estado {
+  min-height: 1.4em;
+  font-size: 13px;
+  color: var(--dim);
+  text-align: center;
+  margin: 0;
+}
 
 /* -------- Error fatal ------------------------------------------- */
 .error-fatal {
@@ -170,6 +306,6 @@
     flex: 1;
     justify-content: center;
   }
-  .shell__salir { order: 3; }
+  .shell__acciones { order: 3; }
   .shell__main { padding: var(--sp-8) var(--sp-6) var(--sp-12); }
 }

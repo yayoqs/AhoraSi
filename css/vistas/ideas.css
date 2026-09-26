@@ -1,0 +1,208 @@
+/* ================================================================
+   Ahora Sí — CSS
+   Archivo: css/vistas/ideas.css
+   Versión: 1.1.0
+   Propósito: estilos específicos de la vista de ideas.
+              v1.1.0: se agregan estilos para edición inline
+                      (.pieza-edit) y botones primario/secundario.
+              v1.0.0: versión inicial.
+   ================================================================ */
+
+/* -------- Cabecera decorada ------------------------------------- */
+.vista--ideas .vista__cabecera {
+  position: relative;
+  padding: var(--sp-5) var(--sp-4);
+  margin: calc(var(--sp-2) * -1) calc(var(--sp-4) * -1) var(--sp-5);
+  border-radius: var(--r-lg);
+  background-color: var(--pcb3);
+  background-image:
+    radial-gradient(circle, rgba(141, 183, 216, .22) 1px, transparent 1.5px);
+  background-size: 22px 22px;
+  border: 1px solid rgba(141, 183, 216, .18);
+}
+.vista--ideas .vista__cabecera h1 {
+  color: var(--sky);
+}
+
+/* -------- Chips de categoría ------------------------------------ */
+.vista--ideas .chips-categoria {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-5);
+}
+.vista--ideas .chip-categoria {
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid rgba(238, 242, 232, .3);
+  background: transparent;
+  color: var(--paper);
+  font-size: 13px;
+  font-weight: 500;
+  transition: border-color var(--t-rapida), color var(--t-rapida), background var(--t-rapida);
+}
+.vista--ideas .chip-categoria:hover {
+  border-color: var(--sky);
+  color: var(--sky);
+}
+.vista--ideas .chip-categoria[aria-pressed="true"] {
+  background: var(--sky);
+  border-color: var(--sky);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* -------- Grupos de ideas --------------------------------------- */
+.vista--ideas .grupo-ideas {
+  margin-bottom: var(--sp-6);
+}
+.vista--ideas .grupo-ideas__titulo {
+  color: var(--sky);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin: 0 0 var(--sp-3);
+}
+
+/* -------- Lista de ideas ---------------------------------------- */
+.vista--ideas .lista-ideas {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.vista--ideas .idea {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--sp-3);
+  align-items: start;
+  padding: var(--sp-4);
+  background: var(--pcb2);
+  border-radius: var(--r-md);
+  border-left: 3px solid rgba(141, 183, 216, .35);
+  transition: border-color var(--t-rapida);
+}
+.vista--ideas .idea:hover {
+  border-left-color: var(--sky);
+}
+.vista--ideas .idea__cuerpo strong {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+.vista--ideas .idea__cuerpo p {
+  margin: 0 0 var(--sp-2);
+  color: var(--dim);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.vista--ideas .idea__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+}
+.vista--ideas .idea__acciones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  align-items: stretch;
+  flex-shrink: 0;
+}
+
+.vista--ideas .btn-sumar {
+  padding: 8px 16px;
+  border-radius: var(--r-pill);
+  background: var(--sky);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 13px;
+  transition: filter var(--t-rapida), transform var(--t-rapida);
+  white-space: nowrap;
+}
+.vista--ideas .btn-sumar:hover { filter: brightness(1.05); }
+.vista--ideas .btn-sumar:active { transform: translateY(1px); }
+
+.vista--ideas .btn-mini {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: var(--r-pill);
+  border: 1.5px solid rgba(238, 242, 232, .3);
+  background: transparent;
+  color: var(--paper);
+  transition: border-color var(--t-rapida), color var(--t-rapida);
+  white-space: nowrap;
+}
+.vista--ideas .btn-mini:hover { border-color: var(--sky); color: var(--sky); }
+
+.vista--ideas .btn-primario {
+  padding: 9px 18px;
+  border-radius: var(--r-md);
+  background: var(--sky);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 14px;
+}
+.vista--ideas .btn-primario:hover { filter: brightness(1.05); }
+
+.vista--ideas .btn-secundario {
+  padding: 9px 18px;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--paper);
+  border: 1.5px solid rgba(238, 242, 232, .35);
+  font-weight: 500;
+  font-size: 14px;
+  transition: border-color var(--t-rapida), color var(--t-rapida);
+}
+.vista--ideas .btn-secundario:hover { border-color: var(--sky); color: var(--sky); }
+
+/* -------- Edición inline ---------------------------------------- */
+.vista--ideas .pieza-edit {
+  padding: var(--sp-4);
+  background: var(--pcb3);
+  border-radius: var(--r-md);
+  border-left: 3px solid var(--sky);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.vista--ideas .pieza-edit input,
+.vista--ideas .pieza-edit textarea {
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  border: 1.5px solid rgba(238, 242, 232, .3);
+  background: rgba(238, 242, 232, .04);
+  color: var(--paper);
+  font: inherit;
+  font-size: 15px;
+  width: 100%;
+  transition: border-color var(--t-rapida), background var(--t-rapida);
+}
+.vista--ideas .pieza-edit textarea { min-height: 80px; resize: vertical; }
+.vista--ideas .pieza-edit input:focus,
+.vista--ideas .pieza-edit textarea:focus {
+  border-color: var(--sky);
+  outline: none;
+  background: rgba(238, 242, 232, .08);
+}
+.vista--ideas .pieza-edit__botones {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+/* -------- Responsive ------------------------------------------- */
+@media (max-width: 560px) {
+  .vista--ideas .idea {
+    grid-template-columns: 1fr;
+  }
+  .vista--ideas .idea__acciones {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}

@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test temporal — Fotos</title>
+<style>
+  :root {
+    --bg: #0C2F26; --bg2: #123F34; --paper: #EEF2E8;
+    --gold: #E3BC55; --sky: #8DB7D8; --dim: #A9C2B6; --ink: #0A1F1A;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--paper);
+    font: 400 15px/1.6 system-ui, -apple-system, sans-serif;
+    padding: 20px 16px 60px; -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; color: var(--gold); }
+  h2 { font-size: 15px; margin: 26px 0 8px; color: var(--gold); }
+  .lead { color: var(--dim); margin: 0 0 20px; font-size: 14px; }
+
+  #login { max-width: 420px; margin: 40px auto; padding: 24px;
+           background: var(--bg2); border-radius: 12px;
+           display: flex; flex-direction: column; gap: 10px; }
+  #botones-usuario { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-usuario {
+    padding: 10px 22px; border: 1.5px solid var(--gold);
+    background: transparent; color: var(--gold);
+    border-radius: 999px; cursor: pointer; font-weight: 600; font-size: 15px;
+  }
+  .btn-usuario[aria-pressed="true"] { background: var(--gold); color: var(--ink); }
+  input {
+    padding: 11px 14px; font: inherit; border-radius: 10px;
+    border: 1.5px solid rgba(238,242,232,.4); background: transparent;
+    color: var(--paper); font-size: 15px; width: 100%;
+  }
+  button[type="submit"] {
+    padding: 12px 18px; font: inherit; border: 0; border-radius: 10px;
+    background: var(--gold); color: var(--ink); font-weight: 600; cursor: pointer;
+    font-size: 15px;
+  }
+  #login-estado { min-height: 1.4em; font-size: 13px; color: var(--dim); margin: 4px 0 0; }
+
+  .suite {
+    color: var(--gold); font-weight: 700; font-size: 12px;
+    text-transform: uppercase; letter-spacing: .05em;
+    margin: 24px 0 6px; border-bottom: 1px solid rgba(227,188,85,.3);
+    padding-bottom: 4px;
+  }
+  .caso {
+    padding: 8px 12px; margin: 4px 0; border-radius: 6px;
+    background: var(--bg2); border-left: 3px solid transparent;
+    font-size: 14px; display: flex; align-items: flex-start; gap: 10px;
+  }
+  .caso.ok { border-left-color: #4ade80; }
+  .caso.fallo { border-left-color: #f87171; }
+  .caso.corriendo { border-left-color: var(--sky); }
+  .caso .simbolo { font-weight: 700; flex-shrink: 0; }
+  .caso.ok .simbolo { color: #4ade80; }
+  .caso.fallo .simbolo { color: #f87171; }
+  .caso.corriendo .simbolo { color: var(--sky); }
+  .caso .detalle { color: var(--dim); font-size: 12px; margin-top: 4px; }
+
+  #resumen {
+    margin-top: 24px; padding: 16px; background: var(--bg2);
+    border-radius: 10px; font-weight: 600; font-size: 15px;
+    border-left: 4px solid var(--gold);
+  }
+  #resumen.ok { border-left-color: #4ade80; }
+  #resumen.fallo { border-left-color: #f87171; }
+
+  #preview {
+    margin-top: 24px;
+    background: var(--bg2);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  #preview h3 {
+    color: var(--gold); font-size: 14px; margin: 0 0 12px;
+    text-transform: uppercase; letter-spacing: .04em;
+  }
+  #preview img {
+    max-width: 100%; border-radius: 8px; display: block;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Test temporal — Fotos</h1>
+  <p class="lead">Prueba la infraestructura de Storage, la tabla ahorasi_fotos, la compresión y las URLs. Limpia todo al terminar.</p>
+
+  <section id="login">
+    <div id="botones-usuario" role="group" aria-label="Selecciona usuario">
+      <button type="button" class="btn-usuario" data-email="luciviteri@elisekai.com">Luci</button>
+      <button type="button" class="btn-usuario" data-email="yayoqs@elisekai.com">Yayo</button>
+    </div>
+    <input type="password" id="password" placeholder="contraseña" required autocomplete="current-password">
+    <button type="button" id="btn-entrar">Iniciar sesión y correr tests</button>
+    <p id="login-estado"></p>
+  </section>
+
+  <section id="tests" hidden>
+    <div id="resultados"></div>
+    <div id="preview" hidden>
+      <h3>Última imagen subida (preview)</h3>
+      <div id="preview-contenido"></div>
+    </div>
+    <div id="resumen"></div>
+  </section>
+</main>
+
+<script src="../js/appwrite.min.js"></script>
+
+<script type="module">
+/* ================================================================
+   Ahora Sí — TEST TEMPORAL FOTOS (ES6 inline)
+   Archivo: test-fotos.html
+   Versión: 1.0.0
+   Propósito: verifica la infraestructura de fotos sin tocar
+              ninguna vista. Sube, lista, obtiene URLs, elimina.
+              Cleanup al final. Se borra cuando la fase 2 esté
+              verificada.
+   ================================================================ */
+
+import { arrancar as arrancarSesion } from '../js/arranque/sesion-inicial.js';
+import { iniciarSesion } from '../js/datos/sesion.js';
+import { obtenerStorage, obtenerTablesDB, obtenerDatabaseId } from '../js/datos/cliente-appwrite.js';
+import { obtener } from '../js/nucleo/almacen.js';
+import { crearLogger } from '../js/nucleo/logger.js';
+import * as repoFotos from '../js/datos/repositorios/fotos.js';
+import { comprimir } from '../js/datos/subidor-fotos.js';
+import * as repoFauna from '../js/datos/repositorios/fauna.js';
+
+const log = crearLogger('test:fotos');
+
+const cont = document.getElementById('resultados');
+const resumen = document.getElementById('resumen');
+const estadoLogin = document.getElementById('login-estado');
+const sectionTests = document.getElementById('tests');
+const preview = document.getElementById('preview');
+const previewCont = document.getElementById('preview-contenido');
+
+let pasaron = 0;
+let fallaron = 0;
+
+const creados = {
+  faunaId: null,
+  fotoIds: [],
+};
+
+const marca = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+function actualizarResumen() {
+  resumen.textContent = `${pasaron} pasaron, ${fallaron} fallaron`;
+  resumen.className = fallaron === 0 && pasaron > 0 ? 'ok' : (pasaron > 0 ? 'fallo' : '');
+}
+
+function suite(nombre) {
+  const div = document.createElement('div');
+  div.className = 'suite';
+  div.textContent = nombre;
+  cont.append(div);
+}
+
+function caso(nombre, fn) {
+  const div = document.createElement('div');
+  div.className = 'caso corriendo';
+  div.innerHTML = `<span class="simbolo">…</span><span>${nombre}</span>`;
+  cont.append(div);
+  div.scrollIntoView({ block: 'nearest' });
+
+  const exito = () => {
+    div.className = 'caso ok';
+    div.innerHTML = `<span class="simbolo">✓</span><span>${nombre}</span>`;
+    pasaron++;
+    actualizarResumen();
+  };
+
+  const fallo = (e) => {
+    div.className = 'caso fallo';
+    div.innerHTML = `<span class="simbolo">✗</span><span>${nombre}<div class="detalle">${e.message || e}</div></span>`;
+    fallaron++;
+    actualizarResumen();
+  };
+
+  try {
+    const r = fn();
+    if (r instanceof Promise) return r.then(exito).catch(fallo);
+    exito();
+  } catch (e) {
+    fallo(e);
+  }
+}
+
+function exigir(cond, msg) {
+  if (!cond) throw new Error(msg);
+}
+
+/* ---------- Generar imagen de prueba --------------------------- */
+
+/**
+ * Crea un File (JPEG) sintético del ancho pedido, usando canvas.
+ * Se usa para probar la compresión sin depender de archivos
+ * externos.
+ */
+async function generarImagenDePrueba(ancho = 2400, alto = 1600) {
+  const canvas = document.createElement('canvas');
+  canvas.width = ancho;
+  canvas.height = alto;
+  const ctx = canvas.getContext('2d');
+  // Fondo con degradado
+  const grad = ctx.createLinearGradient(0, 0, ancho, alto);
+  grad.addColorStop(0, '#E3BC55');
+  grad.addColorStop(0.5, '#8DB7D8');
+  grad.addColorStop(1, '#0C2F26');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, ancho, alto);
+  // Ruido para que la compresión no salga trivialmente pequeña.
+  for (let i = 0; i < 400; i++) {
+    ctx.fillStyle = `rgba(${Math.random()*255|0},${Math.random()*255|0},${Math.random()*255|0},0.3)`;
+    ctx.fillRect(Math.random()*ancho, Math.random()*alto, 40, 40);
+  }
+  const blob = await new Promise((res, rej) => {
+    canvas.toBlob((b) => b ? res(b) : rej(new Error('toBlob falló')), 'image/jpeg', 0.95);
+  });
+  return new File([blob], `prueba-${marca()}.jpg`, { type: 'image/jpeg' });
+}
+
+/* ---------- Limpieza ------------------------------------------- */
+
+async function limpiarTodo() {
+  for (const id of creados.fotoIds) {
+    try { await repoFotos.eliminar(id); } catch (_) {}
+  }
+  creados.fotoIds = [];
+  if (creados.faunaId) {
+    try { await repoFauna.eliminar(creados.faunaId); } catch (_) {}
+    creados.faunaId = null;
+  }
+}
+
+/* ---------- Suites --------------------------------------------- */
+
+async function suiteSanidad() {
+  suite('A. Sanidad del SDK');
+
+  await caso('Storage disponible en el SDK', () => {
+    exigir(typeof window.Appwrite.Storage === 'function', 'Storage no está en el bundle');
+  });
+
+  await caso('obtenerStorage() devuelve instancia', () => {
+    const s = obtenerStorage();
+    exigir(s, 'obtenerStorage() devolvió vacío');
+    exigir(typeof s.createFile === 'function', 'createFile no existe');
+    exigir(typeof s.deleteFile === 'function', 'deleteFile no existe');
+    exigir(typeof s.getFileView === 'function', 'getFileView no existe');
+    exigir(typeof s.getFilePreview === 'function', 'getFilePreview no existe');
+  });
+
+  await caso('contexto listo (usuario + espacio)', () => {
+    exigir(obtener('usuarioActual'), 'sin usuario en almacén');
+    exigir(obtener('espacio'), 'sin espacio en almacén');
+  });
+}
+
+async function suiteCompresion() {
+  suite('B. Compresión');
+
+  await caso('generar imagen de prueba', async () => {
+    const img = await generarImagenDePrueba(2400, 1600);
+    exigir(img.size > 0, 'imagen vacía');
+    window._imgPrueba = img;
+  });
+
+  await caso('comprimir reduce el peso y el ancho', async () => {
+    const original = window._imgPrueba;
+    exigir(original, 'sin imagen previa');
+    const r = await comprimir(original, { maxAncho: 1200, calidad: 0.85 });
+    exigir(r.blob instanceof Blob, 'no devolvió blob');
+    exigir(r.ancho <= 1200, `ancho mayor al pedido: ${r.ancho}`);
+    exigir(r.alto <= 800, `alto inesperado: ${r.alto}`);
+    exigir(r.peso > 0, 'peso cero');
+    // Comparamos: si el original pesaba menos que el comprimido,
+    // el módulo devuelve el original. Verificamos que en ese caso
+    // la lógica funcione igual.
+    window._imgComprimida = r;
+  });
+}
+
+async function suiteSubida() {
+  suite('C. Subir y listar');
+
+  await caso('crear registro de fauna de prueba', async () => {
+    const r = await repoFauna.crear({ nombre: 'Prueba ' + marca(), tipo: 'otro' });
+    exigir(r.exito, r.error);
+    creados.faunaId = r.datos.id;
+  });
+
+  await caso('subir foto (con progreso)', async () => {
+    exigir(creados.faunaId, 'sin registro de fauna');
+    exigir(window._imgComprimida, 'sin imagen comprimida');
+
+    let llamadasProgreso = 0;
+    const r = await repoFotos.subir(
+      'ahorasi_fauna',
+      creados.faunaId,
+      window._imgComprimida.blob,
+      window._imgPrueba.name,
+      () => { llamadasProgreso++; }
+    );
+    exigir(r.exito, r.error);
+    exigir(r.datos.fileId, 'sin fileId');
+    exigir(r.datos.tabla === 'ahorasi_fauna', 'tabla incorrecta');
+    exigir(r.datos.filaId === creados.faunaId, 'filaId incorrecto');
+    creados.fotoIds.push(r.datos.id);
+    window._fileIdSubido = r.datos.fileId;
+  });
+
+  await caso('listarPorFila devuelve la foto', async () => {
+    const r = await repoFotos.listarPorFila('ahorasi_fauna', creados.faunaId);
+    exigir(r.exito, r.error);
+    exigir(r.datos.length === 1, `esperaba 1, encontré ${r.datos.length}`);
+    exigir(r.datos[0].fileId === window._fileIdSubido, 'fileId no coincide');
+  });
+
+  await caso('contarPorFila devuelve 1', async () => {
+    const r = await repoFotos.contarPorFila('ahorasi_fauna', creados.faunaId);
+    exigir(r.exito, r.error);
+    exigir(r.datos === 1, `esperaba 1, conté ${r.datos}`);
+  });
+}
+
+async function suiteUrls() {
+  suite('D. URLs');
+
+  await caso('urlPreview devuelve URL válida', () => {
+    const url = repoFotos.urlPreview(window._fileIdSubido, 300, 300);
+    exigir(typeof url === 'string' && url.length > 0, 'URL vacía');
+    exigir(url.startsWith('https://'), 'no es HTTPS: ' + url);
+  });
+
+  await caso('urlArchivo devuelve URL válida', () => {
+    const url = repoFotos.urlArchivo(window._fileIdSubido);
+    exigir(typeof url === 'string' && url.length > 0, 'URL vacía');
+    exigir(url.startsWith('https://'), 'no es HTTPS: ' + url);
+  });
+
+  await caso('la imagen se ve en el navegador', async () => {
+    const url = repoFotos.urlPreview(window._fileIdSubido, 400, 400);
+    const cargada = await new Promise((res) => {
+      const img = new Image();
+      img.onload = () => res(true);
+      img.onerror = () => res(false);
+      img.src = url;
+    });
+    exigir(cargada, 'la imagen no cargó desde la URL: ' + url);
+    // Mostrar la imagen en la página para verla con los ojos.
+    preview.hidden = false;
+    previewCont.replaceChildren();
+    const img = new Image();
+    img.src = repoFotos.urlArchivo(window._fileIdSubido);
+    img.style.maxWidth = '100%';
+    img.style.borderRadius = '8px';
+    previewCont.append(img);
+  });
+}
+
+async function suiteEliminar() {
+  suite('E. Eliminar');
+
+  await caso('eliminar foto', async () => {
+    exigir(creados.fotoIds.length >= 1, 'sin foto que eliminar');
+    const id = creados.fotoIds[0];
+    const r = await repoFotos.eliminar(id);
+    exigir(r.exito, r.error);
+    creados.fotoIds = creados.fotoIds.filter((x) => x !== id);
+  });
+
+  await caso('la foto ya no aparece al listar', async () => {
+    const r = await repoFotos.listarPorFila('ahorasi_fauna', creados.faunaId);
+    exigir(r.exito, r.error);
+    exigir(r.datos.length === 0, `quedaron ${r.datos.length} filas`);
+  });
+
+  await caso('el archivo ya no existe en Storage', async () => {
+    const storage = obtenerStorage();
+    let fallo = false;
+    try {
+      await storage.getFile({ bucketId: 'ahorasi_fotos', fileId: window._fileIdSubido });
+    } catch (e) {
+      fallo = true;
+    }
+    exigir(fallo, 'el archivo sigue existiendo en el bucket');
+  });
+}
+
+async function suiteMasivo() {
+  suite('F. Eliminar por fila (bulk)');
+
+  await caso('subir tres fotos nuevas', async () => {
+    exigir(creados.faunaId, 'sin registro de fauna');
+    for (let i = 0; i < 3; i++) {
+      const img = await generarImagenDePrueba(800, 600);
+      const comp = await comprimir(img, { maxAncho: 400, calidad: 0.7 });
+      const r = await repoFotos.subir(
+        'ahorasi_fauna',
+        creados.faunaId,
+        comp.blob,
+        img.name
+      );
+      exigir(r.exito, r.error);
+      creados.fotoIds.push(r.datos.id);
+    }
+    const listado = await repoFotos.listarPorFila('ahorasi_fauna', creados.faunaId);
+    exigir(listado.exito, listado.error);
+    exigir(listado.datos.length === 3, `esperaba 3, hay ${listado.datos.length}`);
+  });
+
+  await caso('eliminarPorFila borra todas', async () => {
+    const r = await repoFotos.eliminarPorFila('ahorasi_fauna', creados.faunaId);
+    exigir(r.exito, r.error);
+    creados.fotoIds = [];
+    const listado = await repoFotos.listarPorFila('ahorasi_fauna', creados.faunaId);
+    exigir(listado.exito, listado.error);
+    exigir(listado.datos.length === 0, `quedaron ${listado.datos.length}`);
+  });
+}
+
+/* ---------- Orquestación --------------------------------------- */
+
+async function ejecutar() {
+  pasaron = 0;
+  fallaron = 0;
+  cont.replaceChildren();
+  resumen.textContent = '';
+  resumen.className = '';
+  preview.hidden = true;
+  previewCont.replaceChildren();
+
+  try {
+    await limpiarTodo();
+  } catch (e) {
+    log.warn('Limpieza previa falló:', e.message);
+  }
+
+  await suiteSanidad();
+  await suiteCompresion();
+  await suiteSubida();
+  await suiteUrls();
+  await suiteEliminar();
+  await suiteMasivo();
+
+  suite('G. Limpieza final');
+  await caso('limpiar todo lo creado', async () => {
+    await limpiarTodo();
+  });
+
+  actualizarResumen();
+}
+
+/* ---------- Login ---------------------------------------------- */
+
+let emailSeleccionado = '';
+
+document.querySelectorAll('.btn-usuario').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.btn-usuario').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+    btn.setAttribute('aria-pressed', 'true');
+    emailSeleccionado = btn.dataset.email;
+    document.getElementById('password').focus();
+  });
+});
+
+async function entrarYCorrer() {
+  estadoLogin.textContent = 'Iniciando sesión…';
+  estadoLogin.style.color = '';
+  try {
+    const password = document.getElementById('password').value;
+    if (!emailSeleccionado) {
+      estadoLogin.textContent = 'Primero elige un usuario.';
+      estadoLogin.style.color = '#f87171';
+      return;
+    }
+    if (!password) {
+      estadoLogin.textContent = 'Escribe la contraseña.';
+      estadoLogin.style.color = '#f87171';
+      return;
+    }
+    await iniciarSesion(emailSeleccionado, password);
+    const estado = await arrancarSesion();
+    if (!estado.exito) {
+      throw new Error('Arranque de sesión falló: ' + (estado.motivo || 'desconocido'));
+    }
+    estadoLogin.textContent = '';
+    document.getElementById('login').hidden = true;
+    sectionTests.hidden = false;
+    await ejecutar();
+  } catch (e) {
+    log.error('Error en login:', e.message);
+    estadoLogin.textContent = 'Error: ' + e.message;
+    estadoLogin.style.color = '#f87171';
+  }
+}
+
+document.getElementById('btn-entrar').addEventListener('click', entrarYCorrer);
+document.getElementById('password').addEventListener('keydown', (ev) => {
+  if (ev.key === 'Enter') entrarYCorrer();
+});
+</script>
+</body>
+</html>

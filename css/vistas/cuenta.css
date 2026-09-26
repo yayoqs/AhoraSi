@@ -1,0 +1,23 @@
+/* ================================================================
+   Ahora Sí — CSS
+   Archivo: css/vistas/cuenta.css
+   Versión: 1.0.0
+   Propósito: estilos específicos de la vista "Mi cuenta". Los
+              formularios reutilizan .vista__form; acá solo se
+              ajusta el ancho y se agrega la nota bajo cada título.
+   ================================================================ */
+
+.vista--cuenta .vista__form {
+  max-width: 420px;
+}
+
+.vista--cuenta .vista__nota {
+  color: var(--dim);
+  font-size: 13px;
+  margin: -6px 0 var(--sp-3);
+  max-width: 50ch;
+}
+
+.vista--cuenta .vista__subtitulo:not(:first-of-type) {
+  margin-top: var(--sp-10);
+}

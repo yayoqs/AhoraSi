@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototipo carta 3 — Ahora Sí</title>
+<style>
+  :root {
+    --pcb: #0C2F26; --pcb2: #123F34; --pcb3: #0e3529;
+    --paper: #EEF2E8; --ink: #0A1F1A;
+    --gold: #E3BC55; --sky: #8DB7D8; --rose: #EBA9A2;
+    --verde: #4ade80; --rojo: #f87171; --dim: #A9C2B6;
+    --fuente-titulo: 'Bricolage Grotesque', 'Trebuchet MS', system-ui, sans-serif;
+    --fuente-cuerpo: 'Figtree', system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--pcb); color: var(--paper);
+    font: 400 16px/1.6 var(--fuente-cuerpo);
+    padding: 20px 16px 120px; -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 720px; margin: 0 auto; }
+
+  h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.1; letter-spacing: -.02em; margin: 0; }
+  h1 { color: var(--gold); font-size: 26px; margin-bottom: 4px; }
+  h2 { color: var(--sky); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin: 32px 0 12px; }
+
+  .proto-cab {
+    text-align: center;
+    padding: 8px 0 20px;
+    border-bottom: 1px solid rgba(238,242,232,.15);
+    margin-bottom: 20px;
+  }
+  .proto-cab h1 { font-size: 18px; color: var(--gold); }
+  .proto-cab p { color: var(--dim); font-size: 12px; margin: 6px 0 0; }
+
+  .toggle {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--dim);
+  }
+  .toggle button {
+    padding: 5px 14px;
+    border-radius: 999px;
+    border: 1.5px solid rgba(238,242,232,.3);
+    background: transparent;
+    color: var(--paper);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .toggle button[aria-pressed="true"] {
+    background: var(--gold);
+    color: var(--ink);
+    border-color: var(--gold);
+  }
+
+  .barra {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .aviso-modo {
+    margin-right: auto;
+    color: var(--gold);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .btn-mini {
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 999px;
+    border: 1.5px solid rgba(238,242,232,.3);
+    background: transparent;
+    color: var(--paper);
+    cursor: pointer;
+    transition: border-color .08s, color .08s;
+  }
+  .btn-mini:hover { border-color: var(--gold); color: var(--gold); }
+  .btn-primario {
+    padding: 9px 18px;
+    border-radius: 10px;
+    background: var(--gold);
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 14px;
+    border: 0;
+    cursor: pointer;
+  }
+  .btn-secundario {
+    padding: 9px 18px;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--paper);
+    border: 1.5px solid rgba(238,242,232,.35);
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .btn-secundario:hover { border-color: var(--gold); color: var(--gold); }
+
+  .lead { color: var(--dim); font-size: 14px; margin-bottom: 20px; }
+
+  /* Carta limpia */
+  .manifiesto { display: flex; flex-direction: column; gap: 16px; margin-bottom: 12px; }
+  .manifiesto p { margin: 0; line-height: 1.75; font-size: 17px; max-width: 62ch; }
+  .manifiesto h3 {
+    color: var(--gold);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    margin-bottom: 6px;
+  }
+
+  .compromisos {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .compromiso {
+    display: grid;
+    grid-template-columns: 30px 1fr;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--pcb2);
+    border-radius: 10px;
+    border-left: 3px solid rgba(74,222,128,.4);
+  }
+  .compromiso--compartido {
+    border-left-color: rgba(141,183,216,.5);
+  }
+  .compromiso__check {
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--verde);
+  }
+  .compromiso--compartido .compromiso__check { color: var(--sky); }
+  .compromiso__check svg { width: 22px; height: 22px; }
+  .compromiso__titulo { font-weight: 700; font-size: 15px; margin: 0 0 4px; }
+  .compromiso__desc { color: var(--dim); font-size: 14px; margin: 0; line-height: 1.55; }
+
+  .firma {
+    margin-top: 24px;
+    padding: 24px 4px 8px;
+    border-top: 1px solid rgba(238,242,232,.15);
+  }
+  .firma__texto {
+    font-family: var(--fuente-titulo);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  .anexos {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .anexo h3 { color: var(--gold); font-size: 17px; margin-bottom: 8px; }
+  .anexo p { margin: 0; line-height: 1.7; white-space: pre-wrap; }
+
+  /* Modo edición */
+  .pieza-edit {
+    padding: 16px;
+    background: var(--pcb3);
+    border-radius: 10px;
+    border-left: 3px solid var(--sky);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .pieza-edit input,
+  .pieza-edit textarea {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(238,242,232,.3);
+    background: rgba(238,242,232,.04);
+    color: var(--paper);
+    font: inherit;
+    font-size: 15px;
+    width: 100%;
+  }
+  .pieza-edit textarea { min-height: 90px; resize: vertical; }
+  .pieza-edit input:focus,
+  .pieza-edit textarea:focus { border-color: var(--sky); outline: none; }
+  .pieza-edit__botones { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .fijar-seccion {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 28px 0;
+    color: var(--dim);
+    font-size: 12px;
+  }
+  .fijar-seccion::before,
+  .fijar-seccion::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: rgba(238,242,232,.15);
+  }
+  .fijar-seccion button {
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: 1.5px solid rgba(227,188,85,.5);
+    background: transparent;
+    color: var(--gold);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .fijar-seccion button:hover { background: var(--gold); color: var(--ink); }
+
+  .vacio {
+    color: var(--dim);
+    font-style: italic;
+    padding: 20px 0;
+    text-align: center;
+  }
+  .vacio-caja {
+    padding: 32px 24px;
+    background: var(--pcb2);
+    border-radius: 12px;
+    border: 1.5px dashed rgba(238,242,232,.2);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .vacio-caja p {
+    color: var(--dim);
+    font-size: 14px;
+    margin: 0;
+    max-width: 40ch;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 90px;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 14px 18px;
+    background: var(--pcb3);
+    border: 1.5px solid var(--gold);
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.4);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 1000;
+    transform: translateY(120%);
+    transition: transform .3s ease;
+  }
+  .toast--visible { transform: translateY(0); }
+  .toast__texto {
+    flex: 1;
+    color: var(--paper);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .toast__texto strong { color: var(--gold); }
+  .toast__boton {
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: var(--gold);
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 13px;
+    border: 0;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .toast__cerrar {
+    background: none;
+    border: 0;
+    color: var(--dim);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px;
+  }
+
+  .log {
+    position: fixed;
+    bottom: 12px; left: 12px; right: 12px;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 8px 14px;
+    background: rgba(10,31,26,.92);
+    border: 1px solid rgba(227,188,85,.3);
+    border-radius: 8px;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--gold);
+    max-height: 60px;
+    overflow: auto;
+    z-index: 999;
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="proto-cab">
+    <h1>Prototipo carta 3</h1>
+    <p>Cartas personales + compromisos compartidos. Todo en memoria.</p>
+    <div class="toggle">
+      <span>Ver como:</span>
+      <button id="t-yayo" data-user="yayo" aria-pressed="true">Yayo</button>
+      <button id="t-luci" data-user="luci" aria-pressed="false">Luci</button>
+    </div>
+  </div>
+
+  <div id="contenido"></div>
+
+</main>
+
+<div id="toast-zona"></div>
+<div class="log" id="log">Listo. Cambia de usuario arriba para ver los dos lados.</div>
+
+<script>
+/* ================================================================
+   Datos simulados. En la app real, esto vendría de Appwrite.
+   cartas: cada usuario tiene su manifiesto, compromisos y firma.
+   compartidos: compromisos que ambos agregan.
+   anexos: contenido común.
+   ================================================================ */
+
+function estadoInicial() {
+  return {
+    cartas: {
+      yayo: {
+        manifiesto: [
+          { id: 'my1', titulo: 'Idas y vueltas', contenido: 'Sé que lo nuestro ha tenido idas y vueltas, y no te voy a decir que no. Lo que sí sé es que te tengo mucho cariño y que contigo quiero hacer las cosas bien.' },
+          { id: 'my2', titulo: 'Sin presión', contenido: 'Esta página no es una presión ni una pregunta con fecha límite. Es mi forma de mostrarte, con lo que sé hacer, que lo pienso en serio.' },
+          { id: 'my3', titulo: 'Como eres', contenido: 'Me gusta cómo eres: libre, curiosa, con las manos siempre metidas en algo, sea un tambor, un circuito o una máquina de barbero. No quiero que cambies nada de eso.' },
+          { id: 'my4', titulo: 'Sin apuro', contenido: 'Tómate el tiempo que necesites. Lo que hay aquí sigue en pie igual.' },
+        ],
+        compromisos: [
+          { id: 'ky1', titulo: 'Decirte las cosas de frente', contenido: 'Incluso las incómodas, y a tiempo.' },
+          { id: 'ky2', titulo: 'Respetar tu libertad', contenido: 'Tus viajes, tu música, tu trabajo y tus espacios a solas.' },
+          { id: 'ky3', titulo: 'Cumplir lo que propongo', contenido: 'Si no puedo, aviso con tiempo y propongo otra fecha.' },
+          { id: 'ky4', titulo: 'Constancia, no impulsos', contenido: 'Que esto se note en los días normales, no solo en los buenos.' },
+        ],
+        firma: 'Yayo',
+      },
+      luci: {
+        manifiesto: [],
+        compromisos: [],
+        firma: '',
+      },
+    },
+    compartidos: [],
+    anexos: [],
+  };
+}
+
+/* Texto de guía para "cargar mensaje de prueba". */
+const TEXTO_GUIA = {
+  manifiesto: [
+    { id: 'g-m1', titulo: '', contenido: 'Escribe aquí lo que quieras decirle. No hay prisa, no hay formato correcto.' },
+    { id: 'g-m2', titulo: '', contenido: 'Puedes contarle algo que te haya quedado dando vueltas, o simplemente agradecer por algo.' },
+  ],
+  compromisos: [
+    { id: 'g-k1', titulo: 'Escucharte', contenido: 'Sin interrumpir, sin adelantarme.' },
+    { id: 'g-k2', titulo: 'Ser clara con lo que siento', contenido: 'Aunque cueste.' },
+  ],
+  firma: 'Luci',
+};
+
+let estado = estadoInicial();
+let usuarioActual = 'yayo';     // quién está mirando
+let pantalla = 'otro';          // 'otro' | 'mio'
+let modo = 'vista';             // 'vista' | 'edicion'
+let seccionesFijadas = new Set();
+let borrador = null;
+let toastTemporizador = null;
+
+/* ================================================================
+   Helpers
+   ================================================================ */
+
+const NS_SVG = 'http://www.w3.org/2000/svg';
+
+function svgCheck() {
+  const s = document.createElementNS(NS_SVG, 'svg');
+  s.setAttribute('viewBox', '0 0 24 24');
+  s.setAttribute('fill', 'none');
+  s.setAttribute('stroke', 'currentColor');
+  s.setAttribute('stroke-width', '2.4');
+  s.setAttribute('stroke-linecap', 'round');
+  s.setAttribute('stroke-linejoin', 'round');
+  const p = document.createElementNS(NS_SVG, 'path');
+  p.setAttribute('d', 'M4 12.5l5 5L20 6.5');
+  s.append(p);
+  return s;
+}
+
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const k in attrs || {}) {
+    const v = attrs[k];
+    if (k === 'class') e.className = v;
+    else if (k === 'style') e.setAttribute('style', v);
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (v !== false && v != null) e.setAttribute(k, v);
+  }
+  kids.flat().forEach(c => {
+    if (c == null || c === false) return;
+    e.append(c.nodeType ? c : document.createTextNode(c));
+  });
+  return e;
+}
+
+function log(msg) {
+  document.getElementById('log').textContent = msg;
+}
+
+function copia(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+
+function nombreOtro() {
+  return usuarioActual === 'yayo' ? 'Luci' : 'Yayo';
+}
+
+function nombrePropio() {
+  return usuarioActual === 'yayo' ? 'Yayo' : 'Luci';
+}
+
+function claveOtro() {
+  return usuarioActual === 'yayo' ? 'luci' : 'yayo';
+}
+
+function clavePropio() {
+  return usuarioActual;
+}
+
+function cartaDelOtro() {
+  return estado.cartas[claveOtro()];
+}
+
+function cartaPropia() {
+  return estado.cartas[clavePropio()];
+}
+
+/* ================================================================
+   Toast
+   ================================================================ */
+
+function mostrarToast(texto, accionEtiqueta, alAccionar) {
+  const zona = document.getElementById('toast-zona');
+  zona.replaceChildren();
+
+  const toast = h('div', { class: 'toast' },
+    h('div', { class: 'toast__texto' }, texto),
+    accionEtiqueta
+      ? h('button', { class: 'toast__boton', onclick: () => {
+          cerrarToast();
+          if (alAccionar) alAccionar();
+        }}, accionEtiqueta)
+      : null,
+    h('button', { class: 'toast__cerrar', 'aria-label': 'Cerrar', onclick: cerrarToast }, '×')
+  );
+  zona.append(toast);
+  // Fuerza reflow para la transición
+  toast.offsetWidth;
+  toast.classList.add('toast--visible');
+
+  clearTimeout(toastTemporizador);
+  toastTemporizador = setTimeout(cerrarToast, 8000);
+}
+
+function cerrarToast() {
+  const zona = document.getElementById('toast-zona');
+  const t = zona.querySelector('.toast');
+  if (t) {
+    t.classList.remove('toast--visible');
+    setTimeout(() => zona.replaceChildren(), 300);
+  }
+  clearTimeout(toastTemporizador);
+}
+
+/* ================================================================
+   Acciones de modo edición
+   ================================================================ */
+
+function entrarEdicion() {
+  borrador = copia(cartaPropia());
+  modo = 'edicion';
+  seccionesFijadas = new Set();
+  log('Modo edición. Fija sección por sección.');
+  pintar();
+}
+
+function fijarSeccion(nombre) {
+  cartaPropia()[nombre] = copia(borrador[nombre]);
+  seccionesFijadas.add(nombre);
+  log('Fijado: ' + nombre);
+  const todas = ['manifiesto', 'compromisos', 'firma'];
+  if (todas.every(s => seccionesFijadas.has(s))) {
+    salirEdicion('Todo fijado. Vuelves a la vista limpia.');
+  } else {
+    pintar();
+  }
+}
+
+function fijarTodo() {
+  cartaPropia().manifiesto = copia(borrador.manifiesto);
+  cartaPropia().compromisos = copia(borrador.compromisos);
+  cartaPropia().firma = borrador.firma;
+  salirEdicion('Todo fijado.');
+}
+
+function cancelar() {
+  borrador = null;
+  modo = 'vista';
+  seccionesFijadas = new Set();
+  log('Cambios descartados.');
+  pintar();
+}
+
+function salirEdicion(mensaje) {
+  borrador = null;
+  modo = 'vista';
+  seccionesFijadas = new Set();
+  log(mensaje);
+  // Si la carta propia ya no está vacía, volvemos a la vista del otro.
+  const propia = cartaPropia();
+  const vacia = propia.manifiesto.length === 0
+    && propia.compromisos.length === 0
+    && !propia.firma;
+  if (!vacia) pantalla = 'otro';
+  pintar();
+}
+
+function cargarTextoGuia() {
+  borrador = {
+    manifiesto: copia(TEXTO_GUIA.manifiesto),
+    compromisos: copia(TEXTO_GUIA.compromisos),
+    firma: TEXTO_GUIA.firma,
+  };
+  modo = 'edicion';
+  seccionesFijadas = new Set();
+  log('Texto de guía cargado. Edítalo a tu gusto y fija cada sección.');
+  pintar();
+}
+
+/* ================================================================
+   Pintar barra
+   ================================================================ */
+
+function pintarBarra() {
+  const cont = document.getElementById('contenido');
+  const barra = h('div', { class: 'barra' });
+
+  if (pantalla === 'otro') {
+    barra.append(
+      h('button', {
+        class: 'btn-secundario',
+        onclick: () => { pantalla = 'mio'; modo = 'vista'; borrador = null; pintar(); },
+      }, 'Ver mi carta')
+    );
+  } else {
+    barra.append(
+      h('button', {
+        class: 'btn-secundario',
+        onclick: () => {
+          if (modo === 'edicion') {
+            if (!confirm('¿Descartar los cambios sin fijar?')) return;
+            borrador = null;
+            modo = 'vista';
+            seccionesFijadas = new Set();
+          }
+          pantalla = 'otro';
+          pintar();
+        },
+      }, 'Volver a la carta de ' + nombreOtro())
+    );
+    if (modo === 'vista') {
+      const propia = cartaPropia();
+      const vacia = propia.manifiesto.length === 0
+        && propia.compromisos.length === 0
+        && !propia.firma;
+      if (!vacia) {
+        barra.append(
+          h('button', { class: 'btn-primario', onclick: entrarEdicion }, 'Editar')
+        );
+      }
+    } else {
+      barra.append(
+        h('span', { class: 'aviso-modo' }, 'Editando'),
+        h('button', { class: 'btn-secundario', onclick: cancelar }, 'Cancelar'),
+        h('button', { class: 'btn-primario', onclick: fijarTodo }, 'Fijar todo')
+      );
+    }
+  }
+
+  cont.append(barra);
+}
+
+/* ================================================================
+   Pintar vista del otro
+   ================================================================ */
+
+function pintarVistaOtro() {
+  const cont = document.getElementById('contenido');
+  const otra = cartaDelOtro();
+
+  const vacia = otra.manifiesto.length === 0
+    && otra.compromisos.length === 0
+    && !otra.firma;
+
+  cont.append(
+    h('h1', {}, 'Carta'),
+    h('p', { class: 'lead' }, 'Lo que ' + nombreOtro() + ' dejó para ti.')
+  );
+
+  if (vacia) {
+    cont.append(
+      h('div', { class: 'vacio-caja' },
+        h('p', {}, nombreOtro() + ' todavía no dejó su carta.')
+      )
+    );
+  } else {
+    cont.append(h('h2', {}, 'De ' + nombreOtro()));
+    cont.append(pintarManifiesto(otra.manifiesto));
+    if (otra.compromisos.length > 0) {
+      cont.append(h('h2', {}, 'Sus compromisos'));
+      cont.append(pintarListaCompromisos(otra.compromisos));
+    }
+    if (otra.firma) {
+      cont.append(h('div', { class: 'firma' },
+        h('div', { class: 'firma__texto' }, otra.firma)
+      ));
+    }
+  }
+
+  // Compromisos compartidos
+  cont.append(h('h2', {}, 'Compromisos compartidos'));
+  if (estado.compartidos.length === 0) {
+    cont.append(h('p', { class: 'vacio' }, 'Sin compromisos compartidos todavía.'));
+  } else {
+    cont.append(pintarListaCompromisos(estado.compartidos, true));
+  }
+
+  // Anexos
+  if (estado.anexos.length > 0) {
+    cont.append(h('h2', {}, 'Anexos'));
+    const ul = h('ul', { class: 'anexos' });
+    estado.anexos.forEach(a => {
+      ul.append(h('li', { class: 'anexo' },
+        h('h3', {}, a.titulo),
+        h('p', {}, a.contenido)
+      ));
+    });
+    cont.append(ul);
+  }
+}
+
+/* ================================================================
+   Pintar mi carta
+   ================================================================ */
+
+function pintarVistaMia() {
+  const cont = document.getElementById('contenido');
+  const propia = cartaPropia();
+  const vacia = propia.manifiesto.length === 0
+    && propia.compromisos.length === 0
+    && !propia.firma;
+
+  if (modo === 'vista' && vacia) {
+    cont.append(
+      h('h1', {}, 'Tu carta'),
+      h('p', { class: 'lead' }, 'Todavía no has escrito nada. Cuando quieras, empieza.'),
+      h('div', { class: 'vacio-caja' },
+        h('p', {}, 'Puedes escribir desde cero, o cargar un texto de guía y editarlo a tu gusto.'),
+        h('div', { style: 'display:flex;gap:10px;flex-wrap:wrap;justify-content:center;' },
+          h('button', { class: 'btn-primario', onclick: () => {
+            borrador = { manifiesto: [], compromisos: [], firma: nombrePropio() };
+            modo = 'edicion';
+            seccionesFijadas = new Set();
+            pintar();
+          }}, 'Escribir desde cero'),
+          h('button', { class: 'btn-secundario', onclick: cargarTextoGuia }, 'Ver mensaje de prueba')
+        )
+      )
+    );
+    return;
+  }
+
+  cont.append(
+    h('h1', {}, 'Tu carta'),
+    h('p', { class: 'lead' }, 'Lo que quieres decirle a ' + nombreOtro() + '.')
+  );
+
+  const datos = modo === 'edicion' ? borrador : propia;
+
+  cont.append(h('h2', {}, 'Tu manifiesto'));
+  cont.append(pintarManifiestoEditable(datos.manifiesto));
+
+  if (modo === 'edicion' && !seccionesFijadas.has('manifiesto')) {
+    cont.append(divisorFijar('manifiesto', 'Fijar manifiesto'));
+  }
+
+  cont.append(h('h2', {}, 'Tus compromisos'));
+  cont.append(pintarCompromisosEditables(datos.compromisos));
+
+  if (modo === 'edicion' && !seccionesFijadas.has('compromisos')) {
+    cont.append(divisorFijar('compromisos', 'Fijar compromisos'));
+  }
+
+  cont.append(h('h2', {}, 'Tu firma'));
+  cont.append(pintarFirmaEditable(datos.firma));
+
+  if (modo === 'edicion' && !seccionesFijadas.has('firma')) {
+    cont.append(divisorFijar('firma', 'Fijar firma'));
+  }
+}
+
+/* ================================================================
+   Componentes reusables
+   ================================================================ */
+
+function pintarManifiesto(items) {
+  const cont = h('div', { class: 'manifiesto' });
+  items.forEach(p => {
+    cont.append(h('article', {},
+      p.titulo ? h('h3', {}, p.titulo) : null,
+      h('p', {}, p.contenido)
+    ));
+  });
+  return cont;
+}
+
+function pintarListaCompromisos(items, compartidos = false) {
+  const ul = h('ul', { class: 'compromisos' });
+  items.forEach(c => {
+    ul.append(h('li', { class: 'compromiso' + (compartidos ? ' compromiso--compartido' : '') },
+      h('div', { class: 'compromiso__check' }, svgCheck()),
+      h('div', {},
+        h('p', { class: 'compromiso__titulo' }, c.titulo),
+        h('p', { class: 'compromiso__desc' }, c.contenido)
+      )
+    ));
+  });
+  return ul;
+}
+
+function pintarManifiestoEditable(items) {
+  const cont = h('div', { class: 'manifiesto' });
+  items.forEach((p, idx) => {
+    const inputT = h('input', { value: p.titulo || '', placeholder: 'Título (opcional)', maxlength: 200 });
+    const textarea = h('textarea', { placeholder: 'Contenido' }, p.contenido || '');
+    inputT.addEventListener('input', () => { p.titulo = inputT.value; });
+    textarea.addEventListener('input', () => { p.contenido = textarea.value; });
+    cont.append(h('div', { class: 'pieza-edit' },
+      inputT,
+      textarea,
+      h('div', { class: 'pieza-edit__botones' },
+        h('button', { class: 'btn-mini', onclick: () => {
+          borrador.manifiesto.splice(idx, 1);
+          pintar();
+        }}, 'Eliminar')
+      )
+    ));
+  });
+  cont.append(h('button', {
+    class: 'btn-secundario',
+    onclick: () => {
+      borrador.manifiesto.push({ id: 'm' + Date.now(), titulo: '', contenido: '' });
+      pintar();
+    },
+  }, '+ Agregar párrafo'));
+  return cont;
+}
+
+function pintarCompromisosEditables(items) {
+  const ul = h('ul', { class: 'compromisos' });
+  items.forEach((c, idx) => {
+    const inputT = h('input', { value: c.titulo || '', placeholder: 'Título', maxlength: 200 });
+    const textarea = h('textarea', { placeholder: 'Descripción' }, c.contenido || '');
+    inputT.addEventListener('input', () => { c.titulo = inputT.value; });
+    textarea.addEventListener('input', () => { c.contenido = textarea.value; });
+    ul.append(h('li', { class: 'pieza-edit', style: 'list-style:none;' },
+      inputT,
+      textarea,
+      h('div', { class: 'pieza-edit__botones' },
+        h('button', { class: 'btn-mini', onclick: () => {
+          borrador.compromisos.splice(idx, 1);
+          pintar();
+        }}, 'Eliminar')
+      )
+    ));
+  });
+  ul.append(h('li', { style: 'list-style:none;' },
+    h('button', {
+      class: 'btn-secundario',
+      onclick: () => {
+        borrador.compromisos.push({ id: 'k' + Date.now(), titulo: '', contenido: '' });
+        pintar();
+      },
+    }, '+ Agregar compromiso')
+  ));
+  return ul;
+}
+
+function pintarFirmaEditable(firma) {
+  const input = h('input', { value: firma || '', placeholder: 'Firma', maxlength: 100 });
+  input.addEventListener('input', () => { borrador.firma = input.value; });
+  return h('div', { class: 'pieza-edit' }, input);
+}
+
+function divisorFijar(seccion, etiqueta) {
+  return h('div', { class: 'fijar-seccion' },
+    h('button', { onclick: () => fijarSeccion(seccion) }, etiqueta)
+  );
+}
+
+/* ================================================================
+   Orquestación
+   ================================================================ */
+
+function pintar() {
+  const cont = document.getElementById('contenido');
+  cont.replaceChildren();
+
+  // Actualizar toggle
+  document.getElementById('t-yayo').setAttribute('aria-pressed', String(usuarioActual === 'yayo'));
+  document.getElementById('t-luci').setAttribute('aria-pressed', String(usuarioActual === 'luci'));
+
+  pintarBarra();
+
+  if (pantalla === 'otro') {
+    pintarVistaOtro();
+  } else {
+    pintarVistaMia();
+  }
+
+  // Toast de bienvenida si corresponde.
+  // Regla: si eres Luci, estás viendo la carta de Yayo, tu carta está vacía,
+  // y todavía no has cerrado el aviso en esta sesión.
+  if (
+    usuarioActual === 'luci'
+    && pantalla === 'otro'
+    && cartaPropia().manifiesto.length === 0
+    && cartaPropia().compromisos.length === 0
+    && !cartaPropia().firma
+  ) {
+    setTimeout(() => {
+      mostrarToast(
+        'Yayo te dejó una carta. ¿Quieres dejarle un mensaje?',
+        'Déjale un mensaje',
+        () => {
+          pantalla = 'mio';
+          modo = 'vista';
+          pintar();
+        }
+      );
+    }, 600);
+  }
+}
+
+/* ================================================================
+   Toggle de usuario
+   ================================================================ */
+
+document.querySelectorAll('.toggle button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    usuarioActual = btn.dataset.user;
+    pantalla = 'otro';
+    modo = 'vista';
+    borrador = null;
+    seccionesFijadas = new Set();
+    cerrarToast();
+    log('Ahora ves la app como ' + nombrePropio() + '.');
+    pintar();
+  });
+});
+
+/* Reinicio desde consola: escribir resetearPrototipo() en consola. */
+window.resetearPrototipo = function () {
+  estado = estadoInicial();
+  usuarioActual = 'yayo';
+  pantalla = 'otro';
+  modo = 'vista';
+  borrador = null;
+  seccionesFijadas = new Set();
+  cerrarToast();
+  log('Prototipo reiniciado.');
+  pintar();
+};
+
+pintar();
+</script>
+</body>
+</html>

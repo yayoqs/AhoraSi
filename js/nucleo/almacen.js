@@ -1,17 +1,17 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/nucleo/almacen.js
-   Versión: 1.1.0
+   Versión: 1.2.0
    Propósito: estado en memoria, única fuente para la UI.
               Los módulos leen de acá. Las escrituras pasan por
               la capa de datos, que actualiza el almacén y emite
               eventos para que la UI reaccione.
+              v1.2.0: se elimina la clave `perfiles` (plural), sin
+                      uso. La clave vigente es `perfil` (singular),
+                      poblada por sesion-inicial.js. Sin cambios
+                      en las firmas públicas.
               v1.1.0: se agregan claves usuarioActual, perfil,
                       ritmos, carta, respuestas, fauna, flora.
-                      Se quitan aves y conexiones (aves se
-                      reemplazó por fauna; conexiones no se usó).
-                      Se corrige reiniciar() para respetar
-                      booleanos además de arrays y null.
               v1.0.0: versión inicial.
    ================================================================ */
 
@@ -24,7 +24,6 @@ const estado = {
   planes: [],
   kit: [],
   hitos: [],
-  perfiles: [],
   ritmos: [],
   carta: [],
   respuestas: [],
@@ -69,7 +68,6 @@ function notificar(clave, valor, anterior) {
     try {
       fn({ clave, valor, anterior });
     } catch (e) {
-      // eslint-disable-next-line no-console
       console.error('[almacen] Error en suscriptor:', e);
     }
   }

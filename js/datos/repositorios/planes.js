@@ -1,13 +1,19 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/repositorios/planes.js
-   Versión: 1.4.0
-   Propósito: acceso a la tabla ahorasi_planes.
-              v1.4.0: crear() y actualizar() usan idempotencia
-                      automática. Un doble clic o un retry rápido
-                      con los mismos datos no duplica la fila.
-              v1.3.0: conIdempotencia opt-in (revertido, era más
-                      simple hacerlo automático).
+   Versión: 1.5.0
+   Propósito: acceso a la tabla ahorasi_planes. La misma tabla
+              almacena planes y ideas, distinguidos por el campo
+              esIdea (boolean).
+              v1.5.0: se agregan campos esIdea y categoria. listar()
+                      ahora filtra por esIdea = false (planes
+                      reales), para no romper la vista Planes que
+                      espera solo planes. Se agrega listarIdeas()
+                      para la sección de ideas. Se agrega
+                      sumarAPlanes(id) que invierte esIdea de true
+                      a false. crear() acepta esIdea y categoria.
+              v1.4.0: crear() y actualizar() con idempotencia.
+              v1.3.0: conIdempotencia opt-in (revertido).
               v1.2.0: usa _contexto.js.
               v1.0.0: versión inicial.
    ================================================================ */
@@ -30,6 +36,7 @@ import {
 const log = crearLogger('repo:planes');
 const TABLA = 'ahorasi_planes';
 const ESTADOS_VALIDOS = ['pendiente', 'si', 'quiza', 'no'];
+const LARGO_MAX_CATEGORIA = 50;
 
 function validarCrear(datos) {
   if (!datos || typeof datos !== 'object') {
@@ -47,6 +54,9 @@ function validarCrear(datos) {
   if (datos.estado && !ESTADOS_VALIDOS.includes(datos.estado)) {
     return Resultado.fallo(`Estado inválido: ${datos.estado}`);
   }
+  if (datos.categoria && datos.categoria.length > LARGO_MAX_CATEGORIA) {
+    return Resultado.fallo(`La categoría no puede exceder ${LARGO_MAX_CATEGORIA} caracteres`);
+  }
   return Resultado.ok();
 }
 
@@ -59,13 +69,15 @@ function normalizar(fila) {
     descripcion: fila.descripcion || '',
     cuando: fila.cuando || '',
     estado: fila.estado || 'pendiente',
+    esIdea: !!fila.esIdea,
+    categoria: fila.categoria || '',
     creadoPor: fila.creadoPor,
     creadoEn: fila.$createdAt,
     actualizadoEn: fila.$updatedAt,
   };
 }
 
-export async function listar() {
+async function listarConFiltro(esIdea) {
   const ctx = obtenerContexto();
   if (!ctx.exito) return ctx;
   try {
@@ -74,8 +86,9 @@ export async function listar() {
       tableId: TABLA,
       queries: [
         Query.equal('espacioId', ctx.datos.espacioId),
+        Query.equal('esIdea', esIdea),
         Query.orderDesc('$createdAt'),
-        Query.limit(100),
+        Query.limit(200),
       ],
     });
     return Resultado.ok(r.rows.map(normalizar));
@@ -83,6 +96,21 @@ export async function listar() {
     log.error('listar:', e.message);
     return Resultado.fallo(`Error al listar planes: ${e.message}`);
   }
+}
+
+/**
+ * Lista planes reales (esIdea = false).
+ * Cambio de comportamiento respecto a v1.4.0: antes listaba todo,
+ * ahora filtra. Motivo: la tabla ahorasi_planes pasó a alojar
+ * también ideas (esIdea = true), y la vista Planes debe seguir
+ * mostrando solo planes.
+ */
+export async function listar() {
+  return listarConFiltro(false);
+}
+
+export async function listarIdeas() {
+  return listarConFiltro(true);
 }
 
 export async function crear(datos, opciones = {}) {
@@ -98,6 +126,8 @@ export async function crear(datos, opciones = {}) {
     descripcion: (datos.descripcion || '').trim(),
     cuando: (datos.cuando || '').trim(),
     estado: datos.estado || 'pendiente',
+    esIdea: !!datos.esIdea,
+    categoria: (datos.categoria || '').trim(),
     creadoPor: ctx.datos.usuarioId,
   };
 
@@ -106,16 +136,16 @@ export async function crear(datos, opciones = {}) {
       const r = await obtenerTablesDB().createRow({
         databaseId: obtenerDatabaseId(),
         tableId: TABLA,
-        rowId: generarId('plan'),
+        rowId: generarId(datos.esIdea ? 'idea' : 'plan'),
         data: payload,
       });
       const plan = normalizar(r);
       emitir('planes:creado', plan);
-      log.info('Plan creado:', plan.id);
+      log.info(datos.esIdea ? 'Idea creada:' : 'Plan creado:', plan.id);
       return Resultado.ok(plan);
     } catch (e) {
       log.error('crear:', e.message);
-      return Resultado.fallo(`Error al crear plan: ${e.message}`);
+      return Resultado.fallo(`Error al crear: ${e.message}`);
     }
   });
 }
@@ -131,6 +161,9 @@ export async function actualizar(id, cambios, opciones = {}) {
   if (cambios.estado !== undefined && !ESTADOS_VALIDOS.includes(cambios.estado)) {
     return Resultado.fallo(`Estado inválido: ${cambios.estado}`);
   }
+  if (cambios.categoria !== undefined && cambios.categoria.length > LARGO_MAX_CATEGORIA) {
+    return Resultado.fallo(`La categoría no puede exceder ${LARGO_MAX_CATEGORIA} caracteres`);
+  }
 
   const ctx = obtenerContexto();
   if (!ctx.exito) return ctx;
@@ -140,6 +173,8 @@ export async function actualizar(id, cambios, opciones = {}) {
   if (cambios.descripcion !== undefined) data.descripcion = cambios.descripcion.trim();
   if (cambios.cuando !== undefined) data.cuando = cambios.cuando.trim();
   if (cambios.estado !== undefined) data.estado = cambios.estado;
+  if (cambios.esIdea !== undefined) data.esIdea = !!cambios.esIdea;
+  if (cambios.categoria !== undefined) data.categoria = (cambios.categoria || '').trim();
 
   if (Object.keys(data).length === 0) {
     return Resultado.fallo('No hay cambios válidos para aplicar');
@@ -161,11 +196,11 @@ export async function actualizar(id, cambios, opciones = {}) {
         });
         const plan = normalizar(r);
         emitir('planes:actualizado', plan);
-        log.info('Plan actualizado:', id);
+        log.info('Actualizado:', id);
         return Resultado.ok(plan);
       } catch (e) {
         log.error('actualizar:', e.message);
-        return Resultado.fallo(`Error al actualizar plan: ${e.message}`);
+        return Resultado.fallo(`Error al actualizar: ${e.message}`);
       }
     }
   );
@@ -178,6 +213,15 @@ export async function cambiarEstado(id, estado, opciones = {}) {
   return actualizar(id, { estado }, opciones);
 }
 
+/**
+ * Convierte una idea en un plan: invierte esIdea de true a false.
+ * La fila se mantiene; solo cambia de sección en la UI.
+ */
+export async function sumarAPlanes(id, opciones = {}) {
+  if (!id) return Resultado.fallo('Falta el id de la idea');
+  return actualizar(id, { esIdea: false }, opciones);
+}
+
 export async function eliminar(id) {
   if (!id) return Resultado.fallo('Falta el id del plan');
   try {
@@ -187,10 +231,10 @@ export async function eliminar(id) {
       rowId: id,
     });
     emitir('planes:eliminado', { id });
-    log.info('Plan eliminado:', id);
+    log.info('Eliminado:', id);
     return Resultado.ok({ id });
   } catch (e) {
     log.error('eliminar:', e.message);
-    return Resultado.fallo(`Error al eliminar plan: ${e.message}`);
+    return Resultado.fallo(`Error al eliminar: ${e.message}`);
   }
 }

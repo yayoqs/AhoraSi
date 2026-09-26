@@ -1,42 +1,331 @@
 /* ================================================================
    Ahora Sí — CSS
    Archivo: css/vistas/carta.css
-   Versión: 1.0.0
+   Versión: 1.2.0
    Propósito: estilos específicos de la vista de carta.
-              Manifiesto con borde dorado lateral, anexos con
-              mismo estilo de lista que el resto.
+              v1.2.0: se agregan estilos para la meta y acciones
+                      del compromiso compartido y del anexo, con
+                      botones Editar/Eliminar.
+              v1.1.0: se agregan estilos para compromisos, firma,
+                      modo edición, divisores de fijado, toast.
+              v1.0.0: carta con borde dorado lateral y anexos.
    ================================================================ */
 
-.vista--carta .vista__carta-base {
+/* -------- Barra superior --------------------------------------- */
+.vista--carta .vista__barra {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: var(--sp-5);
+  flex-wrap: wrap;
+}
+.vista--carta .vista__aviso-modo {
+  margin-right: auto;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+/* -------- Manifiesto ------------------------------------------- */
+.vista--carta .manifiesto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-3);
+}
+.vista--carta .manifiesto article {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.vista--carta .manifiesto h3 {
+  color: var(--gold);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  margin: 0;
+}
+.vista--carta .manifiesto p {
+  margin: 0;
+  line-height: 1.75;
+  font-size: 17px;
+  max-width: 62ch;
+  white-space: pre-wrap;
+}
+
+/* -------- Compromisos ------------------------------------------ */
+.vista--carta .compromisos {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.vista--carta .compromiso {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--pcb2);
+  border-radius: var(--r-md);
+  border-left: 3px solid rgba(74, 222, 128, .4);
+}
+.vista--carta .compromiso--compartido {
+  border-left-color: rgba(141, 183, 216, .5);
+}
+.vista--carta .compromiso__check {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--verde);
+}
+.vista--carta .compromiso--compartido .compromiso__check {
+  color: var(--sky);
+}
+.vista--carta .compromiso__check svg { width: 22px; height: 22px; }
+.vista--carta .compromiso__titulo {
+  font-weight: 700;
+  font-size: 15px;
+  margin: 0 0 4px;
+}
+.vista--carta .compromiso__desc {
+  color: var(--dim);
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.55;
+}
+.vista--carta .compromiso__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+/* -------- Firma ------------------------------------------------- */
+.vista--carta .firma {
+  margin-top: var(--sp-6);
+  padding: var(--sp-6) 4px var(--sp-2);
+  border-top: 1px solid rgba(238, 242, 232, .15);
+}
+.vista--carta .firma__texto {
+  font-family: var(--fuente-titulo);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: -.01em;
+}
+
+/* -------- Anexos ------------------------------------------------ */
+.vista--carta .anexos {
+  list-style: none;
+  padding: 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
-  margin-bottom: var(--sp-4);
 }
-
-.vista--carta .vista__pieza {
-  padding: var(--sp-4) var(--sp-5);
+.vista--carta .anexo {
+  padding: var(--sp-4);
+  background: var(--pcb2);
   border-radius: var(--r-md);
-  background: var(--pcb3);
-  border-left: 4px solid var(--gold);
+  border-left: 3px solid rgba(227, 188, 85, .35);
 }
-
-.vista--carta .vista__pieza h3 {
+.vista--carta .anexo h3 {
   color: var(--gold);
   font-size: 17px;
-  margin-bottom: var(--sp-2);
-}
-
-.vista--carta .vista__pieza-contenido {
   margin: 0 0 var(--sp-2);
-  white-space: pre-wrap;
-  line-height: 1.7;
 }
-
-.vista--carta .vista__pieza .meta {
-  color: var(--dim);
-  font-size: 13px;
+.vista--carta .anexo p {
+  margin: 0;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+.vista--carta .anexo__meta {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+.vista--carta .anexo__acciones {
+  display: flex;
+  gap: var(--sp-1);
+  margin-top: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+/* -------- Modo edición ------------------------------------------ */
+.vista--carta .pieza-edit {
+  padding: var(--sp-4);
+  background: var(--pcb3);
+  border-radius: var(--r-md);
+  border-left: 3px solid var(--sky);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.vista--carta .pieza-edit input,
+.vista--carta .pieza-edit textarea {
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  border: 1.5px solid rgba(238, 242, 232, .3);
+  background: rgba(238, 242, 232, .04);
+  color: var(--paper);
+  font: inherit;
+  font-size: 15px;
+  width: 100%;
+  transition: border-color var(--t-rapida), background var(--t-rapida);
+}
+.vista--carta .pieza-edit textarea { min-height: 90px; resize: vertical; }
+.vista--carta .pieza-edit input:focus,
+.vista--carta .pieza-edit textarea:focus {
+  border-color: var(--sky);
+  outline: none;
+  background: rgba(238, 242, 232, .08);
+}
+.vista--carta .pieza-edit__botones {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+.vista--carta .btn-mini {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--r-pill);
+  border: 1.5px solid rgba(238, 242, 232, .3);
+  background: transparent;
+  color: var(--paper);
+  transition: border-color var(--t-rapida), color var(--t-rapida);
+}
+.vista--carta .btn-mini:hover { border-color: var(--gold); color: var(--gold); }
+
+.vista--carta .btn-primario {
+  padding: 9px 18px;
+  border-radius: var(--r-md);
+  background: var(--gold);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 14px;
+}
+.vista--carta .btn-primario:hover { filter: brightness(1.05); }
+
+.vista--carta .btn-secundario {
+  padding: 9px 18px;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--paper);
+  border: 1.5px solid rgba(238, 242, 232, .35);
+  font-weight: 500;
+  font-size: 14px;
+  transition: border-color var(--t-rapida), color var(--t-rapida);
+}
+.vista--carta .btn-secundario:hover { border-color: var(--gold); color: var(--gold); }
+
+/* -------- Divisor de fijar sección ------------------------------ */
+.vista--carta .fijar-seccion {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin: var(--sp-6) 0;
+  color: var(--dim);
+  font-size: 12px;
+}
+.vista--carta .fijar-seccion::before,
+.vista--carta .fijar-seccion::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(238, 242, 232, .15);
+}
+.vista--carta .fijar-seccion button {
+  padding: 6px 16px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid rgba(227, 188, 85, .5);
+  background: transparent;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 600;
+  transition: background var(--t-rapida), color var(--t-rapida);
+}
+.vista--carta .fijar-seccion button:hover {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+/* -------- Caja vacía -------------------------------------------- */
+.vista--carta .vacio-caja {
+  padding: var(--sp-8) var(--sp-6);
+  background: var(--pcb2);
+  border-radius: var(--r-lg);
+  border: 1.5px dashed rgba(238, 242, 232, .2);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.vista--carta .vacio-caja p {
+  color: var(--dim);
+  font-size: 14px;
+  margin: 0;
+  max-width: 42ch;
+}
+.vista--carta .vacio-caja__botones {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* -------- Toast ------------------------------------------------- */
+.carta-toast {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 14px 18px;
+  background: var(--pcb3);
+  border: 1.5px solid var(--gold);
+  border-radius: var(--r-lg);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .4);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  z-index: 1000;
+  transform: translateY(140%);
+  transition: transform .3s ease;
+}
+.carta-toast--visible { transform: translateY(0); }
+.carta-toast__texto {
+  flex: 1;
+  color: var(--paper);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.carta-toast__boton {
+  padding: 8px 16px;
+  border-radius: var(--r-pill);
+  background: var(--gold);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.carta-toast__cerrar {
+  background: none;
+  border: 0;
+  color: var(--dim);
+  font-size: 20px;
+  line-height: 1;
+  padding: 4px;
 }

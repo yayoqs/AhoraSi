@@ -1,8 +1,15 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/repositorios/carta.js
-   Versión: 1.3.0
+   Versión: 1.4.0
    Propósito: acceso a ahorasi_carta.
+              v1.4.0: se amplían los tipos a cinco: base, anexo,
+                      compromiso, compromiso_compartido y firma.
+                      Se agrega actualizar(id, cambios) para
+                      editar piezas existentes. Se agrega
+                      guardarFirma(contenido) que crea o actualiza
+                      la firma del usuario actual. Emite
+                      'carta:actualizado' al editar.
               v1.3.0: crear() con idempotencia automática.
               v1.2.0: sin envío de permisos de fila.
               v1.1.0: usa _contexto.js.
@@ -21,11 +28,12 @@ import { generarId } from '../../nucleo/utils.js';
 import {
   obtenerContexto,
   conIdempotenciaParaCrear,
+  conIdempotenciaParaActualizar,
 } from './_contexto.js';
 
 const log = crearLogger('repo:carta');
 const TABLA = 'ahorasi_carta';
-const TIPOS = ['base', 'anexo'];
+const TIPOS = ['base', 'anexo', 'compromiso', 'compromiso_compartido', 'firma'];
 
 function normalizar(fila) {
   if (!fila) return null;
@@ -107,6 +115,44 @@ export async function crear(datos, opciones = {}) {
     } catch (e) {
       log.error('crear:', e.message);
       return Resultado.fallo(`Error al crear pieza de carta: ${e.message}`);
+    }
+  });
+}
+
+export async function actualizar(id, cambios, opciones = {}) {
+  if (!id) return Resultado.fallo('Falta el id de la pieza');
+  if (!cambios || typeof cambios !== 'object') return Resultado.fallo('Cambios inválidos');
+
+  const ctx = obtenerContexto();
+  if (!ctx.exito) return ctx;
+
+  const data = {};
+  if (cambios.titulo !== undefined) {
+    if (cambios.titulo.length > 200) return Resultado.fallo('Título demasiado largo');
+    data.titulo = cambios.titulo.trim();
+  }
+  if (cambios.contenido !== undefined) {
+    if (!cambios.contenido.trim()) return Resultado.fallo('El contenido no puede quedar vacío');
+    data.contenido = cambios.contenido.trim();
+  }
+  if (cambios.orden !== undefined) data.orden = cambios.orden;
+
+  if (Object.keys(data).length === 0) return Resultado.fallo('Sin cambios válidos');
+
+  return conIdempotenciaParaActualizar(TABLA, ctx.datos.usuarioId, id, data, opciones, async () => {
+    try {
+      const r = await obtenerTablesDB().updateRow({
+        databaseId: obtenerDatabaseId(),
+        tableId: TABLA,
+        rowId: id,
+        data,
+      });
+      const pieza = normalizar(r);
+      emitir('carta:actualizado', pieza);
+      return Resultado.ok(pieza);
+    } catch (e) {
+      log.error('actualizar:', e.message);
+      return Resultado.fallo(`Error al actualizar pieza: ${e.message}`);
     }
   });
 }

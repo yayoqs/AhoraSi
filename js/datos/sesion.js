@@ -1,15 +1,17 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/sesion.js
-   Versión: 1.1.0
+   Versión: 1.2.0
    Propósito: manejo de sesión con Appwrite. Login, logout, carga
-              de sesión existente y obtención del usuario actual.
-              Cachea el usuario en memoria.
-              v1.1.0: se ajusta import del cliente por cambio de
-                      origen del SDK (ahora UMD local). Sin cambios
-                      de comportamiento.
-              v1.0.1: agrega cerrarTodasLasSesiones y manejo de
-                      error al cerrar sin sesión activa.
+              de sesión existente, obtención del usuario actual y
+              cambio de contraseña.
+              v1.2.0: se agrega cambiarContrasena(actual, nueva).
+                      Devuelve { exito, error }. Requiere la
+                      contraseña actual para que Appwrite acepte el
+                      cambio. Sin cambios en las firmas previas.
+              v1.1.0: import del cliente por cambio de SDK (UMD).
+              v1.0.1: cerrarTodasLasSesiones, manejo de error al
+                      cerrar sin sesión.
               v1.0.0: versión inicial.
    ================================================================ */
 
@@ -18,6 +20,8 @@ import { crearLogger } from '../nucleo/logger.js';
 import { emitir } from '../nucleo/bus-eventos.js';
 
 const log = crearLogger('sesion');
+
+const LARGO_MINIMO_CONTRASENA = 8;
 
 let usuarioActual = null;
 
@@ -80,4 +84,33 @@ export function estaAutenticado() {
 
 export function limpiarCache() {
   usuarioActual = null;
+}
+
+/**
+ * Cambia la contraseña del usuario autenticado.
+ * Appwrite exige la contraseña actual para aceptar el cambio.
+ * @param {string} actual
+ * @param {string} nueva
+ * @returns {Promise<{exito: boolean, error: string|null}>}
+ */
+export async function cambiarContrasena(actual, nueva) {
+  if (!actual) return { exito: false, error: 'Falta la contraseña actual' };
+  if (!nueva) return { exito: false, error: 'Falta la contraseña nueva' };
+  if (nueva.length < LARGO_MINIMO_CONTRASENA) {
+    return {
+      exito: false,
+      error: `La contraseña debe tener al menos ${LARGO_MINIMO_CONTRASENA} caracteres`,
+    };
+  }
+  if (nueva === actual) {
+    return { exito: false, error: 'La contraseña nueva no puede ser igual a la actual' };
+  }
+  try {
+    await obtenerAccount().updatePassword({ password: nueva, oldPassword: actual });
+    log.info('Contraseña actualizada');
+    return { exito: true, error: null };
+  } catch (e) {
+    log.error('Error al cambiar contraseña:', e.message);
+    return { exito: false, error: e.message };
+  }
 }

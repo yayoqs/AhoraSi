@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test temporal — Cámara</title>
+<style>
+  :root {
+    --bg: #0C2F26; --bg2: #123F34; --paper: #EEF2E8;
+    --gold: #E3BC55; --sky: #8DB7D8; --dim: #A9C2B6; --ink: #0A1F1A;
+    --verde: #4ade80; --rojo: #f87171;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--paper);
+    font: 400 15px/1.6 system-ui, -apple-system, sans-serif;
+    padding: 20px 16px 60px; -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; color: var(--gold); }
+  h2 { font-size: 15px; margin: 26px 0 8px; color: var(--gold); }
+  .lead { color: var(--dim); margin: 0 0 20px; font-size: 14px; }
+
+  button {
+    padding: 12px 20px; border: 0; border-radius: 10px;
+    background: var(--gold); color: var(--ink);
+    font: inherit; font-weight: 600; cursor: pointer;
+    font-size: 15px;
+  }
+  button:disabled { opacity: .5; cursor: wait; }
+
+  .info {
+    padding: 12px 14px; margin: 6px 0; border-radius: 8px;
+    background: var(--bg2); font-family: ui-monospace, monospace;
+    font-size: 13px; line-height: 1.5;
+    border-left: 3px solid var(--sky);
+  }
+  .info.ok { border-left-color: var(--verde); }
+  .info.err { border-left-color: var(--rojo); }
+  .info strong { color: var(--gold); }
+
+  #video-zona {
+    margin-top: 20px; padding: 16px; background: var(--bg2);
+    border-radius: 10px; display: none;
+  }
+  #video-zona.visible { display: block; }
+  video {
+    width: 100%; max-width: 480px; border-radius: 8px;
+    background: #000; display: block; margin: 0 auto;
+  }
+
+  #captura-zona { margin-top: 12px; text-align: center; }
+  #captura-img {
+    max-width: 100%; border-radius: 8px; margin-top: 12px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Test temporal — Cámara</h1>
+  <p class="lead">Diagnóstico paso a paso de por qué <code>getUserMedia</code> funciona o falla en este dispositivo. Presiona "Ejecutar diagnóstico" para empezar.</p>
+
+  <button id="btn-ejecutar" type="button">Ejecutar diagnóstico</button>
+  <button id="btn-detener" type="button" disabled>Detener cámara</button>
+
+  <div id="resultados"></div>
+
+  <div id="video-zona">
+    <h2>Video en vivo</h2>
+    <video id="video" autoplay playsinline muted></video>
+    <div id="captura-zona">
+      <button id="btn-capturar" type="button">Capturar frame</button>
+      <img id="captura-img" alt="">
+    </div>
+  </div>
+</main>
+
+<script type="module">
+/* ================================================================
+   Ahora Sí — TEST TEMPORAL CÁMARA
+   Archivo: test-camara.html
+   Versión: 1.0.0
+   Propósito: diagnosticar paso a paso por qué getUserMedia
+              funciona o falla. Prueba contexto seguro, soporte
+              del navegador, permisos, enumeración de dispositivos
+              y varias configuraciones de constraints. Muestra el
+              error exacto en cada paso.
+   ================================================================ */
+
+const resultados = document.getElementById('resultados');
+const videoZona = document.getElementById('video-zona');
+const video = document.getElementById('video');
+const capturaImg = document.getElementById('captura-img');
+const btnEjecutar = document.getElementById('btn-ejecutar');
+const btnDetener = document.getElementById('btn-detener');
+const btnCapturar = document.getElementById('btn-capturar');
+
+let streamActivo = null;
+
+function limpiarResultados() {
+  resultados.replaceChildren();
+}
+
+function linea(etiqueta, valor, clase = '') {
+  const div = document.createElement('div');
+  div.className = 'info ' + clase;
+  div.innerHTML = `<strong>${etiqueta}:</strong> ${valor}`;
+  resultados.append(div);
+  div.scrollIntoView({ block: 'nearest' });
+  console.log(etiqueta, valor);
+}
+
+function json(obj) {
+  return JSON.stringify(obj, null, 2).replace(/\n/g, '<br>').replace(/ /g, '&nbsp;');
+}
+
+async function paso1_Contexto() {
+  linea('1.1 Protocolo', location.protocol);
+  linea('1.2 Host', location.hostname);
+  linea('1.3 URL completa', location.href);
+
+  const seguro =
+    location.protocol === 'https:' ||
+    location.hostname === 'localhost' ||
+    location.hostname === '127.0.0.1' ||
+    location.hostname === '[::1]';
+  linea(
+    '1.4 Contexto seguro',
+    seguro ? 'SÍ (cumple requisito de getUserMedia)' : 'NO — getUserMedia va a fallar aquí',
+    seguro ? 'ok' : 'err'
+  );
+  return seguro;
+}
+
+async function paso2_SoporteApi() {
+  const tieneMediaDevices = !!(navigator.mediaDevices);
+  linea(
+    '2.1 navigator.mediaDevices',
+    tieneMediaDevices ? 'disponible' : 'NO disponible',
+    tieneMediaDevices ? 'ok' : 'err'
+  );
+
+  const tieneGetUserMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  linea(
+    '2.2 getUserMedia',
+    tieneGetUserMedia ? 'disponible' : 'NO disponible',
+    tieneGetUserMedia ? 'ok' : 'err'
+  );
+
+  const tieneEnumerate = !!(navigator.mediaDevices && navigator.mediaDevices.enumerateDevices);
+  linea(
+    '2.3 enumerateDevices',
+    tieneEnumerate ? 'disponible' : 'NO disponible',
+    tieneEnumerate ? 'ok' : 'err'
+  );
+
+  return tieneGetUserMedia;
+}
+
+async function paso3_Permisos() {
+  if (!navigator.permissions || !navigator.permissions.query) {
+    linea('3.1 Permissions API', 'no soportada en este navegador (no es bloqueante)', '');
+    return;
+  }
+  try {
+    const p = await navigator.permissions.query({ name: 'camera' });
+    linea('3.1 Estado del permiso de cámara', p.state);
+  } catch (e) {
+    linea('3.1 Permissions.query(camera)', 'no soportado: ' + e.message, '');
+  }
+}
+
+async function paso4_EnumerarDispositivos() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+    linea('4.1 enumerateDevices', 'no disponible', 'err');
+    return;
+  }
+  try {
+    const lista = await navigator.mediaDevices.enumerateDevices();
+    const videos = lista.filter((d) => d.kind === 'videoinput');
+    linea('4.1 Dispositivos totales', String(lista.length));
+    linea('4.2 Cámaras (videoinput)', String(videos.length), videos.length > 0 ? 'ok' : 'err');
+    videos.forEach((d, i) => {
+      linea(
+        `   Cámara ${i + 1}`,
+        `id=${d.deviceId || '(vacío)'} label="${d.label || '(sin etiqueta, requiere permiso)'}"`
+      );
+    });
+    if (videos.length === 0) {
+      linea(
+        '4.3 Aviso',
+        'No se detectaron cámaras. En móvil esto puede pasar si el navegador no ha concedido permiso aún. Se concede al primer getUserMedia exitoso.',
+        'err'
+      );
+    }
+  } catch (e) {
+    linea('4.x enumerateDevices falló', e.message, 'err');
+  }
+}
+
+async function intentar(constraints, etiqueta) {
+  try {
+    const s = await navigator.mediaDevices.getUserMedia(constraints);
+    linea(etiqueta, 'FUNCIONÓ. Stream adquirido.', 'ok');
+    return s;
+  } catch (e) {
+    linea(etiqueta, `FALLÓ. name=${e.name} message=${e.message}`, 'err');
+    return null;
+  }
+}
+
+async function paso5_GetUserMedia() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    linea('5.x', 'getUserMedia no disponible, se salta este paso', 'err');
+    return null;
+  }
+
+  // Intento 1: cámara trasera
+  let stream = await intentar(
+    { video: { facingMode: { ideal: 'environment' } }, audio: false },
+    '5.1 facingMode environment (ideal)'
+  );
+  if (stream) return stream;
+
+  // Intento 2: sin especificar facingMode
+  stream = await intentar({ video: true, audio: false }, '5.2 video: true (default)');
+  if (stream) return stream;
+
+  // Intento 3: constraints mínimos
+  stream = await intentar({ video: {}, audio: false }, '5.3 video: {} (constraints vacíos)');
+  if (stream) return stream;
+
+  return null;
+}
+
+async function ejecutar() {
+  limpiarResultados();
+  btnEjecutar.disabled = true;
+  detenerStream();
+
+  linea('Inicio', new Date().toLocaleString('es-CL'));
+
+  const seguro = await paso1_Contexto();
+  if (!seguro) {
+    linea(
+      'Aviso',
+      'Estás en un contexto no seguro (HTTP con IP). getUserMedia no funcionará. Prueba en localhost, en HTTPS, o en el dominio real ahorasi.elisekai.com.',
+      'err'
+    );
+  }
+
+  const apiOk = await paso2_SoporteApi();
+  if (!apiOk) {
+    linea('Corte', 'Sin soporte de getUserMedia. No se puede continuar.', 'err');
+    btnEjecutar.disabled = false;
+    return;
+  }
+
+  await paso3_Permisos();
+  await paso4_EnumerarDispositivos();
+
+  const stream = await paso5_GetUserMedia();
+
+  if (stream) {
+    streamActivo = stream;
+    video.srcObject = stream;
+    videoZona.classList.add('visible');
+    btnDetener.disabled = false;
+    const track = stream.getVideoTracks()[0];
+    const settings = track.getSettings ? track.getSettings() : {};
+    linea('6.1 Track de video activo', json(settings));
+    try {
+      video.play().catch((e) => linea('6.2 video.play()', e.message, 'err'));
+    } catch (e) {
+      linea('6.2 video.play()', e.message, 'err');
+    }
+  } else {
+    linea(
+      'Resultado',
+      'Todos los intentos de getUserMedia fallaron. Mira los errores 5.1, 5.2, 5.3 para la causa exacta.',
+      'err'
+    );
+  }
+
+  btnEjecutar.disabled = false;
+}
+
+function detenerStream() {
+  if (streamActivo) {
+    streamActivo.getTracks().forEach((t) => t.stop());
+    streamActivo = null;
+  }
+  video.srcObject = null;
+  videoZona.classList.remove('visible');
+  btnDetener.disabled = true;
+  capturaImg.style.display = 'none';
+}
+
+function capturar() {
+  if (!streamActivo) {
+    linea('Captura', 'No hay stream activo', 'err');
+    return;
+  }
+  const ancho = video.videoWidth;
+  const alto = video.videoHeight;
+  if (!ancho || !alto) {
+    linea('Captura', 'videoWidth o videoHeight en cero. Espera un momento y vuelve a intentar.', 'err');
+    return;
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = ancho;
+  canvas.height = alto;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, ancho, alto);
+  canvas.toBlob((blob) => {
+    if (!blob) {
+      linea('Captura', 'toBlob devolvió null', 'err');
+      return;
+    }
+    capturaImg.src = URL.createObjectURL(blob);
+    capturaImg.style.display = 'block';
+    linea('Captura', `OK. ${ancho}x${alto} px, ${Math.round(blob.size / 1024)} KB`, 'ok');
+  }, 'image/jpeg', 0.92);
+}
+
+btnEjecutar.addEventListener('click', ejecutar);
+btnDetener.addEventListener('click', detenerStream);
+btnCapturar.addEventListener('click', capturar);
+</script>
+</body>
+</html>

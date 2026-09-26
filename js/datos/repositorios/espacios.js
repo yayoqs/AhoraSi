@@ -1,10 +1,17 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/repositorios/espacios.js
-   Versión: 1.0.1
+   Versión: 1.1.0
    Propósito: acceso a ahorasi_espacios. Expone listarDeUsuario,
               obtenerPorId, crear y eliminar. Un espacio contiene
               el array miembros con los userIds.
+              v1.1.0: se deja de enviar `permissions` en crear().
+                      Con Row Security desactivado (D2), los
+                      permisos a nivel de fila no aplican; solo
+                      valen los permisos de tabla. Se elimina la
+                      función privada permisosParaMiembros(), que
+                      ya no tiene uso. Sin cambios en firmas
+                      públicas.
               v1.0.1: se agrega eliminar() para uso en tests.
               v1.0.0: versión inicial.
    ================================================================ */
@@ -13,8 +20,6 @@ import {
   obtenerTablesDB,
   obtenerDatabaseId,
   Query,
-  Permission,
-  Role,
 } from '../cliente-appwrite.js';
 import { Resultado } from '../../dominio/resultado.js';
 import { emitir } from '../../nucleo/bus-eventos.js';
@@ -32,16 +37,6 @@ function normalizar(fila) {
     miembros: Array.isArray(fila.miembros) ? fila.miembros : [],
     creadoEn: fila.creadoEn || fila.$createdAt,
   };
-}
-
-function permisosParaMiembros(miembros) {
-  const permisos = new Set();
-  for (const id of miembros) {
-    permisos.add(Permission.read(Role.user(id)));
-    permisos.add(Permission.update(Role.user(id)));
-    permisos.add(Permission.delete(Role.user(id)));
-  }
-  return [...permisos];
 }
 
 export async function listarDeUsuario(userId) {
@@ -94,7 +89,6 @@ export async function crear(datos) {
         miembros: datos.miembros,
         creadoEn: new Date().toISOString(),
       },
-      permissions: permisosParaMiembros(datos.miembros),
     });
     const espacio = normalizar(r);
     emitir('espacios:creado', espacio);
