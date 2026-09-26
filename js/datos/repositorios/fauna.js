@@ -1,8 +1,9 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/repositorios/fauna.js
-   Versión: 1.2.0
+   Versión: 1.3.0
    Propósito: acceso a ahorasi_fauna.
+              v1.3.0: crear() con idempotencia automática.
               v1.2.0: sin envío de permisos de fila.
               v1.1.0: usa _contexto.js.
               v1.0.0: versión inicial.
@@ -17,7 +18,10 @@ import { Resultado } from '../../dominio/resultado.js';
 import { emitir } from '../../nucleo/bus-eventos.js';
 import { crearLogger } from '../../nucleo/logger.js';
 import { generarId } from '../../nucleo/utils.js';
-import { obtenerContexto } from './_contexto.js';
+import {
+  obtenerContexto,
+  conIdempotenciaParaCrear,
+} from './_contexto.js';
 
 const log = crearLogger('repo:fauna');
 const TABLA = 'ahorasi_fauna';
@@ -57,7 +61,7 @@ export async function listar() {
   }
 }
 
-export async function crear(datos) {
+export async function crear(datos, opciones = {}) {
   if (!datos?.nombre?.trim()) return Resultado.fallo('Falta nombre');
   if (datos.nombre.length > 100) return Resultado.fallo('Nombre demasiado largo');
   if (datos.tipo && !TIPOS.includes(datos.tipo)) {
@@ -67,27 +71,31 @@ export async function crear(datos) {
   const ctx = obtenerContexto();
   if (!ctx.exito) return ctx;
 
-  try {
-    const r = await obtenerTablesDB().createRow({
-      databaseId: obtenerDatabaseId(),
-      tableId: TABLA,
-      rowId: generarId('fauna'),
-      data: {
-        espacioId: ctx.datos.espacioId,
-        nombre: datos.nombre.trim(),
-        tipo: datos.tipo || 'otro',
-        lugar: (datos.lugar || '').trim(),
-        fecha: datos.fecha || null,
-        registradoPor: ctx.datos.usuarioId,
-      },
-    });
-    const reg = normalizar(r);
-    emitir('fauna:creado', reg);
-    return Resultado.ok(reg);
-  } catch (e) {
-    log.error('crear:', e.message);
-    return Resultado.fallo(`Error al registrar fauna: ${e.message}`);
-  }
+  const payload = {
+    espacioId: ctx.datos.espacioId,
+    nombre: datos.nombre.trim(),
+    tipo: datos.tipo || 'otro',
+    lugar: (datos.lugar || '').trim(),
+    fecha: datos.fecha || null,
+    registradoPor: ctx.datos.usuarioId,
+  };
+
+  return conIdempotenciaParaCrear(TABLA, ctx.datos.usuarioId, payload, opciones, async () => {
+    try {
+      const r = await obtenerTablesDB().createRow({
+        databaseId: obtenerDatabaseId(),
+        tableId: TABLA,
+        rowId: generarId('fauna'),
+        data: payload,
+      });
+      const reg = normalizar(r);
+      emitir('fauna:creado', reg);
+      return Resultado.ok(reg);
+    } catch (e) {
+      log.error('crear:', e.message);
+      return Resultado.fallo(`Error al registrar fauna: ${e.message}`);
+    }
+  });
 }
 
 export async function eliminar(id) {

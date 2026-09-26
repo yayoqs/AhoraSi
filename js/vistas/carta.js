@@ -1,11 +1,11 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/carta.js
-   Versión: 1.2.0
-   Propósito: vista de la carta. Manifiesto y anexos.
-              v1.2.0: usa distintivoAutor() de autores.js.
-                      Se agrega clase .vista--carta al section
-                      para que el CSS modular la ubique.
+   Versión: 1.3.1
+   Propósito: vista de la carta.
+              v1.3.1: usa mostrarConfirmacion() de dialogos.js.
+              v1.3.0: activar() pinta primero, carga en background.
+              v1.2.0: distintivoAutor, clase .vista--carta.
               v1.1.0: escucha eventos de Realtime.
               v1.0.0: versión inicial.
    ================================================================ */
@@ -13,6 +13,7 @@
 import * as repoCarta from '../datos/repositorios/carta.js';
 import { al } from '../nucleo/bus-eventos.js';
 import { distintivoAutor } from '../nucleo/autores.js';
+import { mostrarConfirmacion } from '../nucleo/dialogos.js';
 import { crearLogger } from '../nucleo/logger.js';
 import { h, limpiarContenedor, formatearFecha } from '../nucleo/utils.js';
 
@@ -141,7 +142,12 @@ async function manejarClick(ev) {
   const boton = ev.target.closest('button[data-accion="eliminar"]');
   if (!boton) return;
   const id = boton.dataset.id;
-  if (!confirm('¿Eliminar este anexo?')) return;
+  const confirmado = await mostrarConfirmacion(
+    'Eliminar anexo',
+    '¿Seguro que quieres eliminar este anexo?',
+    { textoConfirmar: 'Eliminar' }
+  );
+  if (!confirmado) return;
   const r = await repoCarta.eliminar(id);
   if (r.exito) await refrescar();
   else pintarError(r.error);
@@ -160,7 +166,8 @@ export async function activar(contenedor) {
     al('realtime:carta:eliminar', refrescar),
   ];
 
-  await refrescar();
+  pintar();
+  refrescar().catch((e) => log.error('Error al refrescar:', e));
 }
 
 export function limpiar() {

@@ -1,9 +1,12 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/respuesta.js
-   Versión: 1.2.0
+   Versión: 1.3.1
    Propósito: panel de respuesta con historial.
-              v1.2.0: usa distintivoAutor(). Clase .vista--respuesta.
+              v1.3.1: sin cambios funcionales. Se sincroniza la
+                      versión con las demás vistas del grupo B.
+              v1.3.0: activar() pinta primero, carga en background.
+              v1.2.0: distintivoAutor, clase .vista--respuesta.
               v1.1.0: escucha eventos de Realtime.
               v1.0.0: versión inicial.
    ================================================================ */
@@ -165,8 +168,8 @@ export async function activar(contenedor) {
     }),
   ];
 
-  await refrescarHistorial();
   pintar();
+  refrescarHistorial().catch((e) => log.error('Error al refrescar:', e));
 }
 
 export function limpiar() {

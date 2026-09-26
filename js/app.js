@@ -1,10 +1,17 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/app.js
-   Versión: 2.5.0
+   Versión: 2.6.0
    Propósito: punto de entrada. Arranca sesión, monta el shell
               de navegación por hash, monta/desmonta las vistas, y
               mantiene Realtime activo mientras hay sesión.
+              v2.6.0: navegar() y iniciarRealtime() ya no bloquean
+                      el arranque con await. El shell aparece tan
+                      pronto como hay usuario y espacio; la vista
+                      por defecto se monta sin bloquear, y Realtime
+                      arranca en background. Mejora notable en FCP
+                      en móvil.
+              v2.5.1: construirShell y principal verifican #app.
               v2.5.0: se inicia Realtime al arrancar y se detiene
                       al cerrar sesión.
               v2.4.1: import corregido de percusión.
@@ -103,9 +110,27 @@ async function montarVista(ruta) {
   }
 }
 
-async function navegar(ruta) {
-  await desmontarVistaActual();
-  await montarVista(ruta);
+/**
+ * Navega entre vistas.
+ * v2.6.0: el desmontaje es síncrono y bloqueante (necesario para
+ * evitar que dos vistas coexistan en el DOM). El montaje de la
+ * vista se dispara sin await: la vista pinta su esqueleto y luego
+ * carga datos en background. El caller puede llamar sin await.
+ */
+function navegar(ruta) {
+  // El desmontaje debe completarse antes de montar la nueva. Como
+  // es una operación rápida (limpiar contenedor + abort), la
+  // hacemos síncrona llamando al limpiar de la vista activa.
+  if (vistaActiva) {
+    try {
+      vistaActiva.modulo.limpiar();
+    } catch (e) {
+      log.error('Error al limpiar vista:', vistaActiva.titulo, e.message);
+    }
+    vistaActiva = null;
+    limpiarContenedor(vistasContenedor);
+  }
+  montarVista(ruta).catch((e) => log.error('Error al montar vista:', e));
   marcarNavActiva(ruta);
 }
 
@@ -127,6 +152,10 @@ async function manejarSalir() {
 
 function construirShell(estadoSesion) {
   const app = document.getElementById('app');
+  if (!app) {
+    log.warn('No existe #app en el DOM. Ignorando montaje del shell.');
+    return;
+  }
   limpiarContenedor(app);
 
   const encabezado = h('header', { class: 'shell__header' },
@@ -155,6 +184,10 @@ function construirShell(estadoSesion) {
 
 function mostrarLogin() {
   const app = document.getElementById('app');
+  if (!app) {
+    log.warn('No existe #app para mostrar el login.');
+    return;
+  }
   limpiarContenedor(app);
 
   const estado = h('p', { class: 'login__estado', role: 'status' });
@@ -201,11 +234,17 @@ function mostrarLogin() {
 }
 
 async function principal() {
+  const app = document.getElementById('app');
+  if (!app) {
+    log.warn('No existe #app. Ignorando arranque de la app.');
+    return;
+  }
+
   try {
     validarConfig();
   } catch (e) {
     log.error('Config inválida:', e.message);
-    document.getElementById('app').append(
+    app.append(
       h('p', { class: 'error-fatal' }, 'Configuración inválida: ' + e.message)
     );
     return;
@@ -219,13 +258,18 @@ async function principal() {
     return;
   }
 
+  // v2.6.0: el shell se construye tan pronto como tenemos usuario y
+  // espacio. La vista por defecto y Realtime arrancan sin await.
   construirShell(estadoSesion);
   instalarNavegacion();
-  await navegar(rutaDesdeHash());
+
+  navegar(rutaDesdeHash());
 
   log.info('App lista. Espacio:', obtener('espacio')?.id);
-  await iniciarRealtime(estadoSesion.espacio);
-  log.info('Realtime activo');
+
+  iniciarRealtime(estadoSesion.espacio)
+    .then(() => log.info('Realtime activo'))
+    .catch((e) => log.error('Error al iniciar Realtime:', e.message));
 }
 
 principal().catch((e) => {

@@ -1,18 +1,14 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/repositorios/planes.js
-   Versión: 1.2.0
+   Versión: 1.4.0
    Propósito: acceso a la tabla ahorasi_planes.
-              v1.2.0: se elimina el envío de permisos de fila. Con
-                      Row Security desactivado, los permisos de
-                      tabla se aplican a todas las filas. Esto evita
-                      el error de Appwrite "Permissions must be one
-                      of: ..." que ocurría al intentar otorgar
-                      permisos de fila a otro usuario sin ser admin.
-                      Se elimina construirPermisos. Los imports de
-                      Permission y Role ya no son necesarios.
-              v1.1.0: usa _contexto.js.
-              v1.0.1: elimina import muerto de ID.
+              v1.4.0: crear() y actualizar() usan idempotencia
+                      automática. Un doble clic o un retry rápido
+                      con los mismos datos no duplica la fila.
+              v1.3.0: conIdempotencia opt-in (revertido, era más
+                      simple hacerlo automático).
+              v1.2.0: usa _contexto.js.
               v1.0.0: versión inicial.
    ================================================================ */
 
@@ -25,7 +21,11 @@ import { Resultado } from '../../dominio/resultado.js';
 import { emitir } from '../../nucleo/bus-eventos.js';
 import { crearLogger } from '../../nucleo/logger.js';
 import { generarId } from '../../nucleo/utils.js';
-import { obtenerContexto } from './_contexto.js';
+import {
+  obtenerContexto,
+  conIdempotenciaParaCrear,
+  conIdempotenciaParaActualizar,
+} from './_contexto.js';
 
 const log = crearLogger('repo:planes');
 const TABLA = 'ahorasi_planes';
@@ -68,7 +68,6 @@ function normalizar(fila) {
 export async function listar() {
   const ctx = obtenerContexto();
   if (!ctx.exito) return ctx;
-
   try {
     const r = await obtenerTablesDB().listRows({
       databaseId: obtenerDatabaseId(),
@@ -86,38 +85,42 @@ export async function listar() {
   }
 }
 
-export async function crear(datos) {
+export async function crear(datos, opciones = {}) {
   const val = validarCrear(datos);
   if (!val.exito) return val;
 
   const ctx = obtenerContexto();
   if (!ctx.exito) return ctx;
 
-  try {
-    const r = await obtenerTablesDB().createRow({
-      databaseId: obtenerDatabaseId(),
-      tableId: TABLA,
-      rowId: generarId('plan'),
-      data: {
-        espacioId: ctx.datos.espacioId,
-        titulo: datos.titulo.trim(),
-        descripcion: (datos.descripcion || '').trim(),
-        cuando: (datos.cuando || '').trim(),
-        estado: datos.estado || 'pendiente',
-        creadoPor: ctx.datos.usuarioId,
-      },
-    });
-    const plan = normalizar(r);
-    emitir('planes:creado', plan);
-    log.info('Plan creado:', plan.id);
-    return Resultado.ok(plan);
-  } catch (e) {
-    log.error('crear:', e.message);
-    return Resultado.fallo(`Error al crear plan: ${e.message}`);
-  }
+  const payload = {
+    espacioId: ctx.datos.espacioId,
+    titulo: datos.titulo.trim(),
+    descripcion: (datos.descripcion || '').trim(),
+    cuando: (datos.cuando || '').trim(),
+    estado: datos.estado || 'pendiente',
+    creadoPor: ctx.datos.usuarioId,
+  };
+
+  return conIdempotenciaParaCrear(TABLA, ctx.datos.usuarioId, payload, opciones, async () => {
+    try {
+      const r = await obtenerTablesDB().createRow({
+        databaseId: obtenerDatabaseId(),
+        tableId: TABLA,
+        rowId: generarId('plan'),
+        data: payload,
+      });
+      const plan = normalizar(r);
+      emitir('planes:creado', plan);
+      log.info('Plan creado:', plan.id);
+      return Resultado.ok(plan);
+    } catch (e) {
+      log.error('crear:', e.message);
+      return Resultado.fallo(`Error al crear plan: ${e.message}`);
+    }
+  });
 }
 
-export async function actualizar(id, cambios) {
+export async function actualizar(id, cambios, opciones = {}) {
   if (!id) return Resultado.fallo('Falta el id del plan');
   if (!cambios || typeof cambios !== 'object') {
     return Resultado.fallo('Los cambios deben ser un objeto');
@@ -129,6 +132,9 @@ export async function actualizar(id, cambios) {
     return Resultado.fallo(`Estado inválido: ${cambios.estado}`);
   }
 
+  const ctx = obtenerContexto();
+  if (!ctx.exito) return ctx;
+
   const data = {};
   if (cambios.titulo !== undefined) data.titulo = cambios.titulo.trim();
   if (cambios.descripcion !== undefined) data.descripcion = cambios.descripcion.trim();
@@ -139,28 +145,37 @@ export async function actualizar(id, cambios) {
     return Resultado.fallo('No hay cambios válidos para aplicar');
   }
 
-  try {
-    const r = await obtenerTablesDB().updateRow({
-      databaseId: obtenerDatabaseId(),
-      tableId: TABLA,
-      rowId: id,
-      data,
-    });
-    const plan = normalizar(r);
-    emitir('planes:actualizado', plan);
-    log.info('Plan actualizado:', id);
-    return Resultado.ok(plan);
-  } catch (e) {
-    log.error('actualizar:', e.message);
-    return Resultado.fallo(`Error al actualizar plan: ${e.message}`);
-  }
+  return conIdempotenciaParaActualizar(
+    TABLA,
+    ctx.datos.usuarioId,
+    id,
+    data,
+    opciones,
+    async () => {
+      try {
+        const r = await obtenerTablesDB().updateRow({
+          databaseId: obtenerDatabaseId(),
+          tableId: TABLA,
+          rowId: id,
+          data,
+        });
+        const plan = normalizar(r);
+        emitir('planes:actualizado', plan);
+        log.info('Plan actualizado:', id);
+        return Resultado.ok(plan);
+      } catch (e) {
+        log.error('actualizar:', e.message);
+        return Resultado.fallo(`Error al actualizar plan: ${e.message}`);
+      }
+    }
+  );
 }
 
-export async function cambiarEstado(id, estado) {
+export async function cambiarEstado(id, estado, opciones = {}) {
   if (!ESTADOS_VALIDOS.includes(estado)) {
     return Resultado.fallo(`Estado inválido: ${estado}`);
   }
-  return actualizar(id, { estado });
+  return actualizar(id, { estado }, opciones);
 }
 
 export async function eliminar(id) {

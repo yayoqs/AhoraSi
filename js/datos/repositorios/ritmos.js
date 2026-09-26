@@ -1,8 +1,9 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/repositorios/ritmos.js
-   Versión: 1.2.0
+   Versión: 1.3.0
    Propósito: acceso a ahorasi_ritmos.
+              v1.3.0: crear() con idempotencia automática.
               v1.2.0: sin envío de permisos de fila.
               v1.1.0: usa _contexto.js.
               v1.0.0: versión inicial.
@@ -17,7 +18,10 @@ import { Resultado } from '../../dominio/resultado.js';
 import { emitir } from '../../nucleo/bus-eventos.js';
 import { crearLogger } from '../../nucleo/logger.js';
 import { generarId } from '../../nucleo/utils.js';
-import { obtenerContexto } from './_contexto.js';
+import {
+  obtenerContexto,
+  conIdempotenciaParaCrear,
+} from './_contexto.js';
 
 const log = crearLogger('repo:ritmos');
 const TABLA = 'ahorasi_ritmos';
@@ -62,7 +66,7 @@ export async function listar() {
   }
 }
 
-export async function crear(datos) {
+export async function crear(datos, opciones = {}) {
   if (!datos?.nombre?.trim()) return Resultado.fallo('Falta nombre');
   if (datos.nombre.length > 100) return Resultado.fallo('Nombre demasiado largo');
   if (typeof datos.bpm !== 'number' || datos.bpm < 40 || datos.bpm > 240) {
@@ -73,27 +77,31 @@ export async function crear(datos) {
   const ctx = obtenerContexto();
   if (!ctx.exito) return ctx;
 
-  try {
-    const r = await obtenerTablesDB().createRow({
-      databaseId: obtenerDatabaseId(),
-      tableId: TABLA,
-      rowId: generarId('ritmo'),
-      data: {
-        espacioId: ctx.datos.espacioId,
-        nombre: datos.nombre.trim(),
-        bpm: Math.round(datos.bpm),
-        patron: JSON.stringify(datos.patron),
-        creadoPor: ctx.datos.usuarioId,
-        creadoEn: new Date().toISOString(),
-      },
-    });
-    const ritmo = normalizar(r);
-    emitir('ritmos:creado', ritmo);
-    return Resultado.ok(ritmo);
-  } catch (e) {
-    log.error('crear:', e.message);
-    return Resultado.fallo(`Error al crear ritmo: ${e.message}`);
-  }
+  const payload = {
+    espacioId: ctx.datos.espacioId,
+    nombre: datos.nombre.trim(),
+    bpm: Math.round(datos.bpm),
+    patron: JSON.stringify(datos.patron),
+    creadoPor: ctx.datos.usuarioId,
+    creadoEn: new Date().toISOString(),
+  };
+
+  return conIdempotenciaParaCrear(TABLA, ctx.datos.usuarioId, payload, opciones, async () => {
+    try {
+      const r = await obtenerTablesDB().createRow({
+        databaseId: obtenerDatabaseId(),
+        tableId: TABLA,
+        rowId: generarId('ritmo'),
+        data: payload,
+      });
+      const ritmo = normalizar(r);
+      emitir('ritmos:creado', ritmo);
+      return Resultado.ok(ritmo);
+    } catch (e) {
+      log.error('crear:', e.message);
+      return Resultado.fallo(`Error al crear ritmo: ${e.message}`);
+    }
+  });
 }
 
 export async function eliminar(id) {

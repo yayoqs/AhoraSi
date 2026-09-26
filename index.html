@@ -14,34 +14,22 @@
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/componentes.css">
+<link rel="stylesheet" href="css/vistas/hero.css">
 <link rel="stylesheet" href="css/vistas/carta.css">
 <link rel="stylesheet" href="css/vistas/planes.css">
+<link rel="stylesheet" href="css/vistas/ideas.css">
 <link rel="stylesheet" href="css/vistas/hitos.css">
 <link rel="stylesheet" href="css/vistas/kit.css">
 <link rel="stylesheet" href="css/vistas/fauna.css">
 <link rel="stylesheet" href="css/vistas/flora.css">
 <link rel="stylesheet" href="css/vistas/percusion.css">
 <link rel="stylesheet" href="css/vistas/respuesta.css">
+<link rel="stylesheet" href="css/vistas/cuenta.css">
 
-<style>
-  body { margin: 0; background: #0C2F26; color: #EEF2E8; font-family: system-ui, sans-serif; }
-  #app { padding: 24px; }
-  #cargando { padding: 24px; color: #A9C2B6; }
-  #captura-error {
-    display: none;
-    margin: 20px;
-    padding: 16px;
-    background: #3a1d1d;
-    border-left: 4px solid #f87171;
-    border-radius: 10px;
-    color: #fecaca;
-    font-family: ui-monospace, monospace;
-    font-size: 13px;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-  #captura-error strong { color: #f87171; display: block; margin-bottom: 8px; font-size: 14px; }
-</style>
+<!-- SDK en el head con defer: descarga en paralelo con el CSS,
+     se ejecuta antes que js/app.js (que también es defer como
+     módulo ES6), y no bloquea el parseo del HTML. -->
+<script src="js/appwrite.min.js" defer></script>
 </head>
 <body>
 <div id="app">
@@ -103,13 +91,12 @@
   setTimeout(() => {
     const c = document.getElementById('cargando');
     if (c && c.parentNode) {
-      registrar('timeout', 'La app no arrancó en 6 segundos.');
+      console.warn('[timeout] La app tardó más de 15 segundos en quitar el "Cargando…".');
     }
-  }, 6000);
+  }, 15000);
 })();
 </script>
 
-<script src="js/appwrite.min.js"></script>
 <script type="module" src="js/app.js"></script>
 </body>
 </html>

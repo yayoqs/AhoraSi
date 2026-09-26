@@ -1,10 +1,10 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/repositorios/hitos.js
-   Versión: 1.2.0
+   Versión: 1.3.0
    Propósito: acceso a ahorasi_hitos.
-              v1.2.0: sin envío de permisos de fila. Row Security
-                      desactivado.
+              v1.3.0: crear() y marcar() con idempotencia automática.
+              v1.2.0: sin envío de permisos de fila.
               v1.1.0: usa _contexto.js.
               v1.0.0: versión inicial.
    ================================================================ */
@@ -18,7 +18,11 @@ import { Resultado } from '../../dominio/resultado.js';
 import { emitir } from '../../nucleo/bus-eventos.js';
 import { crearLogger } from '../../nucleo/logger.js';
 import { generarId } from '../../nucleo/utils.js';
-import { obtenerContexto } from './_contexto.js';
+import {
+  obtenerContexto,
+  conIdempotenciaParaCrear,
+  conIdempotenciaParaActualizar,
+} from './_contexto.js';
 
 const log = crearLogger('repo:hitos');
 const TABLA = 'ahorasi_hitos';
@@ -56,51 +60,62 @@ export async function listar() {
   }
 }
 
-export async function crear(datos) {
+export async function crear(datos, opciones = {}) {
   if (!datos?.titulo?.trim()) return Resultado.fallo('Falta título');
   if (datos.titulo.length > 200) return Resultado.fallo('Título demasiado largo');
 
   const ctx = obtenerContexto();
   if (!ctx.exito) return ctx;
 
-  try {
-    const r = await obtenerTablesDB().createRow({
-      databaseId: obtenerDatabaseId(),
-      tableId: TABLA,
-      rowId: generarId('hito'),
-      data: {
-        espacioId: ctx.datos.espacioId,
-        titulo: datos.titulo.trim(),
-        fecha: datos.fecha || null,
-        cumplido: !!datos.cumplido,
-        registradoPor: ctx.datos.usuarioId,
-      },
-    });
-    const hito = normalizar(r);
-    emitir('hitos:creado', hito);
-    return Resultado.ok(hito);
-  } catch (e) {
-    log.error('crear:', e.message);
-    return Resultado.fallo(`Error al crear hito: ${e.message}`);
-  }
+  const payload = {
+    espacioId: ctx.datos.espacioId,
+    titulo: datos.titulo.trim(),
+    fecha: datos.fecha || null,
+    cumplido: !!datos.cumplido,
+    registradoPor: ctx.datos.usuarioId,
+  };
+
+  return conIdempotenciaParaCrear(TABLA, ctx.datos.usuarioId, payload, opciones, async () => {
+    try {
+      const r = await obtenerTablesDB().createRow({
+        databaseId: obtenerDatabaseId(),
+        tableId: TABLA,
+        rowId: generarId('hito'),
+        data: payload,
+      });
+      const hito = normalizar(r);
+      emitir('hitos:creado', hito);
+      return Resultado.ok(hito);
+    } catch (e) {
+      log.error('crear:', e.message);
+      return Resultado.fallo(`Error al crear hito: ${e.message}`);
+    }
+  });
 }
 
-export async function marcar(id, cumplido) {
+export async function marcar(id, cumplido, opciones = {}) {
   if (!id) return Resultado.fallo('Falta el id del hito');
-  try {
-    const r = await obtenerTablesDB().updateRow({
-      databaseId: obtenerDatabaseId(),
-      tableId: TABLA,
-      rowId: id,
-      data: { cumplido: !!cumplido },
-    });
-    const hito = normalizar(r);
-    emitir('hitos:actualizado', hito);
-    return Resultado.ok(hito);
-  } catch (e) {
-    log.error('marcar:', e.message);
-    return Resultado.fallo(`Error al actualizar hito: ${e.message}`);
-  }
+  const ctx = obtenerContexto();
+  if (!ctx.exito) return ctx;
+
+  const data = { cumplido: !!cumplido };
+
+  return conIdempotenciaParaActualizar(TABLA, ctx.datos.usuarioId, id, data, opciones, async () => {
+    try {
+      const r = await obtenerTablesDB().updateRow({
+        databaseId: obtenerDatabaseId(),
+        tableId: TABLA,
+        rowId: id,
+        data,
+      });
+      const hito = normalizar(r);
+      emitir('hitos:actualizado', hito);
+      return Resultado.ok(hito);
+    } catch (e) {
+      log.error('marcar:', e.message);
+      return Resultado.fallo(`Error al actualizar hito: ${e.message}`);
+    }
+  });
 }
 
 export async function eliminar(id) {

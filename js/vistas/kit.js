@@ -1,18 +1,18 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/kit.js
-   Versión: 1.2.0
+   Versión: 1.2.1
    Propósito: vista del kit de campamento.
-              v1.2.0: usa distintivoAutor() cuando el item está
-                      marcado. Clase .vista--kit. Progreso como
-                      etiqueta destacada.
-              v1.1.0: escucha eventos de Realtime.
+              v1.2.1: usa mostrarConfirmacion() de dialogos.js.
+              v1.2.0: activar() pinta primero, carga en background.
+              v1.1.0: distintivoAutor, clase .vista--kit, Realtime.
               v1.0.0: versión inicial.
    ================================================================ */
 
 import * as repoKit from '../datos/repositorios/kit.js';
 import { al } from '../nucleo/bus-eventos.js';
 import { distintivoAutor } from '../nucleo/autores.js';
+import { mostrarConfirmacion } from '../nucleo/dialogos.js';
 import { crearLogger } from '../nucleo/logger.js';
 import { h, limpiarContenedor } from '../nucleo/utils.js';
 
@@ -142,7 +142,12 @@ async function manejarClick(ev) {
   const boton = ev.target.closest('button[data-accion="eliminar"]');
   if (!boton) return;
   const id = boton.dataset.id;
-  if (!confirm('¿Eliminar este item del kit?')) return;
+  const confirmado = await mostrarConfirmacion(
+    'Eliminar item del kit',
+    '¿Seguro que quieres eliminar este item?',
+    { textoConfirmar: 'Eliminar' }
+  );
+  if (!confirmado) return;
   const r = await repoKit.eliminar(id);
   if (r.exito) await refrescar();
   else pintarError(r.error);
@@ -162,7 +167,8 @@ export async function activar(contenedor) {
     al('realtime:kit:eliminar', refrescar),
   ];
 
-  await refrescar();
+  pintar();
+  refrescar().catch((e) => log.error('Error al refrescar:', e));
 }
 
 export function limpiar() {

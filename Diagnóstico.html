@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagnóstico — Ahora Sí</title>
+<style>
+  body { font-family: ui-monospace, monospace; background: #0C2F26; color: #EEF2E8; padding: 20px; margin: 0; line-height: 1.6; }
+  h1 { color: #E3BC55; }
+  pre { background: #123F34; padding: 12px; border-radius: 8px; white-space: pre-wrap; word-break: break-all; font-size: 13px; }
+  .ok { color: #4ade80; }
+  .err { color: #f87171; }
+  .warn { color: #facc15; }
+  .info { color: #8DB7D8; }
+  button { background: #E3BC55; color: #0A1F1A; border: 0; padding: 12px 22px; border-radius: 999px; font-weight: 600; cursor: pointer; font-size: 15px; }
+</style>
+</head>
+<body>
+<h1>Diagnóstico</h1>
+<p class="info">Verifica qué archivos carga el sitio y cuáles fallan.</p>
+<button id="btn">Ejecutar diagnóstico</button>
+<pre id="salida">Listo.</pre>
+
+<script>
+/* ================================================================
+   Ahora Sí — DIAGNÓSTICO (JS clásico inline)
+   Archivo: diagnostico.html
+   Versión: 1.1.0
+   Propósito: verifica que todos los archivos del proyecto cargan
+              correctamente y que el SDK UMD expone las clases
+              necesarias. No importa app.js para evitar efectos
+              secundarios en un contexto sin #app.
+              v1.1.0: sección 9 ya no importa app.js (causaba
+                      error por falta de #app). Ahora solo verifica
+                      que el archivo tenga contenido razonable.
+              v1.0.0: versión inicial.
+   ================================================================ */
+
+const salida = document.getElementById('salida');
+let ok = 0, err = 0;
+
+function limpiar() { salida.textContent = ''; ok = 0; err = 0; }
+function escribir(linea, clase = '') {
+  const span = document.createElement('span');
+  if (clase) span.className = clase;
+  span.textContent = linea + '\n';
+  salida.append(span);
+  salida.scrollTop = salida.scrollHeight;
+}
+
+async function probarArchivo(ruta, descripcion) {
+  try {
+    const r = await fetch(ruta, { method: 'HEAD', cache: 'no-store' });
+    if (r.ok) {
+      const tipo = r.headers.get('content-type') || '(sin tipo)';
+      escribir(`  ✓ ${ruta} → ${r.status} · ${tipo}`, 'ok');
+      ok++;
+    } else {
+      escribir(`  ✗ ${ruta} → ${r.status} ${r.statusText}`, 'err');
+      err++;
+    }
+  } catch (e) {
+    escribir(`  ✗ ${ruta} → ${e.message}`, 'err');
+    err++;
+  }
+}
+
+async function diagnostico() {
+  limpiar();
+  escribir('=== DIAGNÓSTICO ' + new Date().toISOString() + ' ===\n', 'info');
+
+  // 1. Entorno
+  escribir('[1] Entorno', 'info');
+  escribir(`  URL: ${location.href}`);
+  escribir(`  Origin: ${location.origin}`);
+  escribir(`  Protocolo: ${location.protocol}`);
+  escribir(`  Soporte módulos ES6: ${('noModule' in HTMLScriptElement.prototype) ? 'SÍ' : 'NO'}`);
+  escribir(`  Soporte WebSocket: ${('WebSocket' in window) ? 'SÍ' : 'NO'}`);
+  escribir('');
+
+  // 2. Archivos críticos
+  escribir('[2] Archivos críticos (fetch HEAD)', 'info');
+  await probarArchivo('./index.html', 'HTML principal');
+  await probarArchivo('./js/appwrite.min.js', 'SDK UMD');
+  await probarArchivo('./js/app.js', 'Script principal');
+  await probarArchivo('./css/base.css', 'CSS base');
+  escribir('');
+
+  // 3. Archivos del núcleo
+  escribir('[3] Núcleo', 'info');
+  await probarArchivo('./js/config/config.js', 'Config');
+  await probarArchivo('./js/nucleo/logger.js', 'Logger');
+  await probarArchivo('./js/nucleo/bus-eventos.js', 'Bus de eventos');
+  await probarArchivo('./js/nucleo/almacen.js', 'Almacén');
+  await probarArchivo('./js/nucleo/utils.js', 'Utils');
+  await probarArchivo('./js/nucleo/autores.js', 'Autores');
+  escribir('');
+
+  // 4. Datos
+  escribir('[4] Capa de datos', 'info');
+  await probarArchivo('./js/datos/cliente-appwrite.js', 'Cliente Appwrite');
+  await probarArchivo('./js/datos/sesion.js', 'Sesión');
+  await probarArchivo('./js/datos/realtime.js', 'Realtime');
+  await probarArchivo('./js/dominio/resultado.js', 'Resultado');
+  await probarArchivo('./js/arranque/sesion-inicial.js', 'Sesión inicial');
+  await probarArchivo('./js/arranque/espacio-inicial.js', 'Espacio inicial');
+  escribir('');
+
+  // 5. Repositorios
+  escribir('[5] Repositorios', 'info');
+  for (const r of ['planes','kit','hitos','carta','respuestas','fauna','flora','ritmos','perfiles','espacios','_contexto']) {
+    await probarArchivo(`./js/datos/repositorios/${r}.js`, r);
+  }
+  escribir('');
+
+  // 6. Vistas
+  escribir('[6] Vistas', 'info');
+  for (const v of ['carta','planes','hitos','kit','fauna','flora','percusion','respuesta']) {
+    await probarArchivo(`./js/vistas/${v}.js`, v);
+  }
+  escribir('');
+
+  // 7. CSS de vistas
+  escribir('[7] CSS de vistas', 'info');
+  for (const c of ['carta','planes','hitos','kit','fauna','flora','percusion','respuesta']) {
+    await probarArchivo(`./css/vistas/${c}.css`, c);
+  }
+  escribir('');
+
+  // 8. Cargar SDK UMD y verificar exports
+  escribir('[8] Cargar SDK UMD dinámicamente', 'info');
+  try {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = './js/appwrite.min.js?t=' + Date.now();
+      s.onload = resolve;
+      s.onerror = () => reject(new Error('No se pudo cargar el script'));
+      document.head.append(s);
+    });
+    if (window.Appwrite) {
+      escribir(`  ✓ window.Appwrite cargado`, 'ok');
+      const claves = ['Client','Account','TablesDB','Query','Permission','Role','Realtime','Channel','ID','Operator'].filter(k => typeof window.Appwrite[k] !== 'undefined');
+      escribir(`  Exports: ${claves.join(', ')}`, 'ok');
+      const faltantes = ['Client','Account','TablesDB','Query','Permission','Role','Realtime','Channel'].filter(k => typeof window.Appwrite[k] === 'undefined');
+      if (faltantes.length > 0) {
+        escribir(`  ✗ Faltan: ${faltantes.join(', ')}`, 'err');
+        err++;
+      } else {
+        ok++;
+      }
+    } else {
+      escribir(`  ✗ window.Appwrite no está definido tras cargar`, 'err');
+      err++;
+    }
+  } catch (e) {
+    escribir(`  ✗ ${e.message}`, 'err');
+    err++;
+  }
+  escribir('');
+
+  // 9. Verificar que app.js existe y tiene contenido (sin importarlo)
+  escribir('[9] Verificar que js/app.js tiene contenido', 'info');
+  try {
+    const r = await fetch('./js/app.js', { cache: 'no-store' });
+    const txt = await r.text();
+    if (txt.length < 100) {
+      escribir(`  ✗ app.js parece vacío (${txt.length} caracteres)`, 'err');
+      err++;
+    } else {
+      escribir(`  ✓ app.js tiene ${txt.length} caracteres`, 'ok');
+      if (txt.includes('import') && txt.includes('principal')) {
+        escribir('  ✓ app.js parece ser un módulo con principal()', 'ok');
+        ok++;
+      } else {
+        escribir('  ⚠ app.js no contiene import/principal, revisar', 'warn');
+      }
+    }
+  } catch (e) {
+    escribir(`  ✗ ${e.message}`, 'err');
+    err++;
+  }
+  escribir('');
+
+  // 10. Verificar el HTML del index
+  escribir('[10] Verificar el HTML del index', 'info');
+  try {
+    const r = await fetch('./index.html', { cache: 'no-store' });
+    const txt = await r.text();
+    const tieneAppwrite = txt.includes('js/appwrite.min.js');
+    const tieneApp = txt.includes('js/app.js');
+    const tieneBaseCss = txt.includes('css/base.css');
+    const tieneAppDiv = txt.includes('id="app"');
+    escribir(`  index.html incluye appwrite.min.js: ${tieneAppwrite ? 'SÍ' : 'NO'}`, tieneAppwrite ? 'ok' : 'err');
+    escribir(`  index.html incluye js/app.js: ${tieneApp ? 'SÍ' : 'NO'}`, tieneApp ? 'ok' : 'err');
+    escribir(`  index.html incluye css/base.css: ${tieneBaseCss ? 'SÍ' : 'NO'}`, tieneBaseCss ? 'ok' : 'err');
+    escribir(`  index.html incluye div#app: ${tieneAppDiv ? 'SÍ' : 'NO'}`, tieneAppDiv ? 'ok' : 'err');
+    if (!tieneAppwrite || !tieneApp || !tieneBaseCss || !tieneAppDiv) err++; else ok++;
+  } catch (e) {
+    escribir(`  ✗ ${e.message}`, 'err');
+    err++;
+  }
+  escribir('');
+
+  // Resumen
+  escribir('=== RESUMEN ===', 'info');
+  escribir(`OK: ${ok}`, 'ok');
+  escribir(`FALLOS: ${err}`, err > 0 ? 'err' : 'ok');
+  if (err === 0) escribir('Todo carga. Si la app no arranca, revisar consola del navegador.', 'ok');
+  else escribir('Revisar las líneas rojas de arriba.', 'err');
+}
+
+document.getElementById('btn').addEventListener('click', diagnostico);
+</script>
+</body>
+</html>

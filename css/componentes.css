@@ -228,3 +228,123 @@
   transition: border-color var(--t-rapida), color var(--t-rapida);
 }
 .btn-secundario:hover { border-color: var(--gold); color: var(--gold); }
+
+
+/* ================================================================
+   Diálogo (mostrarConfirmacion / mostrarEntrada)
+   Overlay centrado con transición suave. Se monta al body y se
+   elimina al resolver.
+   ================================================================ */
+
+.dialogo {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(10, 31, 26, 0);
+  opacity: 0;
+  transition: background var(--t-media), opacity var(--t-media);
+}
+.dialogo--visible {
+  background: rgba(10, 31, 26, 0.72);
+  opacity: 1;
+}
+
+.dialogo__tarjeta {
+  background: var(--pcb2);
+  border: 1px solid rgba(238, 242, 232, 0.15);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sombra-media);
+  width: 100%;
+  max-width: 400px;
+  padding: var(--sp-5) var(--sp-5) var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  transform: translateY(8px);
+  transition: transform var(--t-media);
+}
+.dialogo--visible .dialogo__tarjeta {
+  transform: translateY(0);
+}
+
+.dialogo__cabecera { margin: 0; }
+.dialogo__titulo {
+  font-family: var(--fuente-titulo);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gold);
+  margin: 0;
+}
+
+.dialogo__cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.dialogo__mensaje {
+  font-size: 14px;
+  color: var(--paper);
+  line-height: 1.55;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.dialogo__campo {
+  padding: 11px 14px;
+  border-radius: var(--r-md);
+  border: 1.5px solid rgba(238, 242, 232, 0.3);
+  background: rgba(238, 242, 232, 0.04);
+  color: var(--paper);
+  font-size: 15px;
+  width: 100%;
+  transition: border-color var(--t-rapida), background var(--t-rapida);
+}
+.dialogo__campo:focus {
+  border-color: var(--sky);
+  background: rgba(238, 242, 232, 0.08);
+  outline: none;
+}
+
+.dialogo__pie {
+  display: flex;
+  gap: var(--sp-2);
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.dialogo__boton {
+  padding: 10px 20px;
+  border-radius: var(--r-md);
+  border: 1.5px solid transparent;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter var(--t-rapida), transform var(--t-rapida), background var(--t-rapida), border-color var(--t-rapida);
+}
+.dialogo__boton:active { transform: translateY(1px); }
+
+.dialogo__boton--primario {
+  background: var(--gold);
+  color: var(--ink);
+}
+.dialogo__boton--primario:hover { filter: brightness(1.05); }
+
+.dialogo__boton--peligro {
+  background: var(--rojo);
+  color: var(--ink);
+}
+.dialogo__boton--peligro:hover { filter: brightness(1.05); }
+
+.dialogo__boton--secundario {
+  background: transparent;
+  border-color: rgba(238, 242, 232, 0.4);
+  color: var(--paper);
+}
+.dialogo__boton--secundario:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}

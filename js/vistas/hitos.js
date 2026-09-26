@@ -1,16 +1,18 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/hitos.js
-   Versión: 1.2.0
+   Versión: 1.2.1
    Propósito: vista de hitos compartidos.
-              v1.2.0: usa distintivoAutor(). Clase .vista--hitos.
-              v1.1.0: escucha eventos de Realtime.
+              v1.2.1: usa mostrarConfirmacion() de dialogos.js.
+              v1.2.0: activar() pinta primero, carga en background.
+              v1.1.0: distintivoAutor, clase .vista--hitos, Realtime.
               v1.0.0: versión inicial.
    ================================================================ */
 
 import * as repoHitos from '../datos/repositorios/hitos.js';
 import { al } from '../nucleo/bus-eventos.js';
 import { distintivoAutor } from '../nucleo/autores.js';
+import { mostrarConfirmacion } from '../nucleo/dialogos.js';
 import { crearLogger } from '../nucleo/logger.js';
 import { h, limpiarContenedor, formatearFecha } from '../nucleo/utils.js';
 
@@ -118,7 +120,12 @@ async function manejarClick(ev) {
     if (r.exito) await refrescar();
     else pintarError(r.error);
   } else if (accion === 'eliminar') {
-    if (!confirm('¿Eliminar este hito?')) return;
+    const confirmado = await mostrarConfirmacion(
+      'Eliminar hito',
+      '¿Seguro que quieres eliminar este hito?',
+      { textoConfirmar: 'Eliminar' }
+    );
+    if (!confirmado) return;
     const r = await repoHitos.eliminar(id);
     if (r.exito) await refrescar();
     else pintarError(r.error);
@@ -138,7 +145,8 @@ export async function activar(contenedor) {
     al('realtime:hitos:eliminar', refrescar),
   ];
 
-  await refrescar();
+  pintar();
+  refrescar().catch((e) => log.error('Error al refrescar:', e));
 }
 
 export function limpiar() {

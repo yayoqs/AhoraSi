@@ -1,8 +1,9 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/repositorios/respuestas.js
-   Versión: 1.2.0
+   Versión: 1.3.0
    Propósito: acceso a ahorasi_respuestas.
+              v1.3.0: crear() con idempotencia automática.
               v1.2.0: sin envío de permisos de fila.
               v1.1.0: usa _contexto.js.
               v1.0.0: versión inicial.
@@ -17,7 +18,10 @@ import { Resultado } from '../../dominio/resultado.js';
 import { emitir } from '../../nucleo/bus-eventos.js';
 import { crearLogger } from '../../nucleo/logger.js';
 import { generarId } from '../../nucleo/utils.js';
-import { obtenerContexto } from './_contexto.js';
+import {
+  obtenerContexto,
+  conIdempotenciaParaCrear,
+} from './_contexto.js';
 
 const log = crearLogger('repo:respuestas');
 const TABLA = 'ahorasi_respuestas';
@@ -55,31 +59,35 @@ export async function listar() {
   }
 }
 
-export async function crear(datos) {
+export async function crear(datos, opciones = {}) {
   if (!ELECCIONES.includes(datos?.eleccion)) {
     return Resultado.fallo(`Elección inválida: ${datos?.eleccion}`);
   }
   const ctx = obtenerContexto();
   if (!ctx.exito) return ctx;
 
-  try {
-    const r = await obtenerTablesDB().createRow({
-      databaseId: obtenerDatabaseId(),
-      tableId: TABLA,
-      rowId: generarId('resp'),
-      data: {
-        espacioId: ctx.datos.espacioId,
-        eleccion: datos.eleccion,
-        nota: (datos.nota || '').trim(),
-        enviadoPor: ctx.datos.usuarioId,
-        enviadoEn: new Date().toISOString(),
-      },
-    });
-    const respuesta = normalizar(r);
-    emitir('respuestas:creada', respuesta);
-    return Resultado.ok(respuesta);
-  } catch (e) {
-    log.error('crear:', e.message);
-    return Resultado.fallo(`Error al registrar respuesta: ${e.message}`);
-  }
+  const payload = {
+    espacioId: ctx.datos.espacioId,
+    eleccion: datos.eleccion,
+    nota: (datos.nota || '').trim(),
+    enviadoPor: ctx.datos.usuarioId,
+    enviadoEn: new Date().toISOString(),
+  };
+
+  return conIdempotenciaParaCrear(TABLA, ctx.datos.usuarioId, payload, opciones, async () => {
+    try {
+      const r = await obtenerTablesDB().createRow({
+        databaseId: obtenerDatabaseId(),
+        tableId: TABLA,
+        rowId: generarId('resp'),
+        data: payload,
+      });
+      const respuesta = normalizar(r);
+      emitir('respuestas:creada', respuesta);
+      return Resultado.ok(respuesta);
+    } catch (e) {
+      log.error('crear:', e.message);
+      return Resultado.fallo(`Error al registrar respuesta: ${e.message}`);
+    }
+  });
 }

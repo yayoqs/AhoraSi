@@ -1,10 +1,11 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/percusion.js
-   Versión: 1.2.0
+   Versión: 1.3.1
    Propósito: vista del secuenciador de percusión.
-              v1.2.0: usa distintivoAutor() en la lista de ritmos
-                      guardados. Clase .vista--percusion.
+              v1.3.1: usa mostrarConfirmacion() de dialogos.js.
+              v1.3.0: activar() pinta primero, carga en background.
+              v1.2.0: distintivoAutor, clase .vista--percusion.
               v1.1.0: escucha eventos de Realtime.
               v1.0.0: versión inicial.
    ================================================================ */
@@ -13,6 +14,7 @@ import * as repoSintetizador from '../audio/sintetizador.js';
 import * as repoRitmos from '../datos/repositorios/ritmos.js';
 import { al } from '../nucleo/bus-eventos.js';
 import { distintivoAutor } from '../nucleo/autores.js';
+import { mostrarConfirmacion } from '../nucleo/dialogos.js';
 import { crearLogger } from '../nucleo/logger.js';
 import { h, limpiarContenedor } from '../nucleo/utils.js';
 
@@ -234,7 +236,12 @@ async function manejarClick(ev) {
     pintarOk(`Cargado: ${ritmo.nombre}`);
   } else if (accion === 'eliminar') {
     const id = boton.dataset.id;
-    if (!confirm('¿Eliminar este ritmo guardado?')) return;
+    const confirmado = await mostrarConfirmacion(
+      'Eliminar ritmo',
+      '¿Seguro que quieres eliminar este ritmo guardado?',
+      { textoConfirmar: 'Eliminar' }
+    );
+    if (!confirmado) return;
     const r = await repoRitmos.eliminar(id);
     if (r.exito) {
       await refrescarGuardados();
@@ -293,8 +300,10 @@ export async function activar(contenedor) {
     al('realtime:ritmos:eliminar', refrescarGuardadosYPintar),
   ];
 
-  await refrescarGuardados();
   pintar();
+  refrescarGuardados()
+    .then(() => pintar())
+    .catch((e) => log.error('Error al refrescar guardados:', e));
 }
 
 export function limpiar() {

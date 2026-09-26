@@ -1,8 +1,9 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/repositorios/carta.js
-   Versión: 1.2.0
+   Versión: 1.3.0
    Propósito: acceso a ahorasi_carta.
+              v1.3.0: crear() con idempotencia automática.
               v1.2.0: sin envío de permisos de fila.
               v1.1.0: usa _contexto.js.
               v1.0.0: versión inicial.
@@ -17,7 +18,10 @@ import { Resultado } from '../../dominio/resultado.js';
 import { emitir } from '../../nucleo/bus-eventos.js';
 import { crearLogger } from '../../nucleo/logger.js';
 import { generarId } from '../../nucleo/utils.js';
-import { obtenerContexto } from './_contexto.js';
+import {
+  obtenerContexto,
+  conIdempotenciaParaCrear,
+} from './_contexto.js';
 
 const log = crearLogger('repo:carta');
 const TABLA = 'ahorasi_carta';
@@ -70,7 +74,7 @@ export async function listarAnexos() {
   return Resultado.ok(r.datos.filter((p) => p.tipo === 'anexo'));
 }
 
-export async function crear(datos) {
+export async function crear(datos, opciones = {}) {
   if (!datos?.titulo?.trim()) return Resultado.fallo('Falta título');
   if (!datos?.contenido?.trim()) return Resultado.fallo('Falta contenido');
   if (!TIPOS.includes(datos.tipo)) return Resultado.fallo(`Tipo inválido: ${datos.tipo}`);
@@ -79,28 +83,32 @@ export async function crear(datos) {
   const ctx = obtenerContexto();
   if (!ctx.exito) return ctx;
 
-  try {
-    const r = await obtenerTablesDB().createRow({
-      databaseId: obtenerDatabaseId(),
-      tableId: TABLA,
-      rowId: generarId('carta'),
-      data: {
-        espacioId: ctx.datos.espacioId,
-        tipo: datos.tipo,
-        titulo: datos.titulo.trim(),
-        contenido: datos.contenido.trim(),
-        autor: ctx.datos.usuarioId,
-        orden: typeof datos.orden === 'number' ? datos.orden : 0,
-        creadoEn: new Date().toISOString(),
-      },
-    });
-    const pieza = normalizar(r);
-    emitir('carta:creado', pieza);
-    return Resultado.ok(pieza);
-  } catch (e) {
-    log.error('crear:', e.message);
-    return Resultado.fallo(`Error al crear pieza de carta: ${e.message}`);
-  }
+  const payload = {
+    espacioId: ctx.datos.espacioId,
+    tipo: datos.tipo,
+    titulo: datos.titulo.trim(),
+    contenido: datos.contenido.trim(),
+    autor: ctx.datos.usuarioId,
+    orden: typeof datos.orden === 'number' ? datos.orden : 0,
+    creadoEn: new Date().toISOString(),
+  };
+
+  return conIdempotenciaParaCrear(TABLA, ctx.datos.usuarioId, payload, opciones, async () => {
+    try {
+      const r = await obtenerTablesDB().createRow({
+        databaseId: obtenerDatabaseId(),
+        tableId: TABLA,
+        rowId: generarId('carta'),
+        data: payload,
+      });
+      const pieza = normalizar(r);
+      emitir('carta:creado', pieza);
+      return Resultado.ok(pieza);
+    } catch (e) {
+      log.error('crear:', e.message);
+      return Resultado.fallo(`Error al crear pieza de carta: ${e.message}`);
+    }
+  });
 }
 
 export async function eliminar(id) {
