@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
 
+<link rel="stylesheet" href="css/vendor/leaflet.css">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/componentes.css">
@@ -22,14 +23,16 @@
 <link rel="stylesheet" href="css/vistas/kit.css">
 <link rel="stylesheet" href="css/vistas/fauna.css">
 <link rel="stylesheet" href="css/vistas/flora.css">
+<link rel="stylesheet" href="css/vistas/mapa.css">
 <link rel="stylesheet" href="css/vistas/percusion.css">
 <link rel="stylesheet" href="css/vistas/respuesta.css">
 <link rel="stylesheet" href="css/vistas/cuenta.css">
 
-<!-- SDK en el head con defer: descarga en paralelo con el CSS,
-     se ejecuta antes que js/app.js (que también es defer como
-     módulo ES6), y no bloquea el parseo del HTML. -->
+<!-- SDK de Appwrite (UMD local v25) -->
 <script src="js/appwrite.min.js" defer></script>
+<!-- Leaflet (v1.9.4, local). Se carga antes que app.js para que
+     window.L esté disponible cuando la vista Mapa se monte. -->
+<script src="js/vendor/leaflet.js" defer></script>
 </head>
 <body>
 <div id="app">
@@ -38,7 +41,6 @@
 
 <div id="captura-error"></div>
 
-<!-- Captura temprana de errores. Ignora scripts de terceros (Cloudflare, fonts). -->
 <script>
 (function () {
   'use strict';

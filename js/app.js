@@ -1,17 +1,15 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/app.js
-   Versión: 2.10.0
+   Versión: 2.11.0
    Propósito: punto de entrada. Arranca sesión, monta el shell
               de navegación por hash, monta/desmonta las vistas, y
               mantiene Realtime activo mientras hay sesión.
-              v2.10.0: se agrega la vista Ideas al nav, entre
-                      Planes e Hitos. La lógica estaba en la vista
-                      Planes hasta v1.6.0.
-              v2.9.0: hero como primera vista, una vez por
-                      navegador.
-              v2.8.0: login rediseñado, vista Mi cuenta, nombre
-                      visible en header.
+              v2.11.0: se agrega la vista Mapa al nav, después de
+                      Flora.
+              v2.10.0: vista Ideas en el nav.
+              v2.9.0: hero como primera vista.
+              v2.8.0: login rediseñado, Mi cuenta, nombre visible.
               v2.7.0: manejarSalir() con mostrarConfirmacion().
               v2.6.0: navegar() e iniciarRealtime() no bloquean.
               v2.5.x: Realtime al arrancar y al cerrar sesión.
@@ -40,6 +38,7 @@ import * as vistaHitos from './vistas/hitos.js';
 import * as vistaKit from './vistas/kit.js';
 import * as vistaFauna from './vistas/fauna.js';
 import * as vistaFlora from './vistas/flora.js';
+import * as vistaMapa from './vistas/mapa.js';
 import * as vistaRespuesta from './vistas/respuesta.js';
 import * as vistaPercusion from './vistas/percusion.js';
 import * as vistaCuenta from './vistas/cuenta.js';
@@ -55,6 +54,7 @@ const VISTAS = {
   kit: { titulo: 'Kit', modulo: vistaKit },
   fauna: { titulo: 'Fauna', modulo: vistaFauna },
   flora: { titulo: 'Flora', modulo: vistaFlora },
+  mapa: { titulo: 'Mapa', modulo: vistaMapa },
   percusion: { titulo: 'Percusión', modulo: vistaPercusion },
   respuesta: { titulo: 'Respuesta', modulo: vistaRespuesta },
   cuenta: { titulo: 'Mi cuenta', modulo: vistaCuenta, oculta: true },

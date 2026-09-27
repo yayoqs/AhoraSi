@@ -1,13 +1,12 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/realtime.js
-   Versión: 1.0.0
-   Propósito: capa única sobre Realtime de Appwrite. Se suscribe a
-              todas las tablas del espacio activo y emite eventos
-              propios por el EventBus cada vez que llega un cambio.
-              Las vistas escuchan esos eventos y se refrescan.
-              Realtime se inicia al arrancar sesión y se detiene
-              al cerrar.
+   Versión: 1.2.0
+   Propósito: capa única sobre Realtime de Appwrite.
+              v1.2.0: se agrega ahorasi_lugares a las tablas
+                      suscritas.
+              v1.1.0: se agrega ahorasi_fotos.
+              v1.0.0: versión inicial.
    ================================================================ */
 
 import {
@@ -31,7 +30,8 @@ const TABLAS = {
   ahorasi_fauna: 'fauna',
   ahorasi_flora: 'flora',
   ahorasi_ritmos: 'ritmos',
-  ahorasi_ritmos: 'fotos',
+  ahorasi_fotos: 'fotos',
+  ahorasi_lugares: 'lugares',
 };
 
 let rt = null;

@@ -1,0 +1,304 @@
+/* ================================================================
+   Ahora Sí — CSS MODULAR
+   Archivo: css/vistas/mapa.css
+   Versión: 1.0.0
+   Propósito: Estilos específicos de la vista del mapa. Contenedor
+              de Leaflet, marcadores propios, popups, lista de
+              lugares con agrupación pendientes/visitados, y
+              formulario con selección de coordenadas.
+              v1.0.0: versión inicial.
+   ================================================================ */
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 1 — CONTENEDOR DEL MAPA
+   El z-index 1 crea un contexto de stacking propio, para que
+   los controles internos de Leaflet (z-index hasta 1000) no
+   tapen el header del shell.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-mapa .mapa__contenedor {
+  position: relative;
+  z-index: 1;
+  height: 420px;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  margin: var(--sp-4) 0;
+  border: 1px solid rgba(238, 242, 232, .15);
+  background: var(--pcb3);
+}
+
+#vista-mapa .leaflet-container {
+  background: var(--pcb3);
+  font-family: var(--fuente-cuerpo);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 2 — MARCADORES PROPIOS
+   Punto verde con borde para visitados, dorado para pendientes.
+   ═══════════════════════════════════════════════════════════════ */
+
+.mapa-marcador-wrapper {
+  background: transparent;
+  border: 0;
+}
+
+.mapa-marcador {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid var(--ink);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, .35);
+  transition: transform var(--t-rapida);
+}
+.mapa-marcador:hover { transform: scale(1.15); }
+
+.mapa-marcador--pendiente {
+  background: var(--gold);
+}
+
+.mapa-marcador--visitado {
+  background: var(--verde);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 3 — POPUP DE LEAFLET
+   Override del popup por defecto para que combine con la paleta.
+   ═══════════════════════════════════════════════════════════════ */
+
+.leaflet-popup-content-wrapper {
+  background: var(--pcb2);
+  color: var(--paper);
+  border-radius: var(--r-md);
+  border: 1px solid rgba(238, 242, 232, .15);
+  box-shadow: var(--sombra-media);
+}
+
+.leaflet-popup-tip {
+  background: var(--pcb2);
+}
+
+.leaflet-popup-content {
+  margin: 12px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.mapa-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180px;
+}
+
+.mapa-popup__nombre {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.mapa-popup__region {
+  font-size: 12px;
+  color: var(--sky);
+}
+
+.mapa-popup__notas {
+  margin: 0;
+  font-size: 12px;
+  color: var(--dim);
+  white-space: pre-wrap;
+}
+
+.mapa-popup__fecha {
+  font-size: 12px;
+  color: var(--verde);
+}
+
+.mapa-popup__estado {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.mapa-popup__estado--visitado {
+  background: rgba(74, 222, 128, .2);
+  color: var(--verde);
+}
+.mapa-popup__estado--pendiente {
+  background: rgba(227, 188, 85, .2);
+  color: var(--gold);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 4 — PROGRESO
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-mapa .mapa__progreso {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+  background: rgba(227, 188, 85, .15);
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 var(--sp-4);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 5 — LISTA DE LUGARES
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-mapa .mapa__lista {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+#vista-mapa .mapa__subtitulo {
+  list-style: none;
+  color: var(--sky);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin: var(--sp-4) 0 var(--sp-2);
+}
+
+#vista-mapa .mapa__item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--sp-3);
+  align-items: start;
+  padding: var(--sp-4);
+  background: var(--pcb2);
+  border-radius: var(--r-md);
+  border-left: 3px solid rgba(238, 242, 232, .12);
+  transition: border-color var(--t-rapida);
+}
+#vista-mapa .mapa__item:hover {
+  border-left-color: var(--gold);
+}
+
+#vista-mapa .mapa__item-cabecera {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+#vista-mapa .mapa__item-cabecera strong { font-size: 15px; }
+
+#vista-mapa .mapa__item-region {
+  margin: 2px 0;
+  color: var(--sky);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+#vista-mapa .mapa__item-notas {
+  margin: 6px 0 0;
+  color: var(--dim);
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  font-style: italic;
+}
+
+#vista-mapa .mapa__item-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  align-items: stretch;
+  flex-shrink: 0;
+}
+
+/* Estado del lugar */
+#vista-mapa .mapa__estado {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: var(--r-pill);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+#vista-mapa .mapa__estado--pendiente {
+  background: rgba(227, 188, 85, .2);
+  color: var(--gold);
+}
+#vista-mapa .mapa__estado--visitado {
+  background: rgba(74, 222, 128, .2);
+  color: var(--verde);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 6 — FORMULARIO
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-mapa .mapa__ayuda {
+  margin: 0 0 var(--sp-3);
+  font-size: 12px;
+  color: var(--dim);
+  line-height: 1.5;
+}
+
+#vista-mapa .mapa__fila-coords {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: var(--sp-2);
+  align-items: stretch;
+}
+
+#vista-mapa .mapa__fila-coords .btn-secundario {
+  white-space: nowrap;
+  padding: 10px 14px;
+  font-size: 13px;
+}
+
+#vista-mapa .mapa__fila-estado {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-2);
+}
+
+#vista-mapa .mapa__fila-estado label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--dim);
+  font-weight: 500;
+}
+
+#vista-mapa .mapa__form {
+  max-width: 100%;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 7 — RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+  #vista-mapa .mapa__contenedor { height: 320px; }
+  #vista-mapa .mapa__item {
+    grid-template-columns: 1fr;
+  }
+  #vista-mapa .mapa__item-acciones {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  #vista-mapa .mapa__fila-coords {
+    grid-template-columns: 1fr 1fr;
+  }
+  #vista-mapa .mapa__fila-coords .btn-secundario {
+    grid-column: 1 / -1;
+  }
+  #vista-mapa .mapa__fila-estado {
+    grid-template-columns: 1fr;
+  }
+}

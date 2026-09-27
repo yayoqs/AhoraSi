@@ -1,15 +1,16 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/flora.js
-   Versión: 1.4.0
+   Versión: 1.5.0
    Propósito: vista de flora. Formulario colapsable, foto opcional
               arriba, edición inline, galería con lightbox.
-              v1.4.0: la sección raíz ahora lleva id="vista-flora"
-                      para el encapsulado de CSS. Se renombran tres
-                      clases a sus versiones genéricas (definidas
-                      en componentes.css): bloque-registro,
-                      abrir-form, form-botones. Sin cambios en la
-                      lógica ni en las firmas públicas.
+              v1.5.0: se agrega el flujo de foto pendiente en el
+                      formulario (cámara o galería antes de
+                      registrar). Sigue el patrón de fauna v1.8.0.
+                      Al registrar, se crea el registro y luego se
+                      sube la foto pendiente. Si la foto falla, el
+                      registro igual queda guardado.
+              v1.4.0: id="vista-flora", clases genéricas.
               v1.3.0: subida de fotos, formulario colapsable,
                       edición inline.
               v1.2.1: mostrarConfirmacion().
@@ -426,6 +427,7 @@ async function manejarSubmit(ev) {
 
   limpiarFotoPendiente();
   registro.formularioAbierto = false;
+  form.reset();
   pintar();
   pintarOk('Registrado.');
 }
