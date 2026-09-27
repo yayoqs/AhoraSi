@@ -1,12 +1,14 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/hero.js
-   Versión: 1.0.0
+   Versión: 1.1.0
    Propósito: vista de bienvenida. Se muestra solo la primera vez
-              por navegador (controlado desde app.js con un flag
-              en localStorage). Título grande, línea dorada animada,
+              por navegador. Título grande, línea dorada animada,
               párrafo de entrada, secuenciador jugable y botón
               "Entrar" que lleva a la carta.
+              v1.1.0: la sección raíz lleva id="vista-hero" para
+                      el encapsulado de CSS. Sin cambios en la
+                      lógica ni en las firmas públicas.
               v1.0.0: versión inicial.
    ================================================================ */
 
@@ -96,7 +98,7 @@ function pintar() {
   }, TEXTOS.entrar);
 
   cont.append(
-    h('section', { class: 'vista vista--hero' },
+    h('section', { id: 'vista-hero', class: 'vista vista--hero' },
       h('div', { class: 'hero__wrap' },
         h('h1', { class: 'hero__titulo' }, TEXTOS.titulo),
         lineaAnimada(),

@@ -1,14 +1,15 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/ideas.js
-   Versión: 1.1.0
-   Propósito: vista de ideas. Sección para anotar cosas que se
-              nos ocurren, sin fecha ni estado. Las ideas viven en
-              la misma tabla que los planes (ahorasi_planes),
-              distinguidas por esIdea = true. Cada idea tiene un
-              botón para pasarla a la lista de planes, y edición
-              inline.
-              v1.1.0: se agrega edición inline de ideas.
+   Versión: 1.2.1
+   Propósito: vista de ideas. Anotaciones sin fecha ni estado, con
+              categoría. Formulario colapsable, chips de filtro,
+              agrupación por categoría, edición inline.
+              v1.2.1: se quita el datalist de sugerencias del
+                      formulario de creación. El campo categoría
+                      queda como texto libre, igual que en Kit.
+              v1.2.0: formulario colapsable, id="vista-ideas".
+              v1.1.0: edición inline de ideas.
               v1.0.0: versión inicial.
    ================================================================ */
 
@@ -28,6 +29,7 @@ const registro = {
   ideas: [],
   categoriaActiva: null,
   editandoIdea: null,
+  formularioAbierto: false,
 };
 
 function categoriasDe(items) {
@@ -53,6 +55,47 @@ function ideasPorCategoria(items) {
   return [...mapa.entries()].sort((a, b) => a[0].localeCompare(b[0]));
 }
 
+/* ---------- Bloque de registro (colapsable) ------------------- */
+
+function pintarBloqueRegistro() {
+  const cont = h('div', { class: 'bloque-registro' });
+
+  if (!registro.formularioAbierto) {
+    cont.append(
+      h('button', {
+        type: 'button',
+        class: 'abrir-form',
+        'data-accion': 'abrir-formulario',
+      }, '+ Agregar idea')
+    );
+    return cont;
+  }
+
+  const form = h('form', { class: 'vista__form', 'data-accion': 'crear' },
+    h('input', {
+      name: 'categoria',
+      placeholder: 'Categoría (Naturaleza, Electrónica…)',
+      required: true,
+      maxlength: 50,
+    }),
+    h('input', { name: 'titulo', placeholder: 'Título de la idea', required: true, maxlength: 200 }),
+    h('textarea', { name: 'descripcion', placeholder: 'Descripción', maxlength: 500, rows: 3 }),
+    h('div', { class: 'form-botones' },
+      h('button', {
+        type: 'button',
+        class: 'btn-secundario',
+        'data-accion': 'cerrar-formulario',
+      }, 'Cancelar'),
+      h('button', { type: 'submit', class: 'btn-primario' }, 'Agregar')
+    )
+  );
+
+  cont.append(form);
+  return cont;
+}
+
+/* ---------- Tarjeta de idea ----------------------------------- */
+
 function pintarIdeaEnEdicion(it) {
   const inputCat = h('input', { value: it.categoria || '', placeholder: 'Categoría', maxlength: 50 });
   const inputTitulo = h('input', { value: it.titulo || '', placeholder: 'Título', maxlength: 200 });
@@ -64,7 +107,7 @@ function pintarIdeaEnEdicion(it) {
     h('div', { class: 'pieza-edit__botones' },
       h('button', {
         type: 'button', class: 'btn-primario',
-        onclick: () => guardarIdea(it.id, inputCat.value, inputTitulo.value, textarea.value),
+        onclick: () => guardarEdicion(it.id, inputCat.value, inputTitulo.value, textarea.value),
       }, 'Guardar'),
       h('button', {
         type: 'button', class: 'btn-secundario',
@@ -77,7 +120,7 @@ function pintarIdeaEnEdicion(it) {
   );
 }
 
-async function guardarIdea(id, categoria, titulo, descripcion) {
+async function guardarEdicion(id, categoria, titulo, descripcion) {
   if (!titulo.trim()) {
     pintarError('El título no puede quedar vacío.');
     return;
@@ -88,30 +131,35 @@ async function guardarIdea(id, categoria, titulo, descripcion) {
     categoria: (categoria || '').trim(),
   });
   if (r.exito) {
+    const i = registro.ideas.findIndex((x) => x.id === id);
+    if (i >= 0) registro.ideas[i] = r.datos;
     registro.editandoIdea = null;
-    await refrescar();
     pintar();
   } else {
     pintarError(r.error);
   }
 }
 
+/* ---------- Pintar -------------------------------------------- */
+
 function pintar() {
   const cont = registro.contenedor;
   if (!cont) return;
   limpiarContenedor(cont);
 
-  const raiz = h('section', { class: 'vista vista--ideas' });
+  const cats = categoriasDe(registro.ideas);
+
+  const raiz = h('section', { id: 'vista-ideas', class: 'vista vista--ideas' });
 
   raiz.append(
-    h('header', { class: 'vista__cabecera vista__cabecera--ideas' },
+    h('header', { class: 'ideas__cabecera' },
       h('h1', {}, 'Ideas'),
       h('p', { class: 'vista__lead' },
-        'Cosas que se nos ocurren y quedan anotadas. Sin fecha, sin estado. Cuando alguna te haga sentido, la pasamos a planes.')
+        'Cosas que se nos ocurren y quedan anotadas. Sin fecha, sin estado. Cuando alguna tenga sentido, la pasamos a planes.')
     )
   );
 
-  const cats = categoriasDe(registro.ideas);
+  raiz.append(pintarBloqueRegistro());
 
   if (cats.length > 0) {
     const chips = h('div', { class: 'chips-categoria', role: 'group', 'aria-label': 'Filtrar por categoría' });
@@ -139,7 +187,7 @@ function pintar() {
   if (items.length === 0) {
     raiz.append(h('p', { class: 'vista__vacio' },
       registro.ideas.length === 0
-        ? 'Todavía no hay ideas. Agrega la primera abajo.'
+        ? 'Todavía no hay ideas.'
         : 'No hay ideas en esta categoría.'));
   } else {
     const grupos = ideasPorCategoria(items);
@@ -185,23 +233,6 @@ function pintar() {
     }
   }
 
-  const formIdea = h('form', { class: 'vista__form', 'data-accion': 'crear' },
-    h('input', {
-      name: 'categoria',
-      placeholder: 'Categoría (ej. Naturaleza)',
-      required: true,
-      maxlength: 50,
-      list: 'lista-categorias-existentes',
-    }),
-    h('datalist', { id: 'lista-categorias-existentes' },
-      ...cats.map((c) => h('option', { value: c }))
-    ),
-    h('input', { name: 'titulo', placeholder: 'Título de la idea', required: true, maxlength: 200 }),
-    h('textarea', { name: 'descripcion', placeholder: 'Descripción', maxlength: 500, rows: 3 }),
-    h('button', { type: 'submit' }, 'Agregar idea')
-  );
-  raiz.append(formIdea);
-
   cont.append(raiz);
 }
 
@@ -211,6 +242,14 @@ function pintarError(mensaje) {
   const error = h('p', { class: 'vista__error', role: 'alert' }, mensaje);
   cont.prepend(error);
   setTimeout(() => error.remove(), 5000);
+}
+
+function pintarOk(mensaje) {
+  const cont = registro.contenedor;
+  if (!cont) return;
+  const ok = h('p', { class: 'vista__ok', role: 'status' }, mensaje);
+  cont.prepend(ok);
+  setTimeout(() => ok.remove(), 3500);
 }
 
 async function refrescar() {
@@ -224,6 +263,8 @@ async function refrescar() {
   }
 }
 
+/* ---------- Submit -------------------------------------------- */
+
 async function manejarSubmit(ev) {
   ev.preventDefault();
   const form = ev.target;
@@ -235,12 +276,17 @@ async function manejarSubmit(ev) {
     esIdea: true,
   });
   if (r.exito) {
+    registro.ideas = [r.datos, ...registro.ideas];
+    registro.formularioAbierto = false;
     form.reset();
-    await refrescar();
+    pintar();
+    pintarOk('Idea agregada.');
   } else {
     pintarError(r.error);
   }
 }
+
+/* ---------- Click --------------------------------------------- */
 
 async function manejarClick(ev) {
   const boton = ev.target.closest('button[data-accion]');
@@ -248,11 +294,23 @@ async function manejarClick(ev) {
   const accion = boton.dataset.accion;
   const id = boton.dataset.id;
 
-  if (accion === 'sumar-a-planes') {
+  if (accion === 'abrir-formulario') {
+    registro.formularioAbierto = true;
+    pintar();
+    setTimeout(() => {
+      const input = registro.contenedor.querySelector('input[name="categoria"]');
+      if (input) input.focus();
+    }, 60);
+  } else if (accion === 'cerrar-formulario') {
+    registro.formularioAbierto = false;
+    pintar();
+  } else if (accion === 'sumar-a-planes') {
     const r = await repoPlanes.sumarAPlanes(id);
     if (r.exito) {
       registro.categoriaActiva = null;
-      await refrescar();
+      registro.ideas = registro.ideas.filter((x) => x.id !== id);
+      pintar();
+      pintarOk('Idea pasada a planes.');
     } else {
       pintarError(r.error);
     }
@@ -267,8 +325,12 @@ async function manejarClick(ev) {
     );
     if (!ok) return;
     const r = await repoPlanes.eliminar(id);
-    if (r.exito) await refrescar();
-    else pintarError(r.error);
+    if (r.exito) {
+      registro.ideas = registro.ideas.filter((x) => x.id !== id);
+      pintar();
+    } else {
+      pintarError(r.error);
+    }
   } else if (accion === 'filtrar-categoria') {
     const cat = boton.dataset.categoria || null;
     registro.categoriaActiva = cat;
@@ -276,11 +338,14 @@ async function manejarClick(ev) {
   }
 }
 
+/* ---------- Ciclo de vida -------------------------------------- */
+
 export async function activar(contenedor) {
   registro.contenedor = contenedor;
   registro.abortador = new AbortController();
   registro.categoriaActiva = null;
   registro.editandoIdea = null;
+  registro.formularioAbierto = false;
 
   const { signal } = registro.abortador;
   contenedor.addEventListener('submit', manejarSubmit, { signal });
@@ -305,5 +370,6 @@ export function limpiar() {
   registro.ideas = [];
   registro.categoriaActiva = null;
   registro.editandoIdea = null;
+  registro.formularioAbierto = false;
   registro.contenedor = null;
 }

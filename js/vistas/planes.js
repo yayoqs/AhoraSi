@@ -1,16 +1,16 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/planes.js
-   Versión: 1.6.1
+   Versión: 1.7.0
    Propósito: vista de planes. Lista coordinable de cosas para
-              hacer juntos. Cada plan tiene título, descripción,
-              cuándo y estado (Sí/Quizás/No/Pendiente).
-              v1.6.1: se quita la sección de Ideas que se había
-                      agregado en v1.6.0. La sección se mueve a
-                      una vista propia (ideas.js). Sin cambios en
-                      las firmas públicas ni en los eventos.
-              v1.6.0: se agrega sección Ideas (revertido en 1.6.1).
-              v1.3.1: usa mostrarConfirmacion().
+              hacer juntos. Formulario colapsable, botones de estado
+              (Sí/Quizás/No/Pendiente) por plan.
+              v1.7.0: formulario colapsable, id="vista-planes" para
+                      encapsulado de CSS. Sin cambios en las firmas
+                      públicas.
+              v1.6.1: se quita la sección Ideas (movida a ideas.js).
+              v1.6.0: sección ideas (revertido).
+              v1.3.1: mostrarConfirmacion().
               v1.3.0: activar() pinta primero.
               v1.2.0: distintivoAutor, clase .vista--planes.
               v1.1.0: escucha eventos de Realtime.
@@ -38,64 +38,92 @@ const registro = {
   abortador: null,
   desuscribir: [],
   planes: [],
+  formularioAbierto: false,
 };
+
+/* ---------- Bloque de registro (colapsable) ------------------- */
+
+function pintarBloqueRegistro() {
+  const cont = h('div', { class: 'bloque-registro' });
+
+  if (!registro.formularioAbierto) {
+    cont.append(
+      h('button', {
+        type: 'button',
+        class: 'abrir-form',
+        'data-accion': 'abrir-formulario',
+      }, '+ Crear plan')
+    );
+    return cont;
+  }
+
+  const form = h('form', { class: 'vista__form', 'data-accion': 'crear' },
+    h('input', { name: 'titulo', placeholder: 'Título del plan', required: true, maxlength: 200 }),
+    h('input', { name: 'descripcion', placeholder: 'Descripción', maxlength: 500 }),
+    h('input', { name: 'cuando', placeholder: 'Cuándo' }),
+    h('div', { class: 'form-botones' },
+      h('button', {
+        type: 'button',
+        class: 'btn-secundario',
+        'data-accion': 'cerrar-formulario',
+      }, 'Cancelar'),
+      h('button', { type: 'submit', class: 'btn-primario' }, 'Crear')
+    )
+  );
+
+  cont.append(form);
+  return cont;
+}
+
+/* ---------- Pintar -------------------------------------------- */
 
 function pintar() {
   const cont = registro.contenedor;
   if (!cont) return;
   limpiarContenedor(cont);
 
-  const raiz = h('section', { class: 'vista vista--planes' });
+  const lista = registro.planes.length === 0
+    ? h('p', { class: 'vista__vacio' }, 'Todavía no hay planes. Crea el primero.')
+    : h('ul', { class: 'vista__lista' },
+        ...registro.planes.map((p) => pintarPlan(p))
+      );
 
-  raiz.append(
-    h('header', { class: 'vista__cabecera vista__cabecera--planes' },
-      h('h1', {}, 'Planes'),
-      h('p', { class: 'vista__lead' },
-        'Lo que queremos hacer juntos. Marca con Sí, Quizás o No. Cualquier respuesta sirve.')
+  cont.append(
+    h('section', { id: 'vista-planes', class: 'vista vista--planes' },
+      h('header', { class: 'planes__cabecera' },
+        h('h1', {}, 'Planes'),
+        h('p', { class: 'vista__lead' },
+          'Lo que queremos hacer juntos. Marca con Sí, Quizás o No. Cualquier respuesta sirve.')
+      ),
+      pintarBloqueRegistro(),
+      lista
     )
   );
+}
 
-  const form = h('form', { class: 'vista__form', 'data-accion': 'crear' },
-    h('input', { name: 'titulo', placeholder: 'Título del plan', required: true, maxlength: 200 }),
-    h('input', { name: 'descripcion', placeholder: 'Descripción', maxlength: 500 }),
-    h('input', { name: 'cuando', placeholder: 'Cuándo' }),
-    h('button', { type: 'submit' }, 'Crear plan')
+function pintarPlan(p) {
+  return h('li', { class: 'vista__item', 'data-id': p.id },
+    h('div', { class: 'vista__item-cabecera' },
+      h('strong', {}, p.titulo),
+      distintivoAutor(p.creadoPor)
+    ),
+    p.descripcion ? h('p', {}, p.descripcion) : null,
+    p.cuando ? h('p', { class: 'meta' }, p.cuando) : null,
+    h('div', { class: 'acciones' },
+      ...ESTADOS.map((e) => h('button', {
+        type: 'button',
+        'data-accion': 'estado',
+        'data-id': p.id,
+        'data-estado': e.id,
+        'aria-pressed': String(p.estado === e.id),
+      }, e.etiqueta)),
+      h('button', {
+        type: 'button',
+        'data-accion': 'eliminar',
+        'data-id': p.id,
+      }, 'Eliminar')
+    )
   );
-  raiz.append(form);
-
-  if (registro.planes.length === 0) {
-    raiz.append(h('p', { class: 'vista__vacio' },
-      'Todavía no hay planes. Crea el primero arriba.'));
-  } else {
-    const ul = h('ul', { class: 'vista__lista' });
-    for (const p of registro.planes) {
-      ul.append(h('li', { class: 'vista__item', 'data-id': p.id },
-        h('div', { class: 'vista__item-cabecera' },
-          h('strong', {}, p.titulo),
-          distintivoAutor(p.creadoPor)
-        ),
-        p.descripcion ? h('p', {}, p.descripcion) : null,
-        p.cuando ? h('p', { class: 'meta' }, p.cuando) : null,
-        h('div', { class: 'acciones' },
-          ...ESTADOS.map((e) => h('button', {
-            type: 'button',
-            'data-accion': 'estado',
-            'data-id': p.id,
-            'data-estado': e.id,
-            'aria-pressed': String(p.estado === e.id),
-          }, e.etiqueta)),
-          h('button', {
-            type: 'button',
-            'data-accion': 'eliminar',
-            'data-id': p.id,
-          }, 'Eliminar')
-        )
-      ));
-    }
-    raiz.append(ul);
-  }
-
-  cont.append(raiz);
 }
 
 function pintarError(mensaje) {
@@ -106,16 +134,26 @@ function pintarError(mensaje) {
   setTimeout(() => error.remove(), 5000);
 }
 
+function pintarOk(mensaje) {
+  const cont = registro.contenedor;
+  if (!cont) return;
+  const ok = h('p', { class: 'vista__ok', role: 'status' }, mensaje);
+  cont.prepend(ok);
+  setTimeout(() => ok.remove(), 3500);
+}
+
 async function refrescar() {
   const r = await repoPlanes.listar();
-  if (r.exito) {
-    registro.planes = r.datos;
-    pintar();
-  } else {
+  if (!r.exito) {
     log.error('Error al listar:', r.error);
     pintarError(r.error);
+    return;
   }
+  registro.planes = r.datos;
+  pintar();
 }
+
+/* ---------- Submit -------------------------------------------- */
 
 async function manejarSubmit(ev) {
   ev.preventDefault();
@@ -128,12 +166,17 @@ async function manejarSubmit(ev) {
     esIdea: false,
   });
   if (r.exito) {
+    registro.planes = [r.datos, ...registro.planes];
+    registro.formularioAbierto = false;
     form.reset();
-    await refrescar();
+    pintar();
+    pintarOk('Plan creado.');
   } else {
     pintarError(r.error);
   }
 }
+
+/* ---------- Click --------------------------------------------- */
 
 async function manejarClick(ev) {
   const boton = ev.target.closest('button[data-accion]');
@@ -141,11 +184,26 @@ async function manejarClick(ev) {
   const accion = boton.dataset.accion;
   const id = boton.dataset.id;
 
-  if (accion === 'estado') {
+  if (accion === 'abrir-formulario') {
+    registro.formularioAbierto = true;
+    pintar();
+    setTimeout(() => {
+      const input = registro.contenedor.querySelector('input[name="titulo"]');
+      if (input) input.focus();
+    }, 60);
+  } else if (accion === 'cerrar-formulario') {
+    registro.formularioAbierto = false;
+    pintar();
+  } else if (accion === 'estado') {
     const nuevo = boton.dataset.estado;
     const r = await repoPlanes.cambiarEstado(id, nuevo);
-    if (r.exito) await refrescar();
-    else pintarError(r.error);
+    if (r.exito) {
+      const i = registro.planes.findIndex((x) => x.id === id);
+      if (i >= 0) registro.planes[i] = r.datos;
+      pintar();
+    } else {
+      pintarError(r.error);
+    }
   } else if (accion === 'eliminar') {
     const ok = await mostrarConfirmacion(
       'Eliminar plan',
@@ -154,14 +212,22 @@ async function manejarClick(ev) {
     );
     if (!ok) return;
     const r = await repoPlanes.eliminar(id);
-    if (r.exito) await refrescar();
-    else pintarError(r.error);
+    if (r.exito) {
+      registro.planes = registro.planes.filter((x) => x.id !== id);
+      pintar();
+    } else {
+      pintarError(r.error);
+    }
   }
 }
+
+/* ---------- Ciclo de vida -------------------------------------- */
 
 export async function activar(contenedor) {
   registro.contenedor = contenedor;
   registro.abortador = new AbortController();
+  registro.formularioAbierto = false;
+
   const { signal } = registro.abortador;
   contenedor.addEventListener('submit', manejarSubmit, { signal });
   contenedor.addEventListener('click', manejarClick, { signal });
@@ -183,5 +249,6 @@ export function limpiar() {
   registro.abortador = null;
   if (registro.contenedor) limpiarContenedor(registro.contenedor);
   registro.planes = [];
+  registro.formularioAbierto = false;
   registro.contenedor = null;
 }

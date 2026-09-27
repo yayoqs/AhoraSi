@@ -1,19 +1,29 @@
 /* ================================================================
-   Ahora Sí — CSS
+   Ahora Sí — CSS MODULAR
    Archivo: css/vistas/respuesta.css
-   Versión: 1.0.0
-   Propósito: estilos específicos del panel de respuesta. Las
-              tres opciones son tarjetas grandes seleccionables.
+   Versión: 2.0.0
+   Propósito: Estilos del panel de respuesta. Tres tarjetas de
+              opción, textarea de nota, botón enviar. Todo
+              encapsulado bajo #vista-respuesta.
+              v2.0.0: reescritura con el patrón de LaTaberna.
+              Se renombran las clases de vista (choices, choice,
+              textarea, boton-enviar) con el prefijo respuesta__
+              para no competir con el resto.
+              v1.0.0: versión inicial.
    ================================================================ */
 
-.vista--respuesta .vista__choices {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 1 — TARJETAS DE OPCIÓN
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-respuesta .respuesta__choices {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--sp-3);
   margin: var(--sp-5) 0;
 }
 
-.vista__choice {
+#vista-respuesta .respuesta__choice {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -26,30 +36,34 @@
   cursor: pointer;
   transition: border-color var(--t-media), background var(--t-media), transform var(--t-rapida);
 }
-.vista__choice:hover {
+#vista-respuesta .respuesta__choice:hover {
   border-color: var(--gold);
   transform: translateY(-1px);
 }
-.vista__choice strong {
+#vista-respuesta .respuesta__choice strong {
   font-size: 16px;
   font-weight: 700;
 }
-.vista__choice small {
+#vista-respuesta .respuesta__choice small {
   color: var(--dim);
   font-size: 13px;
   line-height: 1.5;
 }
-.vista__choice[aria-pressed="true"] {
+#vista-respuesta .respuesta__choice[aria-pressed="true"] {
   background: var(--gold);
   color: var(--ink);
   border-color: var(--gold);
 }
-.vista__choice[aria-pressed="true"] small {
+#vista-respuesta .respuesta__choice[aria-pressed="true"] small {
   color: var(--ink);
   opacity: .8;
 }
 
-.vista--respuesta .vista__textarea {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 2 — NOTA LIBRE
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-respuesta .respuesta__textarea {
   width: 100%;
   padding: var(--sp-3) var(--sp-4);
   border-radius: var(--r-md);
@@ -63,13 +77,17 @@
   margin-bottom: var(--sp-3);
   transition: border-color var(--t-rapida), background var(--t-rapida);
 }
-.vista--respuesta .vista__textarea:focus {
+#vista-respuesta .respuesta__textarea:focus {
   border-color: var(--sky);
   background: rgba(238, 242, 232, .08);
   outline: none;
 }
 
-.vista__boton-enviar {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 3 — BOTÓN ENVIAR
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-respuesta .respuesta__boton-enviar {
   padding: 12px 26px;
   border-radius: var(--r-md);
   background: var(--gold);
@@ -78,16 +96,20 @@
   font-size: 15px;
   transition: filter var(--t-rapida), transform var(--t-rapida);
 }
-.vista__boton-enviar:hover:not(:disabled) { filter: brightness(1.05); }
-.vista__boton-enviar:active:not(:disabled) { transform: translateY(1px); }
-.vista__boton-enviar:disabled {
+#vista-respuesta .respuesta__boton-enviar:hover:not(:disabled) { filter: brightness(1.05); }
+#vista-respuesta .respuesta__boton-enviar:active:not(:disabled) { transform: translateY(1px); }
+#vista-respuesta .respuesta__boton-enviar:disabled {
   background: rgba(238, 242, 232, .18);
   color: var(--dim);
   cursor: not-allowed;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 4 — RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
+
 @media (min-width: 640px) {
-  .vista--respuesta .vista__choices {
+  #vista-respuesta .respuesta__choices {
     grid-template-columns: repeat(3, 1fr);
   }
 }

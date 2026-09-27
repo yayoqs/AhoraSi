@@ -1,12 +1,29 @@
 /* ================================================================
-   Ahora Sí — CSS
+   Ahora Sí — CSS MODULAR
    Archivo: css/vistas/flora.css
-   Versión: 1.0.0
-   Propósito: estilos específicos de la vista de flora. Idéntica
-              a fauna pero con acento verde para el tipo.
+   Versión: 2.0.0
+   Propósito: Estilos específicos de la vista de flora. Todo
+              encapsulado bajo #vista-flora para ganar
+              especificidad y aislar del resto de las vistas.
+              Los estilos genéricos (bloque de registro colapsable,
+              captura de foto, botones primario/secundario) viven
+              en css/componentes.css.
+              v2.0.0: reescritura con el patrón de LaTaberna:
+                      secciones numeradas, selector raíz por ID.
+                      Se quitan los bloques que ahora viven en
+                      componentes.css.
+              v1.3.0: bloque de registro colapsable, captura de
+                      foto.
+              v1.0.0: versión inicial.
    ================================================================ */
 
-.vista--flora .tipo-etiqueta {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 1 — ETIQUETA DE TIPO
+   Distintivo que aparece al lado del nombre del registro.
+   Verde para flora, para diferenciar de fauna.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-flora .tipo-etiqueta {
   display: inline-block;
   padding: 2px 10px;
   border-radius: var(--r-pill);
@@ -18,10 +35,26 @@
   letter-spacing: .04em;
 }
 
-.vista--flora .vista__item .meta {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 2 — META DEL REGISTRO
+   Línea secundaria con lugar y fecha.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-flora .vista__item .meta {
   display: flex;
   flex-wrap: wrap;
   gap: var(--sp-2);
   align-items: center;
   margin-top: var(--sp-2);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 3 — FORMULARIO (ajustes locales)
+   El formulario base vive en componentes.css. Acá solo
+   ajustamos el ancho en flora.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-flora .vista__form {
+  max-width: 100%;
+  gap: var(--sp-3);
 }

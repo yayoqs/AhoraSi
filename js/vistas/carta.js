@@ -1,17 +1,18 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/carta.js
-   Versión: 2.1.0
+   Versión: 2.2.0
    Propósito: vista de la carta. Cada usuario tiene su propia
               carta (manifiesto, compromisos personales y firma).
               La vista principal muestra la carta del otro más los
               compromisos compartidos y los anexos. El botón "Ver
               mi carta" lleva a la propia, donde se puede editar
               con fijado por sección.
-              v2.1.0: se agrega edición inline a anexos. Se agrega
-                      CRUD completo a compromisos compartidos
-                      (crear, editar, eliminar). Los compromisos
-                      compartidos ahora muestran autor.
+              v2.2.0: la sección raíz lleva id="vista-carta" para
+                      el encapsulado de CSS. Sin cambios en la
+                      lógica ni en las firmas públicas.
+              v2.1.0: edición inline de anexos, CRUD completo de
+                      compromisos compartidos.
               v2.0.1: envuelve todo en .vista--carta.
               v2.0.0: reescritura completa, carta por usuario.
               v1.3.1: usa mostrarConfirmacion().
@@ -333,7 +334,6 @@ function pintarVistaOtro(cont) {
     }
   }
 
-  // Compromisos compartidos
   cont.append(h('h2', { class: 'vista__subtitulo' }, 'Compromisos compartidos'));
   const comp = compartidos();
   if (comp.length === 0) {
@@ -349,7 +349,6 @@ function pintarVistaOtro(cont) {
     )
   );
 
-  // Anexos
   cont.append(h('h2', { class: 'vista__subtitulo' }, 'Anexos'));
   const anx = anexos();
   if (anx.length > 0) {
@@ -900,7 +899,7 @@ function pintar() {
   if (!cont) return;
   limpiarContenedor(cont);
 
-  const raiz = h('section', { class: 'vista vista--carta' });
+  const raiz = h('section', { id: 'vista-carta', class: 'vista vista--carta' });
   cont.append(raiz);
   registro.raiz = raiz;
 

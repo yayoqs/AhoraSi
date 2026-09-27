@@ -26,6 +26,9 @@
 <link rel="stylesheet" href="css/vistas/respuesta.css">
 <link rel="stylesheet" href="css/vistas/cuenta.css">
 
+<!-- SDK en el head con defer: descarga en paralelo con el CSS,
+     se ejecuta antes que js/app.js (que también es defer como
+     módulo ES6), y no bloquea el parseo del HTML. -->
 <script src="js/appwrite.min.js" defer></script>
 </head>
 <body>
@@ -35,6 +38,7 @@
 
 <div id="captura-error"></div>
 
+<!-- Captura temprana de errores. Ignora scripts de terceros (Cloudflare, fonts). -->
 <script>
 (function () {
   'use strict';

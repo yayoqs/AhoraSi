@@ -1,8 +1,11 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/repositorios/flora.js
-   Versión: 1.3.0
+   Versión: 1.4.0
    Propósito: acceso a ahorasi_flora.
+              v1.4.0: se agrega actualizar(id, cambios, opciones)
+                      con idempotencia. Edita nombre, tipo, lugar
+                      y fecha. Emite flora:actualizado.
               v1.3.0: crear() con idempotencia automática.
               v1.2.0: sin envío de permisos de fila.
               v1.1.0: usa _contexto.js.
@@ -21,6 +24,7 @@ import { generarId } from '../../nucleo/utils.js';
 import {
   obtenerContexto,
   conIdempotenciaParaCrear,
+  conIdempotenciaParaActualizar,
 } from './_contexto.js';
 
 const log = crearLogger('repo:flora');
@@ -96,6 +100,59 @@ export async function crear(datos, opciones = {}) {
       return Resultado.fallo(`Error al registrar flora: ${e.message}`);
     }
   });
+}
+
+export async function actualizar(id, cambios, opciones = {}) {
+  if (!id) return Resultado.fallo('Falta el id del registro');
+  if (!cambios || typeof cambios !== 'object') {
+    return Resultado.fallo('Los cambios deben ser un objeto');
+  }
+  if (cambios.nombre !== undefined && !cambios.nombre.trim()) {
+    return Resultado.fallo('El nombre no puede quedar vacío');
+  }
+  if (cambios.nombre !== undefined && cambios.nombre.length > 100) {
+    return Resultado.fallo('Nombre demasiado largo');
+  }
+  if (cambios.tipo !== undefined && !TIPOS.includes(cambios.tipo)) {
+    return Resultado.fallo(`Tipo inválido: ${cambios.tipo}`);
+  }
+
+  const ctx = obtenerContexto();
+  if (!ctx.exito) return ctx;
+
+  const data = {};
+  if (cambios.nombre !== undefined) data.nombre = cambios.nombre.trim();
+  if (cambios.tipo !== undefined) data.tipo = cambios.tipo;
+  if (cambios.lugar !== undefined) data.lugar = (cambios.lugar || '').trim();
+  if (cambios.fecha !== undefined) data.fecha = cambios.fecha || null;
+
+  if (Object.keys(data).length === 0) {
+    return Resultado.fallo('Sin cambios válidos');
+  }
+
+  return conIdempotenciaParaActualizar(
+    TABLA,
+    ctx.datos.usuarioId,
+    id,
+    data,
+    opciones,
+    async () => {
+      try {
+        const r = await obtenerTablesDB().updateRow({
+          databaseId: obtenerDatabaseId(),
+          tableId: TABLA,
+          rowId: id,
+          data,
+        });
+        const reg = normalizar(r);
+        emitir('flora:actualizado', reg);
+        return Resultado.ok(reg);
+      } catch (e) {
+        log.error('actualizar:', e.message);
+        return Resultado.fallo(`Error al actualizar registro: ${e.message}`);
+      }
+    }
+  );
 }
 
 export async function eliminar(id) {

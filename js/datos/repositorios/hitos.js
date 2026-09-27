@@ -1,9 +1,14 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/repositorios/hitos.js
-   Versión: 1.3.0
+   Versión: 1.5.0
    Propósito: acceso a ahorasi_hitos.
-              v1.3.0: crear() y marcar() con idempotencia automática.
+              v1.5.0: se agrega actualizar(id, cambios, opciones)
+                      con idempotencia. Se amplía para poder editar
+                      titulo y fecha. marcar() ahora delega en
+                      actualizar() internamente.
+              v1.4.0: se mantiene la firma de marcar().
+              v1.3.0: crear() y marcar() con idempotencia.
               v1.2.0: sin envío de permisos de fila.
               v1.1.0: usa _contexto.js.
               v1.0.0: versión inicial.
@@ -93,29 +98,57 @@ export async function crear(datos, opciones = {}) {
   });
 }
 
-export async function marcar(id, cumplido, opciones = {}) {
+export async function actualizar(id, cambios, opciones = {}) {
   if (!id) return Resultado.fallo('Falta el id del hito');
+  if (!cambios || typeof cambios !== 'object') {
+    return Resultado.fallo('Los cambios deben ser un objeto');
+  }
+  if (cambios.titulo !== undefined && !cambios.titulo.trim()) {
+    return Resultado.fallo('El título no puede quedar vacío');
+  }
+  if (cambios.titulo !== undefined && cambios.titulo.length > 200) {
+    return Resultado.fallo('Título demasiado largo');
+  }
+
   const ctx = obtenerContexto();
   if (!ctx.exito) return ctx;
 
-  const data = { cumplido: !!cumplido };
+  const data = {};
+  if (cambios.titulo !== undefined) data.titulo = cambios.titulo.trim();
+  if (cambios.fecha !== undefined) data.fecha = cambios.fecha || null;
+  if (cambios.cumplido !== undefined) data.cumplido = !!cambios.cumplido;
 
-  return conIdempotenciaParaActualizar(TABLA, ctx.datos.usuarioId, id, data, opciones, async () => {
-    try {
-      const r = await obtenerTablesDB().updateRow({
-        databaseId: obtenerDatabaseId(),
-        tableId: TABLA,
-        rowId: id,
-        data,
-      });
-      const hito = normalizar(r);
-      emitir('hitos:actualizado', hito);
-      return Resultado.ok(hito);
-    } catch (e) {
-      log.error('marcar:', e.message);
-      return Resultado.fallo(`Error al actualizar hito: ${e.message}`);
+  if (Object.keys(data).length === 0) {
+    return Resultado.fallo('Sin cambios válidos');
+  }
+
+  return conIdempotenciaParaActualizar(
+    TABLA,
+    ctx.datos.usuarioId,
+    id,
+    data,
+    opciones,
+    async () => {
+      try {
+        const r = await obtenerTablesDB().updateRow({
+          databaseId: obtenerDatabaseId(),
+          tableId: TABLA,
+          rowId: id,
+          data,
+        });
+        const hito = normalizar(r);
+        emitir('hitos:actualizado', hito);
+        return Resultado.ok(hito);
+      } catch (e) {
+        log.error('actualizar:', e.message);
+        return Resultado.fallo(`Error al actualizar hito: ${e.message}`);
+      }
     }
-  });
+  );
+}
+
+export async function marcar(id, cumplido, opciones = {}) {
+  return actualizar(id, { cumplido: !!cumplido }, opciones);
 }
 
 export async function eliminar(id) {

@@ -1,14 +1,21 @@
 /* ================================================================
-   Ahora Sí — CSS
+   Ahora Sí — CSS MODULAR
    Archivo: css/vistas/hero.css
-   Versión: 1.0.0
-   Propósito: estilos de la vista de bienvenida (hero). Solo se
-              muestra la primera vez por navegador. Fondo con
+   Versión: 2.0.0
+   Propósito: Estilos de la vista de bienvenida (hero). Fondo con
               patrón de circuito, título grande, línea dorada
               animada, secuenciador jugable y botón "Entrar".
+              Todo encapsulado bajo #vista-hero.
+              v2.0.0: reescritura con el patrón de LaTaberna.
+              v1.0.0: versión inicial.
    ================================================================ */
 
-.vista--hero {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 1 — CONTENEDOR PRINCIPAL
+   Pantalla completa con patrón de circuito dorado sutil.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-hero.vista--hero {
   min-height: calc(100svh - 120px);
   display: flex;
   align-items: center;
@@ -20,7 +27,7 @@
   margin: calc(var(--sp-5) * -1) calc(var(--sp-4) * -1) 0;
 }
 
-.hero__wrap {
+#vista-hero .hero__wrap {
   width: 100%;
   max-width: 620px;
   display: flex;
@@ -28,7 +35,7 @@
   gap: var(--sp-5);
 }
 
-.hero__titulo {
+#vista-hero .hero__titulo {
   font-family: var(--fuente-titulo);
   font-size: clamp(56px, 15vw, 140px);
   font-weight: 800;
@@ -38,13 +45,18 @@
   margin: 0;
 }
 
-.hero__linea {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 2 — LÍNEA ANIMADA
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-hero .hero__linea {
   display: block;
   width: min(100%, 480px);
   height: 14px;
   margin: 0;
 }
-.hero__linea path {
+
+#vista-hero .hero__linea path {
   stroke: var(--gold);
   stroke-width: 3;
   fill: none;
@@ -52,15 +64,17 @@
   stroke-dashoffset: 600;
   animation: hero-draw 1.6s .2s ease-out forwards;
 }
-.hero__linea circle {
+
+#vista-hero .hero__linea circle {
   fill: var(--gold);
   opacity: 0;
   animation: hero-pop .3s 1.7s forwards;
 }
+
 @keyframes hero-draw { to { stroke-dashoffset: 0; } }
 @keyframes hero-pop { to { opacity: 1; } }
 
-.hero__lead {
+#vista-hero .hero__lead {
   color: var(--paper);
   font-size: clamp(16px, 2vw, 18px);
   line-height: 1.65;
@@ -68,8 +82,11 @@
   margin: 0;
 }
 
-/* -------- Secuenciador ----------------------------------------- */
-.hero__sec {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 3 — SECUENCIADOR
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-hero .hero__sec {
   margin-top: var(--sp-3);
   border-top: 1px solid rgba(238, 242, 232, .18);
   padding-top: var(--sp-4);
@@ -78,26 +95,26 @@
   gap: var(--sp-3);
 }
 
-.hero__grid {
+#vista-hero .hero__grid {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.hero__fila {
+#vista-hero .hero__fila {
   display: grid;
   grid-template-columns: 74px repeat(8, 1fr);
   gap: 6px;
   align-items: center;
 }
 
-.hero__etiqueta {
+#vista-hero .hero__etiqueta {
   color: var(--dim);
   font-size: 12px;
   font-weight: 500;
 }
 
-.hero__celda {
+#vista-hero .hero__celda {
   height: 40px;
   border-radius: var(--r-sm);
   border: 1.5px solid rgba(238, 242, 232, .25);
@@ -106,23 +123,27 @@
   transition: background var(--t-rapida), border-color var(--t-rapida), box-shadow var(--t-rapida);
   -webkit-tap-highlight-color: transparent;
 }
-.hero__celda:hover { border-color: rgba(238, 242, 232, .5); }
-.hero__celda--activa {
+#vista-hero .hero__celda:hover { border-color: rgba(238, 242, 232, .5); }
+#vista-hero .hero__celda--activa {
   background: var(--gold);
   border-color: var(--gold);
 }
-.hero__celda--actual {
+#vista-hero .hero__celda--actual {
   box-shadow: 0 0 0 2px var(--sky) inset;
 }
 
-.hero__controles {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 4 — CONTROLES DEL SECUENCIADOR
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-hero .hero__controles {
   display: flex;
   flex-wrap: wrap;
   gap: var(--sp-3);
   align-items: center;
 }
 
-.hero__play {
+#vista-hero .hero__play {
   padding: 11px 26px;
   border-radius: var(--r-pill);
   background: var(--gold);
@@ -131,27 +152,27 @@
   font-size: 15px;
   transition: filter var(--t-rapida), transform var(--t-rapida);
 }
-.hero__play:hover { filter: brightness(1.05); }
-.hero__play:active { transform: translateY(1px); }
+#vista-hero .hero__play:hover { filter: brightness(1.05); }
+#vista-hero .hero__play:active { transform: translateY(1px); }
 
-.hero__tempo {
+#vista-hero .hero__tempo {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
   color: var(--dim);
   font-size: 13px;
 }
-.hero__tempo input[type="range"] {
+#vista-hero .hero__tempo input[type="range"] {
   accent-color: var(--gold);
   width: 140px;
 }
-.hero__tempo-valor {
+#vista-hero .hero__tempo-valor {
   min-width: 58px;
   font-weight: 500;
   color: var(--paper);
 }
 
-.hero__reset {
+#vista-hero .hero__reset {
   padding: 9px 16px;
   border-radius: var(--r-pill);
   border: 1.5px solid rgba(238, 242, 232, .35);
@@ -160,10 +181,13 @@
   font-weight: 500;
   transition: border-color var(--t-rapida), color var(--t-rapida);
 }
-.hero__reset:hover { border-color: var(--gold); color: var(--gold); }
+#vista-hero .hero__reset:hover { border-color: var(--gold); color: var(--gold); }
 
-/* -------- Botón Entrar ----------------------------------------- */
-.hero__entrar {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 5 — BOTÓN ENTRAR
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-hero .hero__entrar {
   align-self: flex-start;
   margin-top: var(--sp-4);
   padding: 14px 32px;
@@ -174,22 +198,38 @@
   font-size: 16px;
   transition: filter var(--t-rapida), transform var(--t-rapida);
 }
-.hero__entrar:hover { filter: brightness(1.05); }
-.hero__entrar:active { transform: translateY(1px); }
+#vista-hero .hero__entrar:hover { filter: brightness(1.05); }
+#vista-hero .hero__entrar:active { transform: translateY(1px); }
 
-/* -------- Responsive ------------------------------------------- */
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 6 — RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
+
 @media (max-width: 560px) {
-  .vista--hero {
+  #vista-hero.vista--hero {
     padding: var(--sp-6) var(--sp-3);
     margin: calc(var(--sp-5) * -1) calc(var(--sp-4) * -1) 0;
   }
-  .hero__fila { grid-template-columns: 58px repeat(8, 1fr); gap: 4px; }
-  .hero__etiqueta { font-size: 11px; }
-  .hero__celda { height: 32px; border-radius: 4px; }
-  .hero__tempo input[type="range"] { width: 100px; }
+  #vista-hero .hero__fila {
+    grid-template-columns: 58px repeat(8, 1fr);
+    gap: 4px;
+  }
+  #vista-hero .hero__etiqueta { font-size: 11px; }
+  #vista-hero .hero__celda { height: 32px; border-radius: 4px; }
+  #vista-hero .hero__tempo input[type="range"] { width: 100px; }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 7 — ACCESIBILIDAD
+   ═══════════════════════════════════════════════════════════════ */
+
 @media (prefers-reduced-motion: reduce) {
-  .hero__linea path { animation: none; stroke-dashoffset: 0; }
-  .hero__linea circle { animation: none; opacity: 1; }
+  #vista-hero .hero__linea path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  #vista-hero .hero__linea circle {
+    animation: none;
+    opacity: 1;
+  }
 }

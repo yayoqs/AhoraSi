@@ -1,10 +1,13 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/percusion.js
-   Versión: 1.3.1
+   Versión: 1.4.0
    Propósito: vista del secuenciador de percusión.
-              v1.3.1: usa mostrarConfirmacion() de dialogos.js.
-              v1.3.0: activar() pinta primero, carga en background.
+              v1.4.0: la sección raíz lleva id="vista-percusion"
+                      para el encapsulado de CSS. Sin cambios en
+                      la lógica ni en las firmas públicas.
+              v1.3.1: usa mostrarConfirmacion().
+              v1.3.0: activar() pinta primero.
               v1.2.0: distintivoAutor, clase .vista--percusion.
               v1.1.0: escucha eventos de Realtime.
               v1.0.0: versión inicial.
@@ -121,7 +124,7 @@ function pintar() {
       );
 
   cont.append(
-    h('section', { class: 'vista vista--percusion' },
+    h('section', { id: 'vista-percusion', class: 'vista vista--percusion' },
       h('h1', {}, 'Percusión'),
       h('p', { class: 'vista__lead' },
         'Tumbe y afro sintetizados. Activa o apaga los cuadros, ajusta el tempo y guarda tus ritmos.'),

@@ -1,18 +1,25 @@
 /* ================================================================
-   Ahora Sí — CSS
+   Ahora Sí — CSS MODULAR
    Archivo: css/vistas/carta.css
-   Versión: 1.2.0
-   Propósito: estilos específicos de la vista de carta.
-              v1.2.0: se agregan estilos para la meta y acciones
-                      del compromiso compartido y del anexo, con
-                      botones Editar/Eliminar.
-              v1.1.0: se agregan estilos para compromisos, firma,
-                      modo edición, divisores de fijado, toast.
-              v1.0.0: carta con borde dorado lateral y anexos.
+   Versión: 2.0.0
+   Propósito: Estilos específicos de la vista de carta. Manifiesto
+              limpio, compromisos con check verde, firma grande al
+              pie, anexos, modo edición con fijado por sección y
+              toast. Todo encapsulado bajo #vista-carta.
+              v2.0.0: reescritura con el patrón de LaTaberna:
+                      secciones numeradas, selector raíz por ID.
+              v1.2.0: meta y acciones de compromiso compartido y
+                      anexo.
+              v1.1.0: compromisos, firma, edición, divisores, toast.
+              v1.0.0: versión inicial.
    ================================================================ */
 
-/* -------- Barra superior --------------------------------------- */
-.vista--carta .vista__barra {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 1 — BARRA SUPERIOR
+   Botones de navegación entre vista del otro y vista propia.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-carta .vista__barra {
   display: flex;
   gap: var(--sp-2);
   align-items: center;
@@ -20,7 +27,8 @@
   margin-bottom: var(--sp-5);
   flex-wrap: wrap;
 }
-.vista--carta .vista__aviso-modo {
+
+#vista-carta .vista__aviso-modo {
   margin-right: auto;
   color: var(--gold);
   font-size: 12px;
@@ -29,26 +37,33 @@
   letter-spacing: .06em;
 }
 
-/* -------- Manifiesto ------------------------------------------- */
-.vista--carta .manifiesto {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 2 — MANIFIESTO
+   Texto corrido con títulos opcionales por párrafo.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-carta .manifiesto {
   display: flex;
   flex-direction: column;
   gap: var(--sp-4);
   margin-bottom: var(--sp-3);
 }
-.vista--carta .manifiesto article {
+
+#vista-carta .manifiesto article {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-.vista--carta .manifiesto h3 {
+
+#vista-carta .manifiesto h3 {
   color: var(--gold);
   font-size: 15px;
   font-weight: 700;
   letter-spacing: .02em;
   margin: 0;
 }
-.vista--carta .manifiesto p {
+
+#vista-carta .manifiesto p {
   margin: 0;
   line-height: 1.75;
   font-size: 17px;
@@ -56,8 +71,13 @@
   white-space: pre-wrap;
 }
 
-/* -------- Compromisos ------------------------------------------ */
-.vista--carta .compromisos {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 3 — COMPROMISOS
+   Lista con check verde a la izquierda. Los compartidos llevan
+   acento azul cielo en el borde y el check.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-carta .compromisos {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -65,7 +85,8 @@
   flex-direction: column;
   gap: var(--sp-2);
 }
-.vista--carta .compromiso {
+
+#vista-carta .compromiso {
   display: grid;
   grid-template-columns: 30px 1fr;
   gap: var(--sp-3);
@@ -74,10 +95,12 @@
   border-radius: var(--r-md);
   border-left: 3px solid rgba(74, 222, 128, .4);
 }
-.vista--carta .compromiso--compartido {
+
+#vista-carta .compromiso--compartido {
   border-left-color: rgba(141, 183, 216, .5);
 }
-.vista--carta .compromiso__check {
+
+#vista-carta .compromiso__check {
   width: 26px;
   height: 26px;
   display: flex;
@@ -85,22 +108,27 @@
   justify-content: center;
   color: var(--verde);
 }
-.vista--carta .compromiso--compartido .compromiso__check {
+
+#vista-carta .compromiso--compartido .compromiso__check {
   color: var(--sky);
 }
-.vista--carta .compromiso__check svg { width: 22px; height: 22px; }
-.vista--carta .compromiso__titulo {
+
+#vista-carta .compromiso__check svg { width: 22px; height: 22px; }
+
+#vista-carta .compromiso__titulo {
   font-weight: 700;
   font-size: 15px;
   margin: 0 0 4px;
 }
-.vista--carta .compromiso__desc {
+
+#vista-carta .compromiso__desc {
   color: var(--dim);
   font-size: 14px;
   margin: 0;
   line-height: 1.55;
 }
-.vista--carta .compromiso__meta {
+
+#vista-carta .compromiso__meta {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
@@ -108,13 +136,18 @@
   flex-wrap: wrap;
 }
 
-/* -------- Firma ------------------------------------------------- */
-.vista--carta .firma {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 4 — FIRMA
+   Al pie del manifiesto y los compromisos.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-carta .firma {
   margin-top: var(--sp-6);
   padding: var(--sp-6) 4px var(--sp-2);
   border-top: 1px solid rgba(238, 242, 232, .15);
 }
-.vista--carta .firma__texto {
+
+#vista-carta .firma__texto {
   font-family: var(--fuente-titulo);
   font-size: 24px;
   font-weight: 700;
@@ -122,8 +155,12 @@
   letter-spacing: -.01em;
 }
 
-/* -------- Anexos ------------------------------------------------ */
-.vista--carta .anexos {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 5 — ANEXOS
+   Piezas con borde dorado lateral.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-carta .anexos {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -131,37 +168,47 @@
   flex-direction: column;
   gap: var(--sp-3);
 }
-.vista--carta .anexo {
+
+#vista-carta .anexo {
   padding: var(--sp-4);
   background: var(--pcb2);
   border-radius: var(--r-md);
   border-left: 3px solid rgba(227, 188, 85, .35);
 }
-.vista--carta .anexo h3 {
+
+#vista-carta .anexo h3 {
   color: var(--gold);
   font-size: 17px;
   margin: 0 0 var(--sp-2);
 }
-.vista--carta .anexo p {
+
+#vista-carta .anexo p {
   margin: 0;
   line-height: 1.7;
   white-space: pre-wrap;
 }
-.vista--carta .anexo__meta {
+
+#vista-carta .anexo__meta {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
   margin-top: var(--sp-3);
 }
-.vista--carta .anexo__acciones {
+
+#vista-carta .anexo__acciones {
   display: flex;
   gap: var(--sp-1);
   margin-top: var(--sp-2);
   flex-wrap: wrap;
 }
 
-/* -------- Modo edición ------------------------------------------ */
-.vista--carta .pieza-edit {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 6 — MODO EDICIÓN
+   Bloque de edición inline para párrafos, compromisos, firma y
+   anexos.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-carta .pieza-edit {
   padding: var(--sp-4);
   background: var(--pcb3);
   border-radius: var(--r-md);
@@ -170,8 +217,9 @@
   flex-direction: column;
   gap: var(--sp-2);
 }
-.vista--carta .pieza-edit input,
-.vista--carta .pieza-edit textarea {
+
+#vista-carta .pieza-edit input,
+#vista-carta .pieza-edit textarea {
   padding: 10px 12px;
   border-radius: var(--r-md);
   border: 1.5px solid rgba(238, 242, 232, .3);
@@ -182,20 +230,32 @@
   width: 100%;
   transition: border-color var(--t-rapida), background var(--t-rapida);
 }
-.vista--carta .pieza-edit textarea { min-height: 90px; resize: vertical; }
-.vista--carta .pieza-edit input:focus,
-.vista--carta .pieza-edit textarea:focus {
+
+#vista-carta .pieza-edit textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+#vista-carta .pieza-edit input:focus,
+#vista-carta .pieza-edit textarea:focus {
   border-color: var(--sky);
   outline: none;
   background: rgba(238, 242, 232, .08);
 }
-.vista--carta .pieza-edit__botones {
+
+#vista-carta .pieza-edit__botones {
   display: flex;
   gap: var(--sp-2);
   flex-wrap: wrap;
 }
 
-.vista--carta .btn-mini {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 7 — BOTONES
+   Overrides locales de los botones genéricos para que se vean
+   como el resto de la carta.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-carta .btn-mini {
   padding: 6px 14px;
   font-size: 13px;
   font-weight: 500;
@@ -205,19 +265,27 @@
   color: var(--paper);
   transition: border-color var(--t-rapida), color var(--t-rapida);
 }
-.vista--carta .btn-mini:hover { border-color: var(--gold); color: var(--gold); }
 
-.vista--carta .btn-primario {
+#vista-carta .btn-mini:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+#vista-carta .btn-primario {
   padding: 9px 18px;
   border-radius: var(--r-md);
   background: var(--gold);
   color: var(--ink);
   font-weight: 700;
   font-size: 14px;
+  border: 0;
+  cursor: pointer;
+  transition: filter var(--t-rapida);
 }
-.vista--carta .btn-primario:hover { filter: brightness(1.05); }
 
-.vista--carta .btn-secundario {
+#vista-carta .btn-primario:hover { filter: brightness(1.05); }
+
+#vista-carta .btn-secundario {
   padding: 9px 18px;
   border-radius: var(--r-md);
   background: transparent;
@@ -225,12 +293,22 @@
   border: 1.5px solid rgba(238, 242, 232, .35);
   font-weight: 500;
   font-size: 14px;
+  cursor: pointer;
   transition: border-color var(--t-rapida), color var(--t-rapida);
 }
-.vista--carta .btn-secundario:hover { border-color: var(--gold); color: var(--gold); }
 
-/* -------- Divisor de fijar sección ------------------------------ */
-.vista--carta .fijar-seccion {
+#vista-carta .btn-secundario:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 8 — DIVISOR DE FIJAR SECCIÓN
+   Línea con botón al centro para fijar una sección en modo
+   edición.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-carta .fijar-seccion {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
@@ -238,14 +316,16 @@
   color: var(--dim);
   font-size: 12px;
 }
-.vista--carta .fijar-seccion::before,
-.vista--carta .fijar-seccion::after {
+
+#vista-carta .fijar-seccion::before,
+#vista-carta .fijar-seccion::after {
   content: "";
   flex: 1;
   height: 1px;
   background: rgba(238, 242, 232, .15);
 }
-.vista--carta .fijar-seccion button {
+
+#vista-carta .fijar-seccion button {
   padding: 6px 16px;
   border-radius: var(--r-pill);
   border: 1.5px solid rgba(227, 188, 85, .5);
@@ -255,13 +335,19 @@
   font-weight: 600;
   transition: background var(--t-rapida), color var(--t-rapida);
 }
-.vista--carta .fijar-seccion button:hover {
+
+#vista-carta .fijar-seccion button:hover {
   background: var(--gold);
   color: var(--ink);
 }
 
-/* -------- Caja vacía -------------------------------------------- */
-.vista--carta .vacio-caja {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 9 — CAJA VACÍA
+   Cuando la carta del otro está vacía o la propia no se ha
+   empezado a escribir.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-carta .vacio-caja {
   padding: var(--sp-8) var(--sp-6);
   background: var(--pcb2);
   border-radius: var(--r-lg);
@@ -272,20 +358,27 @@
   align-items: center;
   gap: var(--sp-3);
 }
-.vista--carta .vacio-caja p {
+
+#vista-carta .vacio-caja p {
   color: var(--dim);
   font-size: 14px;
   margin: 0;
   max-width: 42ch;
 }
-.vista--carta .vacio-caja__botones {
+
+#vista-carta .vacio-caja__botones {
   display: flex;
   gap: var(--sp-2);
   flex-wrap: wrap;
   justify-content: center;
 }
 
-/* -------- Toast ------------------------------------------------- */
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 10 — TOAST DE BIENVENIDA
+   Nota flotante en la parte inferior para Luci. Se monta fuera
+   de #vista-carta (al body), por eso no lleva prefijo.
+   ═══════════════════════════════════════════════════════════════ */
+
 .carta-toast {
   position: fixed;
   left: 16px;
@@ -305,13 +398,16 @@
   transform: translateY(140%);
   transition: transform .3s ease;
 }
+
 .carta-toast--visible { transform: translateY(0); }
+
 .carta-toast__texto {
   flex: 1;
   color: var(--paper);
   font-size: 14px;
   line-height: 1.5;
 }
+
 .carta-toast__boton {
   padding: 8px 16px;
   border-radius: var(--r-pill);
@@ -319,8 +415,11 @@
   color: var(--ink);
   font-weight: 700;
   font-size: 13px;
+  border: 0;
+  cursor: pointer;
   flex-shrink: 0;
 }
+
 .carta-toast__cerrar {
   background: none;
   border: 0;
@@ -328,4 +427,5 @@
   font-size: 20px;
   line-height: 1;
   padding: 4px;
+  cursor: pointer;
 }

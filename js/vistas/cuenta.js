@@ -1,10 +1,12 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/cuenta.js
-   Versión: 1.0.0
+   Versión: 1.1.0
    Propósito: vista "Mi cuenta". Permite cambiar el nombre visible
-              (que aparece en el header y en los distintivos de
-              autor) y cambiar la contraseña.
+              y cambiar la contraseña.
+              v1.1.0: la sección raíz lleva id="vista-cuenta" para
+                      el encapsulado de CSS. Sin cambios en la
+                      lógica ni en las firmas públicas.
               v1.0.0: versión inicial.
    ================================================================ */
 
@@ -82,17 +84,17 @@ function pintar() {
   );
 
   cont.append(
-    h('section', { class: 'vista vista--cuenta' },
+    h('section', { id: 'vista-cuenta', class: 'vista vista--cuenta' },
       h('h1', {}, 'Mi cuenta'),
       h('p', { class: 'vista__lead' }, 'Cómo te ve el otro y cómo entras a la app.'),
 
       h('h2', { class: 'vista__subtitulo' }, 'Nombre visible'),
-      h('p', { class: 'vista__nota' },
+      h('p', { class: 'cuenta__nota' },
         'Es el nombre que aparece en los registros que tú creas.'),
       formNombre,
 
       h('h2', { class: 'vista__subtitulo' }, 'Contraseña'),
-      h('p', { class: 'vista__nota' },
+      h('p', { class: 'cuenta__nota' },
         'Tu contraseña es solo tuya. Puedes cambiarla cuando quieras.'),
       formContrasena
     )
@@ -138,7 +140,6 @@ async function guardarNombre(form) {
   }
 
   registro.perfil = r.datos;
-  // Almacenar en el almacén para que el header se actualice.
   establecer('perfil', r.datos);
   pintarMensaje('ok', 'Nombre guardado.');
   pintar();
@@ -175,10 +176,8 @@ export async function activar(contenedor) {
   const { signal } = registro.abortador;
   contenedor.addEventListener('submit', manejarSubmit, { signal });
 
-  // Carga el perfil desde el almacén; si no hay, se ofrece crearlo.
   registro.perfil = obtener('perfil');
 
-  // Si el almacén no lo tiene, intentamos obtenerlo del backend.
   if (!registro.perfil) {
     const userId = usuarioActualId();
     if (userId) {

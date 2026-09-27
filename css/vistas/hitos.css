@@ -1,18 +1,201 @@
 /* ================================================================
-   Ahora Sí — CSS
+   Ahora Sí — CSS MODULAR
    Archivo: css/vistas/hitos.css
-   Versión: 1.0.0
-   Propósito: estilos específicos de la vista de hitos. El botón
-              de cumplido verde cuando está activo.
+   Versión: 2.0.0
+   Propósito: Estilos específicos de la vista de hitos. Línea de
+              tiempo vertical con marca por hito, cumpleaños en
+              verde cuando el hito está cumplido. Todo encapsulado
+              bajo #vista-hitos.
+              v2.0.0: reescritura con el patrón de LaTaberna:
+                      secciones numeradas, selector raíz por ID.
+                      Se introduce la línea de tiempo vertical
+                      (antes era lista plana).
+              v1.0.0: botón cumplido verde.
    ================================================================ */
 
-.vista--hitos .vista__item .acciones button[aria-pressed="true"] {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 1 — LÍNEA DE TIEMPO
+   Contenedor con la línea vertical izquierda y los hitos.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-hitos .linea-tiempo {
+  list-style: none;
+  padding: 0 0 0 28px;
+  margin: var(--sp-4) 0 var(--sp-6);
+  position: relative;
+}
+
+#vista-hitos .linea-tiempo::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: rgba(227, 188, 85, .35);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 2 — HITO
+   Cada ítem de la línea de tiempo.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-hitos .hito {
+  position: relative;
+  padding: 0 0 var(--sp-6);
+}
+
+#vista-hitos .hito:last-child {
+  padding-bottom: 0;
+}
+
+/* Marca circular en la línea */
+#vista-hitos .hito__marca {
+  position: absolute;
+  left: -28px;
+  top: 6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  background: var(--pcb);
+  transition: background var(--t-media), border-color var(--t-media);
+}
+
+#vista-hitos .hito--cumplido .hito__marca {
+  background: var(--gold);
+}
+
+#vista-hitos .hito__cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#vista-hitos .hito__cabecera {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+
+#vista-hitos .hito__fecha {
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+#vista-hitos .hito__titulo {
+  font-family: var(--fuente-titulo);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--paper);
+  letter-spacing: -.01em;
+  margin: 0;
+}
+
+#vista-hitos .hito--cumplido .hito__titulo {
+  color: var(--dim);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 3 — ACCIONES
+   Botones de toggle, editar y eliminar.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-hitos .hito .acciones {
+  display: flex;
+  gap: var(--sp-1);
+  margin-top: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+#vista-hitos .hito .acciones button {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--r-pill);
+  border: 1.5px solid rgba(238, 242, 232, .3);
+  color: var(--paper);
+  background: transparent;
+  transition: background var(--t-rapida), border-color var(--t-rapida), color var(--t-rapida);
+}
+
+#vista-hitos .hito .acciones button:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+#vista-hitos .hito .acciones button[data-accion="toggle"][aria-pressed="true"] {
   background: var(--verde);
   border-color: var(--verde);
   color: var(--ink);
 }
 
-.vista--hitos .vista__item .acciones button[aria-pressed="false"]:hover {
+#vista-hitos .hito .acciones button[data-accion="toggle"][aria-pressed="false"]:hover {
   border-color: var(--verde);
   color: var(--verde);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 4 — EDICIÓN INLINE
+   Formulario de edición dentro del hito.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-hitos .pieza-edit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+#vista-hitos .pieza-edit__cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  background: var(--pcb3);
+  border-radius: var(--r-md);
+  border-left: 3px solid var(--sky);
+}
+
+#vista-hitos .pieza-edit input {
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  border: 1.5px solid rgba(238, 242, 232, .3);
+  background: rgba(238, 242, 232, .04);
+  color: var(--paper);
+  font: inherit;
+  font-size: 15px;
+  width: 100%;
+  transition: border-color var(--t-rapida), background var(--t-rapida);
+}
+
+#vista-hitos .pieza-edit input:focus {
+  border-color: var(--sky);
+  background: rgba(238, 242, 232, .08);
+  outline: none;
+}
+
+#vista-hitos .pieza-edit__botones {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 5 — RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 560px) {
+  #vista-hitos .linea-tiempo {
+    padding-left: 22px;
+  }
+  #vista-hitos .hito__marca {
+    left: -22px;
+    width: 16px;
+    height: 16px;
+  }
 }

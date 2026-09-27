@@ -1,12 +1,23 @@
 /* ================================================================
-   Ahora Sí — CSS
+   Ahora Sí — CSS MODULAR
    Archivo: css/vistas/kit.css
-   Versión: 1.0.0
-   Propósito: estilos específicos de la vista de kit. Los items
-              van agrupados por categoría con encabezado propio.
+   Versión: 2.0.0
+   Propósito: Estilos específicos de la vista del kit. Barra de
+              progreso, agrupación por categoría. Todo encapsulado
+              bajo #vista-kit.
+              v2.0.0: reescritura con el patrón de LaTaberna.
+              v1.0.0: versión inicial.
    ================================================================ */
 
-.vista--kit .vista__progreso {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 1 — BARRA DE PROGRESO
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-kit .kit__progreso {
+  margin-bottom: var(--sp-5);
+}
+
+#vista-kit .kit__progreso-texto {
   display: inline-block;
   padding: 4px 12px;
   border-radius: var(--r-pill);
@@ -14,17 +25,56 @@
   color: var(--gold);
   font-size: 13px;
   font-weight: 600;
-  margin-bottom: var(--sp-5);
+  margin: 0 0 var(--sp-3);
 }
 
-.vista--kit .vista__item {
+#vista-kit .kit__barra {
+  height: 8px;
+  background: rgba(238, 242, 232, .1);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+  max-width: 420px;
+}
+
+#vista-kit .kit__barra i {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  transition: width .3s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 2 — GRUPOS POR CATEGORÍA
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-kit .kit__grupos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+#vista-kit .kit__grupo-titulo {
+  color: var(--sky);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin: 0 0 var(--sp-3);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 3 — ITEM DEL KIT
+   Cada item tiene checkbox a la izquierda y acciones a la derecha.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-kit .vista__item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--sp-3);
 }
 
-.vista--kit .vista__item .acciones {
+#vista-kit .vista__item .acciones {
   margin-top: 0;
   flex-shrink: 0;
 }

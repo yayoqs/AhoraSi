@@ -1,11 +1,15 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/respuesta.js
-   Versión: 1.3.1
-   Propósito: panel de respuesta con historial.
-              v1.3.1: sin cambios funcionales. Se sincroniza la
-                      versión con las demás vistas del grupo B.
-              v1.3.0: activar() pinta primero, carga en background.
+   Versión: 1.4.0
+   Propósito: panel de respuesta con historial. Tres tarjetas de
+              opción, nota libre, botón enviar, historial de
+              respuestas previas.
+              v1.4.0: la sección raíz lleva id="vista-respuesta"
+                      para el encapsulado de CSS. Sin cambios en
+                      la lógica ni en las firmas públicas.
+              v1.3.1: sin cambios funcionales.
+              v1.3.0: activar() pinta primero.
               v1.2.0: distintivoAutor, clase .vista--respuesta.
               v1.1.0: escucha eventos de Realtime.
               v1.0.0: versión inicial.
@@ -45,10 +49,10 @@ function pintar() {
   if (!cont) return;
   limpiarContenedor(cont);
 
-  const choices = h('div', { class: 'vista__choices' },
+  const choices = h('div', { class: 'respuesta__choices' },
     ...ELECCIONES.map((e) => h('button', {
       type: 'button',
-      class: 'vista__choice',
+      class: 'respuesta__choice',
       'data-accion': 'elegir',
       'data-id': e.id,
       'aria-pressed': String(registro.eleccion === e.id),
@@ -59,7 +63,7 @@ function pintar() {
   );
 
   const textarea = h('textarea', {
-    class: 'vista__textarea',
+    class: 'respuesta__textarea',
     'data-accion': 'nota',
     placeholder: 'Si quieres agregar algo…',
     rows: 4,
@@ -68,7 +72,7 @@ function pintar() {
 
   const botonEnviar = h('button', {
     type: 'button',
-    class: 'vista__boton-enviar',
+    class: 'respuesta__boton-enviar',
     'data-accion': 'enviar',
     disabled: registro.eleccion ? null : '',
   }, 'Enviar respuesta');
@@ -91,7 +95,7 @@ function pintar() {
       );
 
   cont.append(
-    h('section', { class: 'vista vista--respuesta' },
+    h('section', { id: 'vista-respuesta', class: 'vista vista--respuesta' },
       h('h1', {}, 'Tu respuesta'),
       h('p', { class: 'vista__lead' }, 'No hace falta contestar hoy. Las tres opciones son válidas.'),
       choices,
