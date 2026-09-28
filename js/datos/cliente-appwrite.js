@@ -1,13 +1,15 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/cliente-appwrite.js
-   Versión: 2.1.0
+   Versión: 2.1.1
    Propósito: instancia única del cliente Appwrite. Expone Client,
               Account, TablesDB y Storage. Reexporta los helpers
               del SDK para que ningún otro módulo dependa del
               global window.Appwrite.
-              v2.1.0: se agrega Storage. Verifica que el bundle
-                      lo exponga.
+              v2.1.1: se actualiza el mensaje de error y el
+                      comentario para reflejar la nueva ubicación
+                      del SDK (externos/appwrite.min.js).
+              v2.1.0: se agrega Storage.
               v2.0.0: SDK desde window.Appwrite (UMD local v25).
               v1.0.0: versión inicial.
    ================================================================ */
@@ -21,7 +23,7 @@ function obtenerSdk() {
   const sdk = globalThis.Appwrite;
   if (!sdk) {
     throw new Error(
-      'SDK de Appwrite no disponible. Verifica que js/appwrite.min.js ' +
+      'SDK de Appwrite no disponible. Verifica que externos/appwrite.min.js ' +
       'esté cargado antes que este módulo.'
     );
   }

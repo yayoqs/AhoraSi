@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototipo Juegos — Ahora Sí</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pcb: #0C2F26; --pcb2: #123F34; --pcb3: #0e3529;
+    --paper: #EEF2E8; --ink: #0A1F1A;
+    --gold: #E3BC55; --sky: #8DB7D8; --rose: #EBA9A2;
+    --verde: #4ade80; --rojo: #f87171; --gris: #8a9a91;
+    --dim: #A9C2B6;
+    --fuente-titulo: 'Bricolage Grotesque', 'Trebuchet MS', system-ui, sans-serif;
+    --fuente-cuerpo: 'Figtree', system-ui, -apple-system, sans-serif;
+    --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-pill: 999px;
+    --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+    --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
+    --t: .15s ease;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--pcb); color: var(--paper);
+    font: 400 16px/1.6 var(--fuente-cuerpo);
+    padding: 20px 16px 80px; -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 720px; margin: 0 auto; }
+  h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.1; letter-spacing: -.02em; margin: 0; }
+
+  .proto-cab {
+    text-align: center; padding: 8px 0 20px;
+    border-bottom: 1px solid rgba(238,242,232,.15); margin-bottom: 20px;
+  }
+  .proto-cab h1 { font-size: 18px; color: var(--gold); }
+  .proto-cab p { color: var(--dim); font-size: 12px; margin: 6px 0 0; }
+
+  .cabecera {
+    padding: 20px 16px;
+    margin: -8px -16px 20px;
+    border-radius: var(--r-lg);
+    background-color: var(--pcb3);
+    background-image:
+      radial-gradient(circle, rgba(227,188,85,.18) 1px, transparent 1.5px);
+    background-size: 22px 22px;
+    border: 1px solid rgba(227,188,85,.15);
+  }
+  .cabecera h1 { color: var(--gold); }
+  .cabecera .lead { color: var(--dim); font-size: 14px; margin: 4px 0 0; }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--pcb3);
+    border: 1px solid rgba(238,242,232,.15);
+    border-radius: var(--r-pill);
+    padding: 4px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex: 1;
+    padding: 8px 16px;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: transparent;
+    color: var(--dim);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background var(--t), color var(--t);
+  }
+  .tab:hover { color: var(--paper); }
+  .tab[aria-pressed="true"] {
+    background: var(--gold);
+    color: var(--ink);
+  }
+
+  /* Botón abrir */
+  .abrir-form {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; padding: 14px 24px; border-radius: var(--r-md);
+    background: var(--gold); color: var(--ink);
+    font-weight: 700; font-size: 15px; border: 0; cursor: pointer;
+    margin-bottom: 20px; transition: filter var(--t);
+  }
+  .abrir-form:hover { filter: brightness(1.05); }
+
+  /* Form */
+  .form {
+    display: flex; flex-direction: column; gap: 10px;
+    background: var(--pcb3); padding: 16px; border-radius: var(--r-md);
+    border-left: 3px solid var(--sky); margin-bottom: 20px;
+  }
+  .form input, .form select, .form textarea {
+    padding: 11px 14px; border-radius: var(--r-md);
+    border: 1.5px solid rgba(238,242,232,.3);
+    background: rgba(238,242,232,.04); color: var(--paper);
+    font: inherit; font-size: 15px; width: 100%; font-family: inherit;
+    transition: border-color var(--t), background var(--t);
+  }
+  .form input:focus, .form select:focus, .form textarea:focus {
+    border-color: var(--sky); outline: none; background: rgba(238,242,232,.08);
+  }
+  .form textarea { min-height: 80px; resize: vertical; }
+  .form__fila { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .form__botones { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+
+  .btn-primario {
+    padding: 10px 22px; border-radius: var(--r-md);
+    background: var(--gold); color: var(--ink); font-weight: 700;
+    font-size: 14px; border: 0; cursor: pointer;
+  }
+  .btn-primario:hover { filter: brightness(1.05); }
+  .btn-secundario {
+    padding: 10px 22px; border-radius: var(--r-md);
+    background: transparent; color: var(--paper);
+    border: 1.5px solid rgba(238,242,232,.35);
+    font-weight: 500; font-size: 14px; cursor: pointer;
+  }
+  .btn-secundario:hover { border-color: var(--rojo); color: var(--rojo); }
+
+  /* Listas */
+  .lista { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+
+  .item {
+    padding: 16px;
+    background: var(--pcb2);
+    border-radius: var(--r-md);
+    border-left: 3px solid var(--gris);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .item--pendiente  { border-left-color: var(--gold); }
+  .item--propuesto  { border-left-color: var(--gold); }
+  .item--aceptado   { border-left-color: var(--sky); }
+  .item--cumplido   { border-left-color: var(--verde); }
+  .item--rechazado  { border-left-color: var(--gris); opacity: .7; }
+
+  .item__cabecera {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .item__texto {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--paper);
+    font-weight: 500;
+  }
+  .item__contexto {
+    color: var(--dim);
+    font-size: 13px;
+    font-style: italic;
+    margin: 0;
+  }
+  .item__meta {
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+    color: var(--dim); font-size: 12px;
+    margin-top: 2px;
+  }
+
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: var(--r-pill);
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .badge--pendiente  { background: rgba(227,188,85,.18); color: var(--gold); }
+  .badge--propuesto  { background: rgba(227,188,85,.18); color: var(--gold); }
+  .badge--aceptado   { background: rgba(141,183,216,.18); color: var(--sky); }
+  .badge--cumplido   { background: rgba(74,222,128,.18); color: var(--verde); }
+  .badge--rechazado  { background: rgba(138,154,145,.18); color: var(--gris); }
+
+  .item__acciones {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .btn-mini {
+    padding: 6px 14px; font-size: 12px; font-weight: 500;
+    border-radius: var(--r-pill);
+    border: 1.5px solid rgba(238,242,232,.3);
+    background: transparent; color: var(--paper);
+    cursor: pointer; transition: border-color var(--t), color var(--t);
+    white-space: nowrap;
+  }
+  .btn-mini:hover { border-color: var(--gold); color: var(--gold); }
+  .btn-mini--ok { border-color: rgba(74,222,128,.5); color: var(--verde); }
+  .btn-mini--ok:hover { background: var(--verde); color: var(--ink); border-color: var(--verde); }
+  .btn-mini--sky { border-color: rgba(141,183,216,.5); color: var(--sky); }
+  .btn-mini--sky:hover { background: var(--sky); color: var(--ink); border-color: var(--sky); }
+
+  /* Autor */
+  .autor {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--dim);
+  }
+  .autor__inicial {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; border-radius: 50%;
+    font-size: 11px; font-weight: 800;
+    letter-spacing: -.02em;
+  }
+  .autor--yayo .autor__inicial { background: var(--gold); color: var(--ink); }
+  .autor--luci .autor__inicial { background: var(--sky); color: var(--ink); }
+
+  /* Sección preguntas */
+  .preguntas-caja {
+    display: flex; flex-direction: column; gap: 14px;
+    align-items: center; text-align: center;
+    padding: 32px 20px;
+    background: var(--pcb2);
+    border-radius: var(--r-lg);
+    border: 1px solid rgba(238,242,232,.1);
+  }
+  .pregunta-actual {
+    font-family: var(--fuente-titulo);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--paper);
+    letter-spacing: -.01em;
+    line-height: 1.3;
+    max-width: 44ch;
+    min-height: 3em;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .preguntas-caja .subtitulo {
+    color: var(--dim); font-size: 12px; text-transform: uppercase;
+    letter-spacing: .08em; font-weight: 700;
+  }
+
+  /* Apuestas */
+  .apuesta__resultado {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 10px 14px;
+    background: var(--pcb3);
+    border-radius: var(--r-md);
+    font-size: 14px;
+  }
+  .apuesta__ganador {
+    color: var(--verde);
+    font-weight: 700;
+  }
+
+  /* Vacío */
+  .vacio {
+    color: var(--dim); font-style: italic; padding: 20px 0; text-align: center;
+  }
+
+  /* Toast */
+  .toast-zona {
+    position: fixed; left: 16px; right: 16px; bottom: 20px;
+    max-width: 600px; margin: 0 auto; z-index: 1000; pointer-events: none;
+  }
+  .toast {
+    padding: 12px 16px; background: var(--pcb3);
+    border: 1.5px solid var(--gold); border-radius: var(--r-lg);
+    box-shadow: 0 4px 16px rgba(0,0,0,.4);
+    color: var(--paper); font-size: 14px;
+    transform: translateY(140%); transition: transform .3s ease;
+    pointer-events: auto;
+  }
+  .toast--visible { transform: translateY(0); }
+
+  .log {
+    position: fixed; left: 12px; right: 12px; bottom: 12px;
+    max-width: 600px; margin: 0 auto; padding: 8px 14px;
+    background: rgba(10,31,26,.92); border: 1px solid rgba(227,188,85,.3);
+    border-radius: 8px; font-family: ui-monospace, monospace;
+    font-size: 11px; color: var(--gold);
+    max-height: 50px; overflow: auto; z-index: 999;
+  }
+
+  @media (max-width: 560px) {
+    .form__fila { grid-template-columns: 1fr; }
+    .tab { padding: 8px 12px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="proto-cab">
+    <h1>Prototipo Juegos — Ahora Sí</h1>
+    <p>Cuatro secciones. Todo en memoria. No se guarda nada al recargar.</p>
+  </div>
+
+  <section class="cabecera">
+    <h1>Juegos</h1>
+    <p class="lead">Cosas que nos tiramos, nos debemos y nos preguntamos.</p>
+  </section>
+
+  <div class="tabs" id="tabs" role="tablist">
+    <button class="tab" data-tab="retos" aria-pressed="true">Retos</button>
+    <button class="tab" data-tab="penitencias" aria-pressed="false">Penitencias</button>
+    <button class="tab" data-tab="preguntas" aria-pressed="false">Preguntas</button>
+    <button class="tab" data-tab="apuestas" aria-pressed="false">Apuestas</button>
+  </div>
+
+  <div id="contenido"></div>
+
+</main>
+
+<div class="toast-zona" id="toast-zona"></div>
+<div class="log" id="log">Listo.</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ================================================================
+   Datos de prueba.
+   ================================================================ */
+
+const YAYO = { id: 'yayo', nombre: 'Yayo', clase: 'autor--yayo', inicial: 'Y' };
+const LUCI = { id: 'luci', nombre: 'Luci', clase: 'autor--luci', inicial: 'L' };
+const USUARIOS = { yayo: YAYO, luci: LUCI };
+
+let datos = {
+  retos: [
+    {
+      id: 'r1',
+      texto: 'Inventar un juego nuevo y enseñármelo.',
+      contexto: 'Tiene que ser jugable entre los dos y con reglas claras.',
+      autor: 'yayo',
+      destinatario: 'luci',
+      estado: 'propuesto',
+      creadoEn: '2026-09-26T12:00:00',
+    },
+    {
+      id: 'r2',
+      texto: 'Escribirle una canción corta a la mascota de la casa.',
+      contexto: '',
+      autor: 'luci',
+      destinatario: 'yayo',
+      estado: 'aceptado',
+      creadoEn: '2026-09-25T12:00:00',
+    },
+    {
+      id: 'r3',
+      texto: 'Cocinar algo que nunca hayamos hecho, sin receta.',
+      contexto: 'Y sin buscar en el celular.',
+      autor: 'yayo',
+      destinatario: 'luci',
+      estado: 'cumplido',
+      creadoEn: '2026-09-20T12:00:00',
+    },
+  ],
+  penitencias: [
+    {
+      id: 'p1',
+      texto: 'Hacer el desayuno el próximo domingo.',
+      razon: 'Perdiste la apuesta del clima.',
+      asignadaPor: 'yayo',
+      paraQuien: 'luci',
+      estado: 'pendiente',
+      creadoEn: '2026-09-26T12:00:00',
+    },
+    {
+      id: 'p2',
+      texto: 'Mandar un audio cantando una estrofa de cualquier canción.',
+      razon: 'Perdiste en el juego de cartas.',
+      asignadaPor: 'luci',
+      paraQuien: 'yayo',
+      estado: 'cumplida',
+      creadoEn: '2026-09-22T12:00:00',
+    },
+  ],
+  preguntas: [
+    '¿Cuál fue el primer momento en que sentiste que esto podía ser algo?',
+    '¿Qué te gusta de mí que nunca me has dicho?',
+    '¿Qué te da miedo de lo nuestro?',
+    '¿Cuál sería el viaje ideal que haríamos juntos?',
+    '¿Qué canción te recuerda a mí?',
+    '¿Qué te gustaría que hiciéramos más seguido?',
+    '¿Cuál es un sueño que no le has contado a nadie?',
+    '¿Qué te hace sentir en casa?',
+  ],
+  apuestas: [
+    {
+      id: 'a1',
+      texto: 'Mañana va a llover antes del mediodía.',
+      quien: 'yayo',
+      contra: 'luci',
+      estado: 'pendiente',
+      ganador: null,
+      creadoEn: '2026-09-26T22:00:00',
+    },
+    {
+      id: 'a2',
+      texto: 'Gana Colo-Colo el domingo.',
+      quien: 'luci',
+      contra: 'yayo',
+      estado: 'resuelta',
+      ganador: 'luci',
+      creadoEn: '2026-09-21T12:00:00',
+    },
+  ],
+};
+
+let tabActiva = 'retos';
+let formularioAbierto = false;
+let preguntaActual = 0;
+
+const $ = (id) => document.getElementById(id);
+
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const k in attrs || {}) {
+    const v = attrs[k];
+    if (k === 'class') e.className = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (v !== false && v != null) e.setAttribute(k, v);
+  }
+  kids.flat().forEach((c) => {
+    if (c == null || c === false) return;
+    e.append(c.nodeType ? c : document.createTextNode(c));
+  });
+  return e;
+}
+
+function log(msg) { $('log').textContent = msg; }
+
+function toast(msg) {
+  const zona = $('toast-zona');
+  const t = h('div', { class: 'toast' }, msg);
+  zona.replaceChildren(t);
+  t.offsetWidth;
+  t.classList.add('toast--visible');
+  setTimeout(() => {
+    t.classList.remove('toast--visible');
+    setTimeout(() => zona.replaceChildren(), 300);
+  }, 2500);
+}
+
+function autor(id) {
+  const u = USUARIOS[id];
+  if (!u) return null;
+  return h('span', { class: `autor ${u.clase}` },
+    h('span', { class: 'autor__inicial' }, u.inicial),
+    h('span', {}, u.nombre)
+  );
+}
+
+function nombreDe(id) { return USUARIOS[id]?.nombre || id; }
+
+/* ================================================================
+   Retos
+   ================================================================ */
+
+function pintarRetos(cont) {
+  if (formularioAbierto && tabActiva === 'retos') {
+    cont.append(pintarFormReto());
+  } else {
+    cont.append(pintarBoton('+ Nuevo reto', () => {
+      formularioAbierto = true;
+      pintar();
+    }));
+  }
+
+  if (datos.retos.length === 0) {
+    cont.append(h('p', { class: 'vacio' }, 'Sin retos todavía.'));
+    return;
+  }
+
+  const ul = h('ul', { class: 'lista' });
+  for (const r of datos.retos) {
+    ul.append(pintarItemReto(r));
+  }
+  cont.append(ul);
+}
+
+function pintarItemReto(r) {
+  const item = h('li', { class: `item item--${r.estado}`, 'data-id': r.id });
+
+  item.append(
+    h('div', { class: 'item__cabecera' },
+      h('span', { class: `badge badge--${r.estado}` }, r.estado),
+      autor(r.autor),
+      h('span', { style: 'color:var(--dim);font-size:12px;' }, '→'),
+      autor(r.destinatario)
+    ),
+    h('p', { class: 'item__texto' }, r.texto)
+  );
+
+  if (r.contexto) {
+    item.append(h('p', { class: 'item__contexto' }, r.contexto));
+  }
+
+  const acciones = h('div', { class: 'item__acciones' });
+
+  if (r.estado === 'propuesto') {
+    acciones.append(
+      h('button', { class: 'btn-mini btn-mini--ok', onclick: () => cambiarReto(r.id, 'aceptado') }, 'Aceptar'),
+      h('button', { class: 'btn-mini', onclick: () => cambiarReto(r.id, 'rechazado') }, 'Rechazar')
+    );
+  } else if (r.estado === 'aceptado') {
+    acciones.append(
+      h('button', { class: 'btn-mini btn-mini--ok', onclick: () => cambiarReto(r.id, 'cumplido') }, 'Marcar cumplido')
+    );
+  }
+  acciones.append(
+    h('button', { class: 'btn-mini', onclick: () => eliminarDe('retos', r.id) }, 'Quitar')
+  );
+  item.append(acciones);
+
+  return item;
+}
+
+function pintarFormReto() {
+  const inputTexto = h('input', { placeholder: 'Reto (ej. Inventar un juego nuevo)', maxlength: 200 });
+  const inputContexto = h('textarea', { placeholder: 'Detalles o reglas (opcional)', maxlength: 300, rows: 2 });
+  const selectPara = h('select', {},
+    h('option', { value: 'luci' }, 'Para Luci'),
+    h('option', { value: 'yayo' }, 'Para Yayo')
+  );
+
+  return h('div', { class: 'form' },
+    inputTexto,
+    inputContexto,
+    selectPara,
+    h('div', { class: 'form__botones' },
+      h('button', { class: 'btn-secundario', onclick: () => { formularioAbierto = false; pintar(); } }, 'Cancelar'),
+      h('button', { class: 'btn-primario', onclick: () => {
+        const texto = inputTexto.value.trim();
+        if (!texto) { toast('Falta el reto.'); return; }
+        datos.retos.unshift({
+          id: 'r' + Date.now(),
+          texto,
+          contexto: inputContexto.value.trim(),
+          autor: 'yayo',
+          destinatario: selectPara.value,
+          estado: 'propuesto',
+          creadoEn: new Date().toISOString(),
+        });
+        formularioAbierto = false;
+        toast('Reto propuesto.');
+        pintar();
+      }}, 'Proponer')
+    )
+  );
+}
+
+function cambiarReto(id, estado) {
+  const r = datos.retos.find((x) => x.id === id);
+  if (!r) return;
+  r.estado = estado;
+  toast('Reto ' + estado + '.');
+  pintar();
+}
+
+/* ================================================================
+   Penitencias
+   ================================================================ */
+
+function pintarPenitencias(cont) {
+  if (formularioAbierto && tabActiva === 'penitencias') {
+    cont.append(pintarFormPenitencia());
+  } else {
+    cont.append(pintarBoton('+ Nueva penitencia', () => {
+      formularioAbierto = true;
+      pintar();
+    }));
+  }
+
+  if (datos.penitencias.length === 0) {
+    cont.append(h('p', { class: 'vacio' }, 'Sin penitencias todavía.'));
+    return;
+  }
+
+  const ul = h('ul', { class: 'lista' });
+  for (const p of datos.penitencias) {
+    ul.append(pintarItemPenitencia(p));
+  }
+  cont.append(ul);
+}
+
+function pintarItemPenitencia(p) {
+  const item = h('li', { class: `item item--${p.estado}`, 'data-id': p.id });
+  item.append(
+    h('div', { class: 'item__cabecera' },
+      h('span', { class: `badge badge--${p.estado}` }, p.estado),
+      autor(p.asignadaPor),
+      h('span', { style: 'color:var(--dim);font-size:12px;' }, '→'),
+      autor(p.paraQuien)
+    ),
+    h('p', { class: 'item__texto' }, p.texto)
+  );
+  if (p.razon) {
+    item.append(h('p', { class: 'item__contexto' }, p.razon));
+  }
+
+  const acciones = h('div', { class: 'item__acciones' });
+  if (p.estado === 'pendiente') {
+    acciones.append(
+      h('button', { class: 'btn-mini btn-mini--ok', onclick: () => cambiarPenitencia(p.id, 'cumplida') }, 'Marcar cumplida')
+    );
+  }
+  acciones.append(
+    h('button', { class: 'btn-mini', onclick: () => eliminarDe('penitencias', p.id) }, 'Quitar')
+  );
+  item.append(acciones);
+  return item;
+}
+
+function pintarFormPenitencia() {
+  const inputTexto = h('input', { placeholder: 'Penitencia (ej. Hacer el desayuno el domingo)', maxlength: 200 });
+  const inputRazon = h('input', { placeholder: 'Por qué (opcional)', maxlength: 200 });
+  const selectPara = h('select', {},
+    h('option', { value: 'luci' }, 'Para Luci'),
+    h('option', { value: 'yayo' }, 'Para Yayo')
+  );
+
+  return h('div', { class: 'form' },
+    inputTexto,
+    inputRazon,
+    selectPara,
+    h('div', { class: 'form__botones' },
+      h('button', { class: 'btn-secundario', onclick: () => { formularioAbierto = false; pintar(); } }, 'Cancelar'),
+      h('button', { class: 'btn-primario', onclick: () => {
+        const texto = inputTexto.value.trim();
+        if (!texto) { toast('Falta la penitencia.'); return; }
+        datos.penitencias.unshift({
+          id: 'p' + Date.now(),
+          texto,
+          razon: inputRazon.value.trim(),
+          asignadaPor: 'yayo',
+          paraQuien: selectPara.value,
+          estado: 'pendiente',
+          creadoEn: new Date().toISOString(),
+        });
+        formularioAbierto = false;
+        toast('Penitencia asignada.');
+        pintar();
+      }}, 'Asignar')
+    )
+  );
+}
+
+function cambiarPenitencia(id, estado) {
+  const p = datos.penitencias.find((x) => x.id === id);
+  if (!p) return;
+  p.estado = estado;
+  toast('Penitencia ' + estado + '.');
+  pintar();
+}
+
+/* ================================================================
+   Preguntas
+   ================================================================ */
+
+function pintarPreguntas(cont) {
+  const total = datos.preguntas.length;
+  const idx = total ? preguntaActual % total : 0;
+  const pregunta = total ? datos.preguntas[idx] : 'Agrega preguntas para empezar.';
+
+  const caja = h('div', { class: 'preguntas-caja' },
+    h('div', { class: 'subtitulo' }, total ? `Pregunta ${idx + 1} de ${total}` : 'Sin preguntas'),
+    h('div', { class: 'pregunta-actual' }, pregunta),
+    h('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;justify-content:center;' },
+      h('button', {
+        class: 'btn-primario',
+        onclick: () => { preguntaActual = (preguntaActual + 1) % Math.max(1, total); pintar(); },
+      }, 'Siguiente'),
+      h('button', {
+        class: 'btn-secundario',
+        onclick: () => { preguntaActual = Math.floor(Math.random() * total); pintar(); },
+      }, 'Al azar')
+    )
+  );
+
+  cont.append(caja);
+
+  cont.append(h('h3', {
+    style: 'margin:24px 0 12px;color:var(--sky);font-size:12px;text-transform:uppercase;letter-spacing:.06em;'
+  }, 'Todas las preguntas'));
+
+  const lista = h('ul', { class: 'lista' });
+  for (let i = 0; i < datos.preguntas.length; i++) {
+    const p = datos.preguntas[i];
+    const li = h('li', { class: 'item', style: 'flex-direction:row;align-items:flex-start;gap:12px;' },
+      h('span', { style: 'color:var(--dim);font-size:12px;min-width:24px;padding-top:2px;font-variant-numeric:tabular-nums;' }, String(i + 1)),
+      h('p', { class: 'item__texto', style: 'flex:1;margin:0;' }, p),
+      h('button', { class: 'btn-mini', onclick: () => {
+        datos.preguntas.splice(i, 1);
+        toast('Pregunta quitada.');
+        pintar();
+      }}, 'Quitar')
+    );
+    lista.append(li);
+  }
+  cont.append(lista);
+
+  const inputNueva = h('input', { placeholder: 'Agregar pregunta nueva', maxlength: 300 });
+  cont.append(h('div', { class: 'form', style: 'margin-top:16px;' },
+    inputNueva,
+    h('div', { class: 'form__botones' },
+      h('button', { class: 'btn-primario', onclick: () => {
+        const p = inputNueva.value.trim();
+        if (!p) { toast('Falta la pregunta.'); return; }
+        datos.preguntas.push(p);
+        toast('Pregunta agregada.');
+        pintar();
+      }}, 'Agregar')
+    )
+  ));
+}
+
+/* ================================================================
+   Apuestas
+   ================================================================ */
+
+function pintarApuestas(cont) {
+  if (formularioAbierto && tabActiva === 'apuestas') {
+    cont.append(pintarFormApuesta());
+  } else {
+    cont.append(pintarBoton('+ Nueva apuesta', () => {
+      formularioAbierto = true;
+      pintar();
+    }));
+  }
+
+  if (datos.apuestas.length === 0) {
+    cont.append(h('p', { class: 'vacio' }, 'Sin apuestas todavía.'));
+    return;
+  }
+
+  const ul = h('ul', { class: 'lista' });
+  for (const a of datos.apuestas) {
+    ul.append(pintarItemApuesta(a));
+  }
+  cont.append(ul);
+}
+
+function pintarItemApuesta(a) {
+  const item = h('li', { class: `item item--${a.estado}`, 'data-id': a.id });
+  item.append(
+    h('div', { class: 'item__cabecera' },
+      h('span', { class: `badge badge--${a.estado}` }, a.estado),
+      autor(a.quien),
+      h('span', { style: 'color:var(--dim);font-size:12px;' }, 'vs'),
+      autor(a.contra)
+    ),
+    h('p', { class: 'item__texto' }, a.texto)
+  );
+
+  if (a.estado === 'resuelta' && a.ganador) {
+    item.append(
+      h('div', { class: 'apuesta__resultado' },
+        h('span', {}, 'Ganó'),
+        h('span', { class: 'apuesta__ganador' }, nombreDe(a.ganador))
+      )
+    );
+  }
+
+  const acciones = h('div', { class: 'item__acciones' });
+  if (a.estado === 'pendiente') {
+    acciones.append(
+      h('button', { class: 'btn-mini btn-mini--ok', onclick: () => resolverApuesta(a.id, a.quien) }, 'Ganó ' + nombreDe(a.quien)),
+      h('button', { class: 'btn-mini btn-mini--ok', onclick: () => resolverApuesta(a.id, a.contra) }, 'Ganó ' + nombreDe(a.contra))
+    );
+  }
+  acciones.append(
+    h('button', { class: 'btn-mini', onclick: () => eliminarDe('apuestas', a.id) }, 'Quitar')
+  );
+  item.append(acciones);
+  return item;
+}
+
+function pintarFormApuesta() {
+  const inputTexto = h('input', { placeholder: 'Apuesta (ej. Mañana llueve antes del mediodía)', maxlength: 200 });
+  const selectQuien = h('select', {},
+    h('option', { value: 'yayo' }, 'Yayo apuesta a que…'),
+    h('option', { value: 'luci' }, 'Luci apuesta a que…')
+  );
+
+  return h('div', { class: 'form' },
+    inputTexto,
+    selectQuien,
+    h('div', { class: 'form__botones' },
+      h('button', { class: 'btn-secundario', onclick: () => { formularioAbierto = false; pintar(); } }, 'Cancelar'),
+      h('button', { class: 'btn-primario', onclick: () => {
+        const texto = inputTexto.value.trim();
+        if (!texto) { toast('Falta la apuesta.'); return; }
+        const quien = selectQuien.value;
+        const contra = quien === 'yayo' ? 'luci' : 'yayo';
+        datos.apuestas.unshift({
+          id: 'a' + Date.now(),
+          texto,
+          quien,
+          contra,
+          estado: 'pendiente',
+          ganador: null,
+          creadoEn: new Date().toISOString(),
+        });
+        formularioAbierto = false;
+        toast('Apuesta registrada.');
+        pintar();
+      }}, 'Apostar')
+    )
+  );
+}
+
+function resolverApuesta(id, ganador) {
+  const a = datos.apuestas.find((x) => x.id === id);
+  if (!a) return;
+  a.estado = 'resuelta';
+  a.ganador = ganador;
+  toast('Ganó ' + nombreDe(ganador) + '.');
+  pintar();
+}
+
+/* ================================================================
+   Helpers
+   ================================================================ */
+
+function pintarBoton(texto, onClick) {
+  return h('button', { class: 'abrir-form', onclick: onClick }, texto);
+}
+
+function eliminarDe(coleccion, id) {
+  datos[coleccion] = datos[coleccion].filter((x) => x.id !== id);
+  toast('Quitado.');
+  pintar();
+}
+
+/* ================================================================
+   Navegación entre tabs
+   ================================================================ */
+
+function pintarTabs() {
+  $('tabs').querySelectorAll('.tab').forEach((btn) => {
+    btn.setAttribute('aria-pressed', String(btn.dataset.tab === tabActiva));
+  });
+}
+
+function pintar() {
+  pintarTabs();
+  const cont = $('contenido');
+  cont.replaceChildren();
+
+  if (tabActiva === 'retos') pintarRetos(cont);
+  else if (tabActiva === 'penitencias') pintarPenitencias(cont);
+  else if (tabActiva === 'preguntas') pintarPreguntas(cont);
+  else if (tabActiva === 'apuestas') pintarApuestas(cont);
+}
+
+$('tabs').addEventListener('click', (ev) => {
+  const btn = ev.target.closest('.tab');
+  if (!btn) return;
+  tabActiva = btn.dataset.tab;
+  formularioAbierto = false;
+  pintar();
+});
+
+pintar();
+})();
+</script>
+</body>
+</html>

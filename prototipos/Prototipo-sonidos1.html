@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototipo Beatmaker — Ahora Sí</title>
+<style>
+  :root {
+    --pcb: #0C2F26; --pcb2: #123F34; --pcb3: #0e3529;
+    --paper: #EEF2E8; --ink: #0A1F1A;
+    --gold: #E3BC55; --sky: #8DB7D8; --rose: #EBA9A2;
+    --verde: #4ade80; --rojo: #f87171; --gris: #8a9a91;
+    --dim: #A9C2B6;
+    --fuente-titulo: 'Bricolage Grotesque', 'Trebuchet MS', system-ui, sans-serif;
+    --fuente-cuerpo: 'Figtree', system-ui, -apple-system, sans-serif;
+    --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-pill: 999px;
+    --t: .12s ease;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--pcb); color: var(--paper);
+    font: 400 16px/1.6 var(--fuente-cuerpo);
+    padding: 20px 16px 80px; -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 720px; margin: 0 auto; }
+  h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.1; letter-spacing: -.02em; margin: 0; }
+
+  .proto-cab {
+    text-align: center; padding: 8px 0 20px;
+    border-bottom: 1px solid rgba(238,242,232,.15); margin-bottom: 20px;
+  }
+  .proto-cab h1 { font-size: 18px; color: var(--gold); }
+  .proto-cab p { color: var(--dim); font-size: 12px; margin: 6px 0 0; }
+
+  .cabecera {
+    padding: 20px 16px; margin: -8px -16px 20px;
+    border-radius: var(--r-lg);
+    background-color: var(--pcb3);
+    background-image: radial-gradient(circle, rgba(227,188,85,.14) 1px, transparent 1.5px);
+    background-size: 20px 20px;
+    border: 1px solid rgba(227,188,85,.15);
+  }
+  .cabecera h1 { color: var(--gold); }
+  .cabecera .lead { color: var(--dim); font-size: 14px; margin: 4px 0 0; }
+
+  /* Kit selector */
+  .kit-selector {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .kit-chip {
+    padding: 8px 16px;
+    border-radius: var(--r-pill);
+    border: 1.5px solid rgba(238,242,232,.3);
+    background: transparent;
+    color: var(--paper);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--t);
+  }
+  .kit-chip:hover { border-color: var(--gold); color: var(--gold); }
+  .kit-chip[aria-pressed="true"] {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--ink);
+  }
+  .kit-info {
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    background: var(--pcb2);
+    border-radius: var(--r-sm);
+    border-left: 3px solid var(--sky);
+    color: var(--dim);
+    font-size: 13px;
+  }
+  .kit-info strong { color: var(--sky); }
+
+  /* Grid */
+  .beat__contenedor {
+    background: var(--pcb3);
+    border-radius: var(--r-md);
+    padding: 10px;
+    margin-bottom: 16px;
+  }
+
+  .beat__scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .beat__scroll::-webkit-scrollbar { height: 6px; }
+  .beat__scroll::-webkit-scrollbar-thumb {
+    background: rgba(238,242,232,.15);
+    border-radius: 3px;
+  }
+
+  .beat__pasos {
+    display: grid;
+    grid-template-columns: 74px repeat(16, 40px);
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+  .beat__pasos-num {
+    font-size: 10px;
+    color: var(--dim);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    opacity: .6;
+  }
+  .beat__pasos-num--acento {
+    color: var(--gold);
+    font-weight: 700;
+    opacity: 1;
+  }
+
+  .beat__fila {
+    display: grid;
+    grid-template-columns: 74px repeat(16, 40px);
+    gap: 4px;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+
+  .beat__etiqueta {
+    color: var(--paper);
+    font-size: 12px;
+    font-weight: 600;
+    position: sticky;
+    left: 0;
+    background: var(--pcb3);
+    padding-right: 6px;
+    z-index: 2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .beat__celda {
+    height: 40px;
+    width: 40px;
+    border-radius: var(--r-sm);
+    border: 1.5px solid rgba(238,242,232,.15);
+    background: transparent;
+    cursor: pointer;
+    transition: var(--t);
+    -webkit-tap-highlight-color: transparent;
+    padding: 0;
+    position: relative;
+  }
+  .beat__celda:hover { border-color: rgba(238,242,232,.5); }
+  .beat__celda--activa { background: var(--gold); border-color: var(--gold); }
+  .beat__celda--actual {
+    box-shadow: 0 0 0 2px var(--sky) inset;
+  }
+
+  /* Marcar visualmente los grupos de 4 */
+  .beat__celda:nth-child(4n+2),
+  .beat__celda:nth-child(4n+3),
+  .beat__celda:nth-child(4n+4),
+  .beat__celda:nth-child(4n+5) {
+    /* no aplica acá porque cada fila es un grid propio */
+  }
+
+  /* Controles */
+  .beat__controles {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .btn-play {
+    padding: 12px 28px;
+    border-radius: var(--r-pill);
+    background: var(--gold);
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 15px;
+    border: 0;
+    cursor: pointer;
+    transition: filter var(--t), transform var(--t);
+  }
+  .btn-play:hover { filter: brightness(1.05); }
+  .btn-play:active { transform: translateY(1px); }
+
+  .beat__bpm {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--dim);
+    font-size: 13px;
+  }
+  .beat__bpm input[type="range"] {
+    accent-color: var(--gold);
+    width: 140px;
+  }
+  .beat__bpm-valor {
+    min-width: 62px;
+    font-weight: 600;
+    color: var(--paper);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .btn-secundario {
+    padding: 10px 20px;
+    border-radius: var(--r-pill);
+    border: 1.5px solid rgba(238,242,232,.35);
+    background: transparent;
+    color: var(--paper);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--t);
+  }
+  .btn-secundario:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* Volumen y mute por voz */
+  .beat__mezcla {
+    background: var(--pcb2);
+    border-radius: var(--r-md);
+    padding: 12px 16px;
+    margin-bottom: 20px;
+  }
+  .beat__mezcla h3 {
+    color: var(--sky);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin: 0 0 8px;
+  }
+  .beat__vol-fila {
+    display: grid;
+    grid-template-columns: 90px 1fr 36px;
+    gap: 10px;
+    align-items: center;
+    padding: 3px 0;
+  }
+  .beat__vol-fila label {
+    font-size: 12px;
+    color: var(--paper);
+    font-weight: 500;
+  }
+  .beat__vol-fila input[type="range"] {
+    accent-color: var(--gold);
+    width: 100%;
+    height: 4px;
+  }
+  .btn-mute {
+    background: transparent;
+    border: 1px solid rgba(238,242,232,.25);
+    color: var(--dim);
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    transition: var(--t);
+  }
+  .btn-mute:hover { border-color: var(--rojo); color: var(--rojo); }
+  .btn-mute--activo {
+    background: var(--rojo);
+    border-color: var(--rojo);
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .log {
+    position: fixed; left: 12px; right: 12px; bottom: 12px;
+    max-width: 600px; margin: 0 auto; padding: 8px 14px;
+    background: rgba(10,31,26,.92); border: 1px solid rgba(227,188,85,.3);
+    border-radius: 8px; font-family: ui-monospace, monospace;
+    font-size: 11px; color: var(--gold);
+    max-height: 50px; overflow: auto; z-index: 999;
+  }
+
+  @media (max-width: 560px) {
+    .beat__pasos,
+    .beat__fila {
+      grid-template-columns: 66px repeat(16, 34px);
+      gap: 3px;
+    }
+    .beat__celda { width: 34px; height: 34px; }
+    .beat__etiqueta { font-size: 11px; }
+    .beat__bpm input[type="range"] { width: 110px; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="proto-cab">
+    <h1>Prototipo Beatmaker — v1</h1>
+    <p>Ocho voces, cuatro kits preset y vacío. Todo sintetizado. Nada se guarda al recargar.</p>
+  </div>
+
+  <section class="cabecera">
+    <h1>Percusión</h1>
+    <p class="lead">Elige un kit, arma tu beat, ajusta el volumen de cada voz.</p>
+  </section>
+
+  <h2 style="font-size:13px;color:var(--sky);text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px;">Kit</h2>
+  <div class="kit-selector" id="kit-selector"></div>
+  <div class="kit-info" id="kit-info"></div>
+
+  <h2 style="font-size:13px;color:var(--sky);text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px;">Secuenciador</h2>
+  <div class="beat__contenedor">
+    <div class="beat__scroll" id="beat-scroll">
+      <div id="beat-grid"></div>
+    </div>
+  </div>
+
+  <div class="beat__controles">
+    <button class="btn-play" id="play" type="button">Tocar</button>
+    <label class="beat__bpm">Tempo
+      <input id="bpm" type="range" min="60" max="180" step="1" value="96">
+      <span class="beat__bpm-valor" id="bpm-valor">96 bpm</span>
+    </label>
+    <button class="btn-secundario" id="reset" type="button">Reset kit</button>
+  </div>
+
+  <div class="beat__mezcla" id="mezcla">
+    <h3>Volumen por voz</h3>
+    <div id="mezcla-filas"></div>
+  </div>
+
+</main>
+
+<div class="log" id="log">Listo. Elige un kit y pulsa Tocar.</div>
+
+<script>
+(() => {
+'use strict';
+
+const $ = (id) => document.getElementById(id);
+
+/* ================================================================
+   Definición de las 8 voces del beatmaker.
+   ================================================================ */
+
+const VOCES = [
+  { id: 'bombo', etiqueta: 'Bombo' },
+  { id: 'caja', etiqueta: 'Caja' },
+  { id: 'hh_cerrado', etiqueta: 'HH cerrado' },
+  { id: 'hh_abierto', etiqueta: 'HH abierto' },
+  { id: 'clap', etiqueta: 'Clap' },
+  { id: 'tom', etiqueta: 'Tom' },
+  { id: 'shaker', etiqueta: 'Shaker' },
+  { id: 'campana', etiqueta: 'Campana' },
+];
+
+const PASOS = 16;
+
+/* ================================================================
+   Kits. Cada kit tiene:
+     - nombre y descripción
+     - bpm recomendado
+     - patrón inicial (8 filas × 16 pasos)
+     - parámetros de timbre por voz (los que use el sintetizador)
+   ================================================================ */
+
+const KITS = {
+  cumbia: {
+    nombre: 'Cumbia',
+    descripcion: 'Beat clásico de cumbia. Bombo seco, güira constante, campana en los acentos.',
+    bpm: 95,
+    patron: [
+      // Bombo: 1 y 3 (compás de 4/4)
+      [1,0,0,0, 0,0,0,0, 1,0,0,0, 0,0,0,0],
+      // Caja: contratiempo suave
+      [0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0],
+      // HH cerrado: marcando las corcheas
+      [1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0],
+      // HH abierto: al aire
+      [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0],
+      // Clap: en el 4
+      [0,0,0,0, 0,0,0,0, 0,0,0,0, 1,0,0,0],
+      // Tom: relleno ocasional
+      [0,0,0,0, 0,0,0,0, 0,0,0,1, 0,0,0,0],
+      // Shaker: güira en semicorcheas
+      [1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0],
+      // Campana: 1 y 3
+      [1,0,0,0, 0,0,0,0, 1,0,0,0, 0,0,0,0],
+    ],
+    timbres: {
+      bombo:    { tipo: 'seco',   freq: 110, decay: 0.20 },
+      caja:     { tipo: 'rimshot', freq: 240, decay: 0.08 },
+      hh_cerrado: { tipo: 'ruido', hp: 6500, decay: 0.04 },
+      hh_abierto: { tipo: 'ruido', hp: 6000, decay: 0.30 },
+      clap:     { tipo: 'clap',   decay: 0.12 },
+      tom:      { tipo: 'tom',    freq: 320, decay: 0.20 },
+      shaker:   { tipo: 'shaker', hp: 4000, decay: 0.03 },
+      campana:  { tipo: 'campana', freq: 880, decay: 0.18 },
+    },
+  },
+
+  tumbe: {
+    nombre: 'Tumbe',
+    descripcion: 'Percusión afro-latina. Bombo grave, congas y campana.',
+    bpm: 100,
+    patron: [
+      [1,0,0,1, 0,0,1,0, 1,0,0,1, 0,0,1,0],
+      [0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0],
+      [0,1,0,0, 1,0,0,1, 0,0,1,0, 0,1,0,0],
+      [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0],
+      [0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,0,0],
+      [1,0,0,0, 0,1,0,0, 0,0,0,1, 0,1,0,0],
+      [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1],
+      [1,0,0,0, 0,1,0,0, 1,0,0,0, 0,1,0,0],
+    ],
+    timbres: {
+      bombo:    { tipo: 'profundo', freq: 90,  decay: 0.35 },
+      caja:     { tipo: 'tumbadora', freq: 300, decay: 0.14 },
+      hh_cerrado: { tipo: 'ruido', hp: 7000, decay: 0.04 },
+      hh_abierto: { tipo: 'ruido', hp: 5000, decay: 0.35 },
+      clap:     { tipo: 'clap',   decay: 0.15 },
+      tom:      { tipo: 'tumbe',  freq: 260, decay: 0.24 },
+      shaker:   { tipo: 'shaker', hp: 3500, decay: 0.04 },
+      campana:  { tipo: 'campana', freq: 760, decay: 0.22 },
+    },
+  },
+
+  rap: {
+    nombre: 'Rap',
+    descripcion: 'Boom-bap. Bombo gordo, caja seca, hi-hat marcando.',
+    bpm: 90,
+    patron: [
+      [1,0,0,0, 0,0,0,1, 0,0,1,0, 0,0,0,0],
+      [0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0],
+      [1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,1],
+      [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,0],
+      [0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0],
+      [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0],
+      [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0],
+      [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0],
+    ],
+    timbres: {
+      bombo:    { tipo: 'gordo',   freq: 100, decay: 0.30 },
+      caja:     { tipo: 'seca',    freq: 220, decay: 0.14 },
+      hh_cerrado: { tipo: 'ruido', hp: 8000, decay: 0.03 },
+      hh_abierto: { tipo: 'ruido', hp: 6500, decay: 0.25 },
+      clap:     { tipo: 'clap',   decay: 0.14 },
+      tom:      { tipo: 'tom',    freq: 280, decay: 0.18 },
+      shaker:   { tipo: 'shaker', hp: 5000, decay: 0.03 },
+      campana:  { tipo: 'campana', freq: 900, decay: 0.15 },
+    },
+  },
+
+  afro: {
+    nombre: 'Afro',
+    descripcion: 'Polirritmia. Djembé, shaker constante, campana.',
+    bpm: 110,
+    patron: [
+      [1,0,0,1, 0,0,1,0, 1,0,0,1, 0,0,1,0],
+      [0,0,0,0, 1,0,0,1, 0,0,0,0, 1,0,0,1],
+      [0,1,0,1, 0,1,0,1, 0,1,0,1, 0,1,0,1],
+      [0,0,1,0, 0,0,1,0, 0,0,1,0, 0,0,1,0],
+      [0,0,0,0, 0,0,0,0, 1,0,0,0, 0,0,0,0],
+      [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1],
+      [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1],
+      [1,0,0,0, 0,0,1,0, 1,0,0,0, 0,0,1,0],
+    ],
+    timbres: {
+      bombo:    { tipo: 'profundo', freq: 85,  decay: 0.40 },
+      caja:     { tipo: 'djembé',  freq: 340, decay: 0.12 },
+      hh_cerrado: { tipo: 'ruido', hp: 7500, decay: 0.03 },
+      hh_abierto: { tipo: 'ruido', hp: 5500, decay: 0.28 },
+      clap:     { tipo: 'clap',   decay: 0.13 },
+      tom:      { tipo: 'tumbe',  freq: 240, decay: 0.26 },
+      shaker:   { tipo: 'shaker', hp: 3000, decay: 0.04 },
+      campana:  { tipo: 'campana', freq: 700, decay: 0.24 },
+    },
+  },
+
+  vacio: {
+    nombre: 'Vacío',
+    descripcion: 'Sin patrón. Arma el tuyo desde cero.',
+    bpm: 96,
+    patron: [
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    ],
+    timbres: {
+      bombo:    { tipo: 'seco',   freq: 110, decay: 0.22 },
+      caja:     { tipo: 'seca',   freq: 230, decay: 0.12 },
+      hh_cerrado: { tipo: 'ruido', hp: 7000, decay: 0.04 },
+      hh_abierto: { tipo: 'ruido', hp: 6000, decay: 0.28 },
+      clap:     { tipo: 'clap',   decay: 0.14 },
+      tom:      { tipo: 'tom',    freq: 280, decay: 0.2 },
+      shaker:   { tipo: 'shaker', hp: 4000, decay: 0.04 },
+      campana:  { tipo: 'campana', freq: 880, decay: 0.18 },
+    },
+  },
+};
+
+/* ================================================================
+   Estado del beatmaker.
+   ================================================================ */
+
+let kitActual = 'cumbia';
+let patron = clonarPatron(KITS.cumbia.patron);
+let volumenes = {};
+VOCES.forEach((v) => { volumenes[v.id] = 1; }); // 0..1
+let mutes = {};
+VOCES.forEach((v) => { mutes[v.id] = false; });
+
+let bpm = KITS.cumbia.bpm;
+let playing = false;
+let paso = 0;
+let proximoTiempo = 0;
+let timer = null;
+
+function clonarPatron(p) {
+  return p.map((fila) => fila.slice());
+}
+
+/* ================================================================
+   Audio.
+   ================================================================ */
+
+let ctx = null;
+let master = null;
+let bufferRuido = null;
+let convolver = null;
+let gananciaReverb = null;
+
+function iniciarAudio() {
+  if (ctx) {
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+  const AC = window.AudioContext || window.webkitAudioContext;
+  ctx = new AC();
+
+  master = ctx.createGain();
+  master.gain.value = 0.85;
+  master.connect(ctx.destination);
+
+  // Reverb corta para dar aire a los platos y campanas.
+  const dur = 0.9;
+  const muestras = ctx.sampleRate * dur;
+  const impulso = ctx.createBuffer(2, muestras, ctx.sampleRate);
+  for (let canal = 0; canal < 2; canal++) {
+    const datos = impulso.getChannelData(canal);
+    for (let i = 0; i < muestras; i++) {
+      datos[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / muestras, 3);
+    }
+  }
+  convolver = ctx.createConvolver();
+  convolver.buffer = impulso;
+  gananciaReverb = ctx.createGain();
+  gananciaReverb.gain.value = 0.18;
+  convolver.connect(gananciaReverb);
+  gananciaReverb.connect(ctx.destination);
+
+  // Buffer de ruido, medio segundo, reutilizable.
+  const n = ctx.sampleRate * 0.5;
+  bufferRuido = ctx.createBuffer(1, n, ctx.sampleRate);
+  const d = bufferRuido.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+
+  return ctx;
+}
+
+function enviarAReverb(nodo) {
+  const g = ctx.createGain();
+  g.gain.value = 1;
+  nodo.connect(g);
+  g.connect(convolver);
+}
+
+/**
+ * Envolvente ADSR exponencial.
+ */
+function envolvente(t, ataque, caida, sostenido, liberacion, pico) {
+  const g = ctx.createGain();
+  const a = Math.max(0.001, ataque);
+  const d = Math.max(0.001, caida);
+  const r = Math.max(0.001, liberacion);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(pico, t + a);
+  g.gain.exponentialRampToValueAtTime(Math.max(0.0001, pico * sostenido), t + a + d);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + a + d + r);
+  return g;
+}
+
+/**
+ * Saturación suave. Le da cuerpo al bombo.
+ */
+function saturador(cantidad) {
+  const n = 1024;
+  const curva = new Float32Array(n);
+  const k = cantidad;
+  for (let i = 0; i < n; i++) {
+    const x = (i * 2) / n - 1;
+    curva[i] = Math.tanh(x * k) / Math.tanh(k);
+  }
+  const w = ctx.createWaveShaper();
+  w.curve = curva;
+  w.oversample = '2x';
+  return w;
+}
+
+/* ================================================================
+   Síntesis por voz. Cada voz acepta un objeto de timbre del kit.
+   ================================================================ */
+
+function golpeBombo(t, timbre) {
+  const freq = timbre.freq || 110;
+  const decay = timbre.decay || 0.25;
+  const tipo = timbre.tipo || 'seco';
+
+  // Fundamental + sub según tipo.
+  const o1 = ctx.createOscillator();
+  o1.type = 'sine';
+  o1.frequency.setValueAtTime(freq, t);
+  o1.frequency.exponentialRampToValueAtTime(freq * 0.45, t + 0.12);
+
+  const o2 = ctx.createOscillator();
+  o2.type = 'sine';
+  o2.frequency.setValueAtTime(freq * 0.55, t);
+  o2.frequency.exponentialRampToValueAtTime(freq * 0.28, t + 0.12);
+
+  const g = envolvente(t, 0.002, decay * 0.4, 0.2, decay, 0.95);
+  const sat = saturador(tipo === 'gordo' ? 3.2 : tipo === 'profundo' ? 2.6 : 2.2);
+
+  o1.connect(g);
+  o2.connect(g);
+  g.connect(sat);
+  sat.connect(master);
+
+  // Click inicial.
+  const s = ctx.createBufferSource();
+  s.buffer = bufferRuido;
+  const f = ctx.createBiquadFilter();
+  f.type = 'highpass';
+  f.frequency.value = 1200;
+  const gs = ctx.createGain();
+  gs.gain.setValueAtTime(0.18, t);
+  gs.gain.exponentialRampToValueAtTime(0.001, t + 0.008);
+  s.connect(f); f.connect(gs); gs.connect(master);
+  s.start(t); s.stop(t + 0.02);
+
+  o1.start(t); o1.stop(t + decay + 0.3);
+  o2.start(t); o2.stop(t + decay + 0.3);
+}
+
+function golpeCaja(t, timbre) {
+  const freq = timbre.freq || 240;
+  const decay = timbre.decay || 0.12;
+  const tipo = timbre.tipo || 'seca';
+
+  // Cuerpo: tono corto.
+  const o = ctx.createOscillator();
+  o.type = tipo === 'djembé' ? 'triangle' : 'sine';
+  o.frequency.setValueAtTime(freq, t);
+  o.frequency.exponentialRampToValueAtTime(freq * 0.6, t + decay * 0.5);
+  const go = envolvente(t, 0.001, decay * 0.5, 0.1, decay * 0.4, 0.6);
+  o.connect(go); go.connect(master);
+  o.start(t); o.stop(t + decay + 0.15);
+
+  // Ruido: el "shhh" de la caja.
+  const s = ctx.createBufferSource();
+  s.buffer = bufferRuido;
+  const f = ctx.createBiquadFilter();
+  f.type = tipo === 'rimshot' ? 'bandpass' : 'highpass';
+  f.frequency.value = tipo === 'rimshot' ? 2200 : 1800;
+  f.Q.value = tipo === 'rimshot' ? 2.5 : 0.8;
+  const gs = envolvente(t, 0.001, decay * 0.4, 0.15, decay * 0.5, tipo === 'rimshot' ? 0.4 : 0.55);
+  s.connect(f); f.connect(gs); gs.connect(master);
+  enviarAReverb(gs);
+  s.start(t); s.stop(t + decay + 0.2);
+}
+
+function golpeHH(t, timbre, abierto) {
+  const decayBase = timbre.decay || 0.04;
+  const decay = abierto ? decayBase * 1.8 : decayBase;
+  const hp = timbre.hp || 7000;
+
+  const s = ctx.createBufferSource();
+  s.buffer = bufferRuido;
+  const f = ctx.createBiquadFilter();
+  f.type = 'highpass';
+  f.frequency.value = hp;
+  const g = envolvente(t, 0.001, decay * 0.3, 0.1, decay * 0.7, abierto ? 0.4 : 0.35);
+  s.connect(f); f.connect(g); g.connect(master);
+  if (abierto) enviarAReverb(g);
+  s.start(t); s.stop(t + decay + 0.1);
+}
+
+function golpeClap(t, timbre) {
+  // Tres golpes de ruido separados 8 ms, típicos del clap.
+  const decay = timbre.decay || 0.14;
+  for (let i = 0; i < 3; i++) {
+    const tOffset = t + i * 0.008;
+    const s = ctx.createBufferSource();
+    s.buffer = bufferRuido;
+    const f = ctx.createBiquadFilter();
+    f.type = 'bandpass';
+    f.frequency.value = 1500;
+    f.Q.value = 1.4;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.4 - i * 0.08, tOffset);
+    g.gain.exponentialRampToValueAtTime(0.001, tOffset + 0.02);
+    s.connect(f); f.connect(g); g.connect(master);
+    enviarAReverb(g);
+    s.start(tOffset); s.stop(tOffset + 0.03);
+  }
+  // Cola corta de ruido.
+  const s = ctx.createBufferSource();
+  s.buffer = bufferRuido;
+  const f = ctx.createBiquadFilter();
+  f.type = 'bandpass';
+  f.frequency.value = 1200;
+  f.Q.value = 1;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.15, t + 0.025);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.025 + decay);
+  s.connect(f); f.connect(g); g.connect(master);
+  s.start(t + 0.025); s.stop(t + 0.025 + decay + 0.05);
+}
+
+function golpeTom(t, timbre) {
+  const freq = timbre.freq || 280;
+  const decay = timbre.decay || 0.22;
+  const tipo = timbre.tipo || 'tom';
+
+  const o = ctx.createOscillator();
+  o.type = tipo === 'tumbe' ? 'triangle' : 'sine';
+  o.frequency.setValueAtTime(freq, t);
+  o.frequency.exponentialRampToValueAtTime(freq * 0.5, t + decay * 0.6);
+
+  const g = envolvente(t, 0.001, decay * 0.4, 0.15, decay * 0.6, 0.7);
+  o.connect(g); g.connect(master);
+  o.start(t); o.stop(t + decay + 0.2);
+}
+
+function golpeShaker(t, timbre) {
+  const decay = timbre.decay || 0.04;
+  const hp = timbre.hp || 4000;
+
+  const s = ctx.createBufferSource();
+  s.buffer = bufferRuido;
+  const f = ctx.createBiquadFilter();
+  f.type = 'bandpass';
+  f.frequency.value = hp;
+  f.Q.value = 0.8;
+  const g = envolvente(t, 0.001, decay * 0.5, 0.05, decay * 0.4, 0.35);
+  s.connect(f); f.connect(g); g.connect(master);
+  s.start(t); s.stop(t + decay + 0.05);
+}
+
+function golpeCampana(t, timbre) {
+  const freq = timbre.freq || 880;
+  const decay = timbre.decay || 0.2;
+
+  // Dos rectangulares a frecuencias armónicas (una quinta y una
+  // octava). Suena metálico.
+  const pares = [
+    { f: freq, g: 0.18 },
+    { f: freq * 1.5, g: 0.1 },
+    { f: freq * 2, g: 0.06 },
+  ];
+  for (const p of pares) {
+    const o = ctx.createOscillator();
+    o.type = 'square';
+    o.frequency.setValueAtTime(p.f, t);
+    const g = envolvente(t, 0.001, decay * 0.3, 0.1, decay * 0.7, p.g);
+    o.connect(g); g.connect(master);
+    o.start(t); o.stop(t + decay + 0.2);
+  }
+  // Un envío a reverb para el metal.
+  // (El envío va por cada oscilador, así que lo hacemos uno solo).
+}
+
+/* ================================================================
+   Disparo de voz.
+   ================================================================ */
+
+function dispararVoz(indiceVoz, t, tiempo) {
+  const voz = VOCES[indiceVoz];
+  if (!voz) return;
+  if (mutes[voz.id]) return;
+
+  const timbre = KITS[kitActual].timbres[voz.id] || {};
+
+  // Escala por volumen.
+  const vol = volumenes[voz.id] ?? 1;
+  if (vol === 0) return;
+
+  // Guardamos el volumen para aplicarlo al final. Como cada voz
+  // crea sus propios nodos, aplicamos el volumen multiplicando
+  // la ganancia del nodo maestro temporalmente.
+  // Simplificación: usamos el master global y ajustamos por
+  // multiplicación al nivel del GainNode de master no sirve,
+  // porque es compartido. Creamos un gain intermedio por voz.
+  const gv = ctx.createGain();
+  gv.gain.value = vol;
+  gv.connect(master);
+
+  // Redirigimos la salida de la voz al gain intermedio en lugar
+  // del master. Reemplazamos la referencia "master" temporalmente
+  // con "gv".
+  const masterOriginal = master;
+  master = gv;
+
+  switch (voz.id) {
+    case 'bombo':      golpeBombo(t, timbre); break;
+    case 'caja':       golpeCaja(t, timbre); break;
+    case 'hh_cerrado': golpeHH(t, timbre, false); break;
+    case 'hh_abierto': golpeHH(t, timbre, true); break;
+    case 'clap':       golpeClap(t, timbre); break;
+    case 'tom':        golpeTom(t, timbre); break;
+    case 'shaker':     golpeShaker(t, timbre); break;
+    case 'campana':    golpeCampana(t, timbre); break;
+  }
+
+  master = masterOriginal;
+}
+
+/* ================================================================
+   Secuenciador.
+   ================================================================ */
+
+function pump() {
+  while (proximoTiempo < ctx.currentTime + 0.12) {
+    const c = paso, t = proximoTiempo;
+    for (let r = 0; r < VOCES.length; r++) {
+      if (patron[r][c]) {
+        dispararVoz(r, t);
+      }
+    }
+    const pasoParaHighlight = c;
+    setTimeout(() => {
+      if (playing) highlight(pasoParaHighlight);
+    }, Math.max(0, (t - ctx.currentTime) * 1000));
+    proximoTiempo += 60 / bpm / 4;
+    paso = (paso + 1) % PASOS;
+  }
+}
+
+function togglePlay() {
+  iniciarAudio();
+  playing = !playing;
+  $('play').textContent = playing ? 'Parar' : 'Tocar';
+  if (playing) {
+    paso = 0;
+    proximoTiempo = ctx.currentTime + 0.05;
+    pump();
+    timer = setInterval(pump, 25);
+  } else {
+    clearInterval(timer);
+    document.querySelectorAll('.beat__celda--actual').forEach((n) => n.classList.remove('beat__celda--actual'));
+  }
+}
+
+function highlight(c) {
+  document.querySelectorAll('.beat__celda--actual').forEach((n) => n.classList.remove('beat__celda--actual'));
+  document.querySelectorAll(`.beat__celda[data-c="${c}"]`).forEach((n) => n.classList.add('beat__celda--actual'));
+}
+
+/* ================================================================
+   Render.
+   ================================================================ */
+
+function pintarSelectorKits() {
+  const cont = $('kit-selector');
+  cont.replaceChildren();
+  for (const id of Object.keys(KITS)) {
+    const k = KITS[id];
+    cont.append(hacerBoton('button', {
+      class: 'kit-chip',
+      type: 'button',
+      'aria-pressed': String(id === kitActual),
+      onclick: () => cambiarKit(id),
+    }, k.nombre));
+  }
+}
+
+function pintarKitInfo() {
+  const k = KITS[kitActual];
+  $('kit-info').replaceChildren();
+  $('kit-info').append(
+    hacerElemento('strong', {}, k.nombre + '. '),
+    document.createTextNode(k.descripcion)
+  );
+}
+
+function pintarGrid() {
+  const cont = $('beat-grid');
+  cont.replaceChildren();
+
+  // Fila de números de paso.
+  const pasos = hacerElemento('div', { class: 'beat__pasos' });
+  pasos.append(hacerElemento('div', {})); // hueco por la etiqueta
+  for (let c = 0; c < PASOS; c++) {
+    const esAcento = c % 4 === 0;
+    pasos.append(hacerElemento('div', {
+      class: 'beat__pasos-num' + (esAcento ? ' beat__pasos-num--acento' : ''),
+    }, String(c + 1)));
+  }
+  cont.append(pasos);
+
+  // Filas de voces.
+  VOCES.forEach((voz, r) => {
+    const fila = hacerElemento('div', { class: 'beat__fila' });
+    fila.append(hacerElemento('div', { class: 'beat__etiqueta' }, voz.etiqueta));
+    for (let c = 0; c < PASOS; c++) {
+      const activa = !!patron[r][c];
+      const celda = hacerBoton('button', {
+        class: 'beat__celda' + (activa ? ' beat__celda--activa' : ''),
+        type: 'button',
+        'data-r': r,
+        'data-c': c,
+        'aria-pressed': String(activa),
+        'aria-label': voz.etiqueta + ', paso ' + (c + 1),
+        onclick: () => {
+          patron[r][c] = patron[r][c] ? 0 : 1;
+          celda.classList.toggle('beat__celda--activa', !!patron[r][c]);
+          celda.setAttribute('aria-pressed', String(!!patron[r][c]));
+          // Marcamos el grupo de 4 en el color de fondo del borde.
+          if (patron[r][c]) dispararVoz(r, ctx.currentTime + 0.01);
+        },
+      });
+      // Marcar visualmente el grupo de 4 con un borde más notorio
+      // en el paso 1, 5, 9, 13.
+      if (c % 4 === 0) celda.style.borderColor = 'rgba(238,242,232,.3)';
+      fila.append(celda);
+    }
+    cont.append(fila);
+  });
+}
+
+function pintarMezcla() {
+  const cont = $('mezcla-filas');
+  cont.replaceChildren();
+  VOCES.forEach((voz) => {
+    const fila = hacerElemento('div', { class: 'beat__vol-fila' });
+    fila.append(hacerElemento('label', {}, voz.etiqueta));
+
+    const slider = hacerElemento('input', {
+      type: 'range',
+      min: 0, max: 100, step: 1,
+      value: String(Math.round((volumenes[voz.id] ?? 1) * 100)),
+    });
+    slider.addEventListener('input', () => {
+      volumenes[voz.id] = Number(slider.value) / 100;
+    });
+    fila.append(slider);
+
+    const btn = hacerBoton('button', {
+      class: 'btn-mute' + (mutes[voz.id] ? ' btn-mute--activo' : ''),
+      type: 'button',
+      onclick: () => {
+        mutes[voz.id] = !mutes[voz.id];
+        btn.classList.toggle('btn-mute--activo', mutes[voz.id]);
+      },
+    }, mutes[voz.id] ? 'ON' : 'M');
+    fila.append(btn);
+
+    cont.append(fila);
+  });
+}
+
+function pintarTodo() {
+  pintarSelectorKits();
+  pintarKitInfo();
+  pintarGrid();
+  pintarMezcla();
+  $('bpm').value = String(bpm);
+  $('bpm-valor').textContent = bpm + ' bpm';
+}
+
+/* ================================================================
+   Acciones.
+   ================================================================ */
+
+function cambiarKit(id) {
+  if (!KITS[id]) return;
+  kitActual = id;
+  patron = clonarPatron(KITS[id].patron);
+  bpm = KITS[id].bpm;
+  pintarTodo();
+  $('log').textContent = 'Kit: ' + KITS[id].nombre + ' (' + bpm + ' bpm)';
+}
+
+function resetKit() {
+  patron = clonarPatron(KITS[kitActual].patron);
+  bpm = KITS[kitActual].bpm;
+  pintarTodo();
+  $('log').textContent = 'Patrón reseteado a ' + KITS[kitActual].nombre;
+}
+
+/* ================================================================
+   Helpers DOM.
+   ================================================================ */
+
+function hacerElemento(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const k in attrs || {}) {
+    const v = attrs[k];
+    if (k === 'class') e.className = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (v !== false && v != null) e.setAttribute(k, v);
+  }
+  kids.flat().forEach((c) => {
+    if (c == null || c === false) return;
+    e.append(c.nodeType ? c : document.createTextNode(c));
+  });
+  return e;
+}
+
+function hacerBoton(tag, attrs, ...kids) {
+  return hacerElemento(tag, attrs, ...kids);
+}
+
+/* ================================================================
+   Eventos globales.
+   ================================================================ */
+
+$('play').addEventListener('click', togglePlay);
+$('reset').addEventListener('click', resetKit);
+$('bpm').addEventListener('input', (ev) => {
+  bpm = Number(ev.target.value);
+  $('bpm-valor').textContent = bpm + ' bpm';
+});
+
+pintarTodo();
+})();
+</script>
+</body>
+</html>

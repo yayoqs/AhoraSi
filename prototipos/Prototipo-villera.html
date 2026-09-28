@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Beatmaker — Ahora Sí</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --pcb: #0C2F26; --pcb2: #123F34; --pcb3: #0e3529;
+    --paper: #EEF2E8; --ink: #0A1F1A;
+    --gold: #E3BC55; --sky: #8DB7D8; --rose: #EBA9A2;
+    --dim: #A9C2B6; --rojo: #f87171;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--pcb); color: var(--paper);
+    font: 400 15px/1.5 system-ui, -apple-system, sans-serif;
+    padding: 16px 14px 60px;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 16px);
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 60px);
+  }
+  main { max-width: 720px; margin: 0 auto; }
+
+  .cabecera { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .cabecera h1 {
+    margin: 0; font: 700 20px/1.1 'Trebuchet MS', system-ui, sans-serif;
+    color: var(--gold); letter-spacing: -.02em;
+  }
+  .cabecera p { margin: 2px 0 0; font-size: 12px; color: var(--dim); }
+  .indicador {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--gold); opacity: .35; flex: none;
+    transition: transform .12s, opacity .12s;
+  }
+  .indicador--activo {
+    opacity: 1; transform: scale(1.5);
+    box-shadow: 0 0 14px var(--gold);
+  }
+
+  .subtitulo {
+    font-size: 11px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--sky);
+    margin: 10px 0 6px;
+  }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    padding: 8px 14px; border-radius: 999px;
+    border: 1.5px solid rgba(238,242,232,.3);
+    background: transparent; color: var(--paper);
+    font: 600 13px system-ui; cursor: pointer;
+    transition: .12s;
+  }
+  .chip[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: var(--ink); }
+
+  .info {
+    margin: 12px 0; padding: 10px 14px;
+    background: var(--pcb2); border-left: 3px solid var(--sky);
+    border-radius: 6px; color: var(--dim); font-size: 13px;
+  }
+  .info b { color: var(--sky); }
+
+  #grilla {
+    background: var(--pcb3); border-radius: 12px;
+    padding: 12px 10px 8px; margin-bottom: 14px;
+  }
+
+  .voz { margin-bottom: 14px; }
+  .voz:last-child { margin-bottom: 4px; }
+
+  .voz > .nombre {
+    font-size: 12px; font-weight: 700;
+    margin-bottom: 6px; display: flex; justify-content: space-between;
+    align-items: baseline; gap: 8px;
+  }
+  .voz > .nombre small {
+    font-weight: 400; color: var(--dim); font-size: 10px;
+    text-transform: uppercase; letter-spacing: .04em;
+  }
+
+  .pasos {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+  .pasos:last-child { margin-bottom: 0; }
+
+  .pasos .celda:nth-child(5) { margin-left: 8px; }
+
+  .celda {
+    height: 38px; border-radius: 8px;
+    border: 1.5px solid rgba(238,242,232,.16);
+    background: transparent; color: var(--ink);
+    font: 700 11px system-ui; padding: 0; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: .1s;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .celda.marca { border-color: rgba(238,242,232,.45); }
+  .celda.actual {
+    box-shadow: 0 0 0 2px var(--sky) inset;
+    border-color: var(--sky);
+  }
+
+  .voz--notas .celda { height: 44px; font-size: 12px; }
+
+  .controles {
+    display: flex; gap: 10px 14px; align-items: center;
+    flex-wrap: wrap; margin-bottom: 12px;
+  }
+  .btn-play {
+    padding: 12px 30px; border: 0; border-radius: 999px;
+    background: var(--gold); color: var(--ink);
+    font: 700 15px system-ui; cursor: pointer;
+  }
+  .control-slider {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--dim);
+  }
+  .control-slider b {
+    color: var(--paper); min-width: 56px;
+    font-variant-numeric: tabular-nums;
+  }
+  input[type=range] { accent-color: var(--gold); width: 130px; }
+  .btn-sec {
+    padding: 9px 16px; border-radius: 999px;
+    border: 1.5px solid rgba(238,242,232,.35);
+    background: transparent; color: var(--paper);
+    font: 500 13px system-ui; cursor: pointer;
+    transition: .12s;
+  }
+  .btn-sec[aria-pressed="true"] {
+    background: var(--sky); border-color: var(--sky); color: var(--ink);
+  }
+
+  .panel {
+    background: var(--pcb2); border-left: 3px solid var(--sky);
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;
+  }
+  .panel[hidden] { display: none; }
+  .fila-panel {
+    display: grid; grid-template-columns: 100px 1fr 68px;
+    gap: 10px; align-items: center;
+    padding: 3px 0; font-size: 13px;
+  }
+  .fila-panel input[type=range] { width: 100%; }
+  .boton-mini {
+    border: 1px solid rgba(238,242,232,.25);
+    background: transparent; color: var(--dim);
+    font-size: 11px; padding: 4px 8px;
+    border-radius: 6px; margin-left: 3px; cursor: pointer;
+  }
+  .boton-mini--on { background: var(--rojo); border-color: var(--rojo); color: var(--ink); font-weight: 700; }
+  .boton-mini--solo { background: var(--gold); border-color: var(--gold); }
+
+  @media (max-width: 400px) {
+    input[type=range] { width: 90px; }
+    .fila-panel { grid-template-columns: 82px 1fr 64px; }
+    .celda { height: 34px; font-size: 10px; }
+    .voz--notas .celda { height: 40px; font-size: 11px; }
+    .pasos .celda:nth-child(5) { margin-left: 5px; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="cabecera">
+    <div class="indicador" id="indicador"></div>
+    <div>
+      <h1>Beatmaker — Ahora Sí</h1>
+      <p>16 pasos · 7 voces · 6 bases. Toca una celda para cambiar su fuerza o nota.</p>
+    </div>
+  </div>
+
+  <div class="subtitulo">Familia</div>
+  <div class="chips" id="chips-familia"></div>
+
+  <div class="subtitulo">Estilo</div>
+  <div class="chips" id="chips-estilo"></div>
+
+  <div class="info" id="info"></div>
+
+  <div id="grilla"></div>
+
+  <div class="controles">
+    <button class="btn-play" id="play" type="button">Tocar</button>
+    <label class="control-slider">Tempo
+      <input id="bpm" type="range" min="70" max="140">
+      <b id="bpmv"></b>
+    </label>
+    <label class="control-slider">Swing
+      <input id="swing" type="range" min="0" max="50">
+      <b id="swingv"></b>
+    </label>
+  </div>
+
+  <div class="controles">
+    <button class="btn-sec" id="btn-mezcla" type="button" aria-pressed="false">Mezcla</button>
+    <button class="btn-sec" id="btn-efectos" type="button" aria-pressed="false">Efectos</button>
+    <button class="btn-sec" id="reset" type="button">Reset</button>
+    <button class="btn-sec" id="limpiar" type="button">Limpiar</button>
+  </div>
+
+  <div class="panel" id="panel-mezcla" hidden></div>
+  <div class="panel" id="panel-efectos" hidden></div>
+
+</main>
+
+<script>
+(() => {
+'use strict';
+
+const $ = (id) => document.getElementById(id);
+
+/* ================================================================
+   MÚSICA.
+   ================================================================ */
+
+// Las escalas solo se usan para convertir los grados de los
+// patrones iniciales a semitonos cromáticos. Después, la UI
+// trabaja siempre con semitonos.
+const ESCALAS = {
+  menor:       { pasos: [0, 2, 3, 5, 7, 8, 10], nombre: 'menor natural' },
+  mayor:       { pasos: [0, 2, 4, 5, 7, 9, 11], nombre: 'mayor natural' },
+  pentatonica: { pasos: [0, 3, 5, 7, 10],       nombre: 'pentatónica menor' },
+};
+
+// Nombres de nota cromáticos. Índice = MIDI % 12.
+const NOMBRES_NOTA = ['DO','DO#','RE','RE#','MI','FA','FA#','SOL','SOL#','LA','LA#','SI'];
+
+const FUERZAS = [0, 0.4, 0.72, 1];
+const CARACTERES = ['.', 'o', 'x', 'X'];
+
+const NOMBRES_VOCES = {
+  cum: ['Bombo', 'Caja', 'Timbal', 'Güira', 'Cencerro', 'Bajo', 'Teclas'],
+  afr: ['Bombo', 'Slap djembé', 'Grave djembé', 'Shekere', 'Gankogui', 'Log bajo', 'Kalimba'],
+};
+const COLORES = ['#E3BC55','#EBA9A2','#8DB7D8','#9BE0B5','#F2C879','#C4AEEB','#F29E6B'];
+const VOL_INICIAL = [1.0, 0.8, 0.8, 0.6, 0.55, 0.9, 0.55];
+
+const frecuencia = (midi) => 440 * Math.pow(2, (midi - 69) / 12);
+const nombreNota = (midi) => NOMBRES_NOTA[((midi % 12) + 12) % 12];
+
+/* ================================================================
+   ESTILOS.
+   Las filas 0-4 son percusión (niveles 0-3 vía caracteres).
+   Las filas 5-6 (bajo y teclas) se definen con grados 0-7,
+   donde 0 = vacío y 1..7 = grado de la escala. Al cargar, se
+   convierten a semitonos cromáticos 0-11.
+   ================================================================ */
+
+const ESTILOS = [
+  {
+    id: 'villera_clasica',
+    familia: 'cum',
+    nombre: 'Villera Clásica',
+    descripcion: 'Groove villero de barrio. Bombo 4x4 pesando, güira arrastrando a tierra, bajo saltando en contratiempo.',
+    bpm: 94, swing: 5,
+    raiz: 45, escala: 'menor',
+    efectos: { reverb: 10, eco: 12, saturacion: 35, filtro: 100 },
+    patrones: [
+      'X...X...X...X...',
+      '....X.......X...',
+      '..x...x.x.x.....',
+      'X.xxX.xxX.xxX.xx',
+      '..X...X...X...X.',
+      [0,0,1,0, 0,0,5,0, 0,0,1,0, 0,0,5,0],
+      [0,0,0,0, 3,0,0,0, 0,0,0,0, 3,0,0,0],
+    ],
+  },
+  {
+    id: 'villera_dura',
+    familia: 'cum',
+    nombre: 'Villera Dura',
+    descripcion: 'Saturada y de la calle. Bombo doble insinuado, cencerro agresivo, bajo caminando en tónicas.',
+    bpm: 92, swing: 0,
+    raiz: 43, escala: 'menor',
+    efectos: { reverb: 10, eco: 8, saturacion: 55, filtro: 100 },
+    patrones: [
+      'X..xX...X..xX...',
+      '....X.......X.xX',
+      'x.x.x.x.x.x.x.x.',
+      'X.xxx.xxX.xxx.xx',
+      'X.X.X.X.X.X.X.X.',
+      [1,0,1,0, 5,0,1,0, 1,0,5,0, 1,0,5,0],
+      [0,0,0,0, 0,0,0,0, 5,0,0,0, 3,0,0,0],
+    ],
+  },
+  {
+    id: 'sonidera',
+    familia: 'cum',
+    nombre: 'Sonidera',
+    descripcion: 'Más tropical. Bombo clásico en 1 y 3, timbales con sabor, bajo en menor caminando.',
+    bpm: 90, swing: 10,
+    raiz: 38, escala: 'menor',
+    efectos: { reverb: 16, eco: 10, saturacion: 20, filtro: 100 },
+    patrones: [
+      'X.......X.......',
+      '....x.o.....x.o.',
+      'o..x..o...xx..o.',
+      'X.x.X.x.X.x.X.x.',
+      '....x.......x...',
+      [1,0,0,5, 0,1,0,5, 1,0,0,5, 0,4,0,5],
+      [0,0,0,0, 3,0,0,0, 0,0,0,0, 3,0,0,0],
+    ],
+  },
+  {
+    id: 'tumbe',
+    familia: 'afr',
+    nombre: 'Afro Tumbé',
+    descripcion: 'Polirritmia pura. Gankogui marcando clave cruzada contra el bombo.',
+    bpm: 110, swing: 18,
+    raiz: 40, escala: 'pentatonica',
+    efectos: { reverb: 24, eco: 24, saturacion: 15, filtro: 100 },
+    patrones: [
+      'X...o...X..x....',
+      '..x...X...x...X.',
+      'x..x..o...x..x..',
+      'X.x.X.x.X.x.X.x.',
+      'X..X..x...X.X...',
+      [1,0,0,0, 0,0,1,0, 0,0,0,0, 3,5,0,0],
+      [0,0,0,0, 0,0,0,0, 3,0,0,0, 0,0,0,0],
+    ],
+  },
+  {
+    id: 'afrobeat',
+    familia: 'afr',
+    nombre: 'Afrobeat',
+    descripcion: 'Groove cerrado. Backbeat firme, percusiones entretejidas y bajo melódico.',
+    bpm: 114, swing: 15,
+    raiz: 41, escala: 'pentatonica',
+    efectos: { reverb: 20, eco: 20, saturacion: 15, filtro: 100 },
+    patrones: [
+      'X.......X..x....',
+      '....X.......X...',
+      '..x...x...x...x.',
+      'x.x.x.x.x.x.x.x.',
+      'x.x..x.x..x.x...',
+      [1,0,0,1, 3,0,0,0, 0,0,1,0, 3,1,0,0],
+      [0,0,0,0, 0,0,3,0, 0,0,0,0, 5,0,3,0],
+    ],
+  },
+  {
+    id: 'afro_house',
+    familia: 'afr',
+    nombre: 'Afro House',
+    descripcion: 'Ritmo de club. Log bajo marcando el sub-grave, reverberación espaciosa.',
+    bpm: 122, swing: 5,
+    raiz: 43, escala: 'pentatonica',
+    efectos: { reverb: 28, eco: 26, saturacion: 12, filtro: 100 },
+    patrones: [
+      'X...X...X...X...',
+      '....x.......x...',
+      '..x..o..x..o..x.',
+      'oXoXoXoXoXoXoXoX',
+      '..x..x..x..x..x.',
+      [1,0,0,0, 0,0,1,0, 0,0,0,0, 1,0,3,0],
+      [0,0,0,0, 0,0,0,0, 3,0,0,0, 0,0,0,0],
+    ],
+  },
+];
+
+const FAMILIAS = [
+  { id: 'cum', nombre: 'Cumbia' },
+  { id: 'afr', nombre: 'Afro' },
+];
+
+/* ================================================================
+   ESTADO.
+   ================================================================ */
+
+let estiloActivo = null;
+let familiaActiva = 'cum';
+// patrones[fila][paso]:
+//   filas 0-4: nivel de fuerza 0-3
+//   filas 5-6: semitono desde la tónica 0-11, o -1 para vacío
+let patrones = [];
+let volumen = VOL_INICIAL.slice();
+let silenciados = Array(7).fill(false);
+let solistas = Array(7).fill(false);
+let efectos = { reverb: 10, eco: 12, saturacion: 35, filtro: 100 };
+let bpm = 94;
+let swing = 5;
+let reproduciendo = false;
+let pasoActual = 0;
+let proximoTiempo = 0;
+let temporizador = null;
+
+/* ================================================================
+   AUDIO.
+   ================================================================ */
+
+let ctx = null;
+let bus = null;
+let filtro = null;
+let envioReverb = null;
+let envioEco = null;
+let delayEco = null;
+let retornoReverb = null;
+let gananciaSaturada = null;
+let gananciaSeca = null;
+let saturador = null;
+let bufferRuido = null;
+
+function iniciarAudio() {
+  if (ctx) { ctx.resume(); return; }
+  const AC = window.AudioContext || window.webkitAudioContext;
+  ctx = new AC();
+
+  bus = ctx.createGain();
+
+  filtro = ctx.createBiquadFilter();
+  filtro.type = 'lowpass';
+  filtro.frequency.value = 20000;
+
+  const comp = ctx.createDynamicsCompressor();
+  comp.threshold.value = -12;
+  comp.ratio.value = 5;
+  comp.attack.value = 0.002;
+  comp.release.value = 0.1;
+
+  const salida = ctx.createGain();
+  salida.gain.value = 0.9;
+
+  gananciaSeca = ctx.createGain();
+  gananciaSaturada = ctx.createGain();
+
+  saturador = ctx.createWaveShaper();
+  const curva = new Float32Array(1024);
+  for (let i = 0; i < 1024; i++) curva[i] = Math.tanh((i / 512 - 1) * 5);
+  saturador.curve = curva;
+  saturador.oversample = '2x';
+
+  bus.connect(gananciaSeca);
+  bus.connect(saturador);
+  saturador.connect(gananciaSaturada);
+  gananciaSeca.connect(filtro);
+  gananciaSaturada.connect(filtro);
+  filtro.connect(comp);
+  comp.connect(salida);
+  salida.connect(ctx.destination);
+
+  const dur = 1.5;
+  const muestras = ctx.sampleRate * dur;
+  const impulso = ctx.createBuffer(2, muestras, ctx.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const d = impulso.getChannelData(c);
+    for (let i = 0; i < muestras; i++) {
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / muestras, 2.8);
+    }
+  }
+  const convolver = ctx.createConvolver();
+  convolver.buffer = impulso;
+  envioReverb = ctx.createGain();
+  retornoReverb = ctx.createGain();
+  bus.connect(envioReverb);
+  envioReverb.connect(convolver);
+  convolver.connect(retornoReverb);
+  retornoReverb.connect(comp);
+
+  delayEco = ctx.createDelay(1.5);
+  envioEco = ctx.createGain();
+  const realim = ctx.createGain();
+  realim.gain.value = 0.4;
+  const filtroEco = ctx.createBiquadFilter();
+  filtroEco.type = 'lowpass';
+  filtroEco.frequency.value = 2200;
+  bus.connect(envioEco);
+  envioEco.connect(delayEco);
+  delayEco.connect(filtroEco);
+  filtroEco.connect(realim);
+  realim.connect(delayEco);
+  filtroEco.connect(comp);
+
+  const n = ctx.sampleRate;
+  bufferRuido = ctx.createBuffer(1, n, ctx.sampleRate);
+  const d = bufferRuido.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+
+  aplicarEfectos();
+}
+
+function aplicarEfectos() {
+  if (!ctx) return;
+  envioReverb.gain.value = efectos.reverb / 100 * 0.9;
+  envioEco.gain.value = efectos.eco / 100 * 0.7;
+  gananciaSaturada.gain.value = efectos.saturacion / 100 * 0.7;
+  gananciaSeca.gain.value = 1 - efectos.saturacion / 250;
+  filtro.frequency.value = 200 * Math.pow(100, efectos.filtro / 100);
+  delayEco.delayTime.value = (60 / bpm) * 0.75;
+}
+
+function envolvente(t, vol, dur) {
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + 0.002);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  return g;
+}
+
+function tono(salida, t, tipo, freq, freqFin, dur, vol) {
+  const o = ctx.createOscillator();
+  o.type = tipo;
+  o.frequency.setValueAtTime(freq, t);
+  if (freqFin !== freq) {
+    o.frequency.exponentialRampToValueAtTime(freqFin, t + Math.min(0.1, dur * 0.5));
+  }
+  const g = envolvente(t, vol, dur);
+  o.connect(g); g.connect(salida);
+  o.start(t); o.stop(t + dur + 0.02);
+}
+
+function ruido(salida, t, tipo, freq, q, vol, dur) {
+  const s = ctx.createBufferSource();
+  s.buffer = bufferRuido;
+  const f = ctx.createBiquadFilter();
+  f.type = tipo;
+  f.frequency.value = freq;
+  f.Q.value = q;
+  const g = envolvente(t, vol, dur);
+  s.connect(f); f.connect(g); g.connect(salida);
+  s.start(t, Math.random() * 0.4); s.stop(t + dur + 0.02);
+}
+
+function filtroPasoBanda(salida, freq, q) {
+  const b = ctx.createBiquadFilter();
+  b.type = 'bandpass';
+  b.frequency.value = freq;
+  b.Q.value = q;
+  b.connect(salida);
+  return b;
+}
+
+function filtroPasoBajo(salida, freq, q) {
+  const b = ctx.createBiquadFilter();
+  b.type = 'lowpass';
+  b.frequency.value = freq;
+  b.Q.value = q || 0;
+  b.connect(salida);
+  return b;
+}
+
+/* ================================================================
+   VOCES CUMBIA.
+   ================================================================ */
+
+const VOCES_CUMBIA = [
+  (salida, t, v) => {
+    tono(salida, t, 'sine', 300, 45, 0.35, v * 1.2);
+    ruido(salida, t, 'lowpass', 1000, 0.7, 0.15 * v, 0.012);
+  },
+  (salida, t, v) => {
+    tono(salida, t, 'triangle', 220, 160, 0.18, 0.5 * v);
+    ruido(salida, t, 'bandpass', 3000, 1.2, 0.7 * v, 0.14);
+    ruido(salida, t, 'highpass', 5000, 0.5, 0.3 * v, 0.08);
+  },
+  (salida, t, v) => {
+    tono(salida, t, 'sine', 380, 300, 0.25, 0.9 * v);
+    tono(salida, t, 'square', 800, 600, 0.05, 0.15 * v);
+  },
+  (salida, t, v) => {
+    const dur = v > 0.8 ? 0.16 : 0.035;
+    ruido(salida, t, 'highpass', 5500, 0.8, 0.7 * v, dur);
+    ruido(salida, t, 'bandpass', 8000, 1.5, 0.3 * v, dur * 1.2);
+  },
+  (salida, t, v) => {
+    const bp = filtroPasoBanda(salida, 1200, 1);
+    tono(bp, t, 'square', 540, 540, 0.2, v);
+    tono(bp, t, 'square', 780, 780, 0.2, v);
+  },
+  (salida, t, v, midi) => {
+    if (!midi) return;
+    const freq = frecuencia(midi);
+    const dur = 0.42;
+    const f = filtroPasoBajo(salida, 500, 4);
+    f.frequency.setValueAtTime(500, t);
+    f.frequency.exponentialRampToValueAtTime(180, t + dur * 0.4);
+    tono(f, t, 'sine', freq, freq, dur, 0.9 * v);
+    tono(f, t, 'sine', freq / 2, freq / 2, dur, 0.5 * v);
+    tono(f, t, 'triangle', freq * 2, freq * 2, dur * 0.4, 0.08 * v);
+  },
+  (salida, t, v, midi) => {
+    if (!midi) return;
+    const freq = frecuencia(midi);
+    const dur = 0.22;
+    const f = filtroPasoBajo(salida, 2200, 1);
+    tono(f, t, 'sawtooth', freq, freq, dur, 0.3 * v);
+    tono(f, t, 'sawtooth', freq * 1.008, freq * 1.008, dur, 0.3 * v);
+    tono(f, t, 'square', freq * 0.5, freq * 0.5, dur, 0.2 * v);
+  },
+];
+
+/* ================================================================
+   VOCES AFRO.
+   ================================================================ */
+
+const VOCES_AFRO = [
+  (salida, t, v) => {
+    tono(salida, t, 'sine', 150, 42, 0.45, v * 1.1);
+    ruido(salida, t, 'highpass', 2000, 0.7, 0.15 * v, 0.012);
+  },
+  (salida, t, v) => {
+    ruido(salida, t, 'bandpass', 2500, 1.2, 0.8 * v, 0.12);
+    tono(salida, t, 'triangle', 400, 280, 0.1, 0.4 * v);
+  },
+  (salida, t, v) => {
+    tono(salida, t, 'sine', 160, 85, 0.35, v);
+    ruido(salida, t, 'bandpass', 500, 1, 0.2 * v, 0.04);
+  },
+  (salida, t, v) => {
+    const dur = v > 0.8 ? 0.12 : 0.04;
+    ruido(salida, t, 'bandpass', 6000, 0.8, 0.5 * v, dur);
+  },
+  (salida, t, v) => {
+    const bp = filtroPasoBanda(salida, 2000, 1.5);
+    tono(bp, t, 'triangle', 480, 480, 0.4, 0.8 * v);
+    tono(bp, t, 'triangle', 710, 710, 0.3, 0.6 * v);
+  },
+  (salida, t, v, midi) => {
+    if (!midi) return;
+    const freq = frecuencia(midi);
+    const dur = 0.45;
+    const f = filtroPasoBajo(salida, 500, 3);
+    f.frequency.setValueAtTime(500, t);
+    f.frequency.exponentialRampToValueAtTime(160, t + dur * 0.4);
+    tono(f, t, 'sine', freq, freq, dur, v);
+    tono(f, t, 'sine', freq / 2, freq / 2, dur, 0.5 * v);
+    tono(f, t, 'triangle', freq * 2, freq * 1.6, 0.12, 0.15 * v);
+  },
+  (salida, t, v, midi) => {
+    if (!midi) return;
+    const freq = frecuencia(midi);
+    tono(salida, t, 'sine', freq, freq, 0.5, 0.6 * v);
+    tono(salida, t, 'sine', freq * 5.2, freq * 5.2, 0.1, 0.2 * v);
+    tono(salida, t, 'triangle', freq * 2, freq * 2, 0.3, 0.2 * v);
+  },
+];
+
+function vocesDe(familia) {
+  return familia === 'cum' ? VOCES_CUMBIA : VOCES_AFRO;
+}
+
+function disparar(indice, t, fuerza, midi) {
+  const voz = vocesDe(estiloActivo.familia)[indice];
+  if (!voz) return;
+  if (silenciados[indice]) return;
+  if (solistas.some(Boolean) && !solistas[indice]) return;
+  if (volumen[indice] === 0) return;
+
+  const salida = ctx.createGain();
+  salida.gain.value = volumen[indice];
+  salida.connect(bus);
+  voz(salida, t, fuerza, midi);
+}
+
+// Semitono cromático desde la tónica (0-11) + offset por instrumento.
+// Bajo: una octava arriba de la tónica grave. Teclas: dos octavas.
+function midiDeSemitono(fila, semitono) {
+  const offset = fila === 5 ? 12 : 24;
+  return estiloActivo.raiz + offset + semitono;
+}
+
+/* ================================================================
+   SECUENCIADOR.
+   ================================================================ */
+
+function pulsar() {
+  while (proximoTiempo < ctx.currentTime + 0.12) {
+    const c = pasoActual;
+    const dur = 60 / bpm / 4;
+    const t = proximoTiempo + (c % 2 ? swing / 100 * dur : 0);
+
+    for (let fila = 0; fila < 7; fila++) {
+      const v = patrones[fila][c];
+      if (fila < 5) {
+        if (!v) continue;
+        disparar(fila, t, FUERZAS[v], 0);
+      } else {
+        if (v < 0) continue;
+        const midi = midiDeSemitono(fila, v);
+        disparar(fila, t, 0.85, midi);
+      }
+    }
+
+    const pasoParaMarcar = c;
+    setTimeout(() => {
+      if (reproduciendo) marcarPaso(pasoParaMarcar);
+    }, Math.max(0, (t - ctx.currentTime) * 1000));
+
+    proximoTiempo += dur;
+    pasoActual = (pasoActual + 1) % 16;
+  }
+}
+
+function marcarPaso(c) {
+  document.querySelectorAll('.celda.actual').forEach((n) => n.classList.remove('actual'));
+  document.querySelectorAll('.celda[data-c="' + c + '"]').forEach((n) => n.classList.add('actual'));
+  if (c % 4 === 0) {
+    const d = $('indicador');
+    d.classList.add('indicador--activo');
+    setTimeout(() => d.classList.remove('indicador--activo'), 110);
+  }
+}
+
+function alternarReproduccion() {
+  iniciarAudio();
+  reproduciendo = !reproduciendo;
+  $('play').textContent = reproduciendo ? 'Parar' : 'Tocar';
+  if (reproduciendo) {
+    pasoActual = 0;
+    proximoTiempo = ctx.currentTime + 0.05;
+    pulsar();
+    temporizador = setInterval(pulsar, 25);
+  } else {
+    clearInterval(temporizador);
+    document.querySelectorAll('.celda.actual').forEach((n) => n.classList.remove('actual'));
+  }
+}
+
+/* ================================================================
+   RENDER.
+   ================================================================ */
+
+function pintarChipsFamilia() {
+  const cont = $('chips-familia');
+  cont.replaceChildren();
+  for (const fam of FAMILIAS) {
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.type = 'button';
+    b.textContent = fam.nombre;
+    b.setAttribute('aria-pressed', String(fam.id === familiaActiva));
+    b.addEventListener('click', () => {
+      familiaActiva = fam.id;
+      const primero = ESTILOS.find((e) => e.familia === fam.id);
+      if (primero) cargar(primero.id);
+    });
+    cont.append(b);
+  }
+}
+
+function pintarChipsEstilo() {
+  const cont = $('chips-estilo');
+  cont.replaceChildren();
+  const estilos = ESTILOS.filter((e) => e.familia === familiaActiva);
+  for (const est of estilos) {
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.type = 'button';
+    b.textContent = est.nombre;
+    b.setAttribute('aria-pressed', String(est.id === estiloActivo.id));
+    b.addEventListener('click', () => cargar(est.id));
+    cont.append(b);
+  }
+}
+
+function pintarInfo() {
+  const escala = ESCALAS[estiloActivo.escala];
+  const tonica = nombreNota(estiloActivo.raiz);
+  $('info').innerHTML =
+    '<b>' + estiloActivo.nombre + ' · ' + bpm + ' bpm.</b> ' +
+    estiloActivo.descripcion +
+    '<br><b>Tónica:</b> ' + tonica + ' · <b>Escala base:</b> ' + escala.nombre;
+}
+
+function pintarFilaDePasos(fila, inicio, voces) {
+  const contenedor = document.createElement('div');
+  contenedor.className = 'pasos';
+
+  for (let i = 0; i < 8; i++) {
+    const c = inicio + i;
+    const celda = document.createElement('button');
+    celda.type = 'button';
+    celda.className = 'celda';
+    celda.dataset.f = String(fila);
+    celda.dataset.c = String(c);
+    celda.setAttribute('aria-label', voces[fila] + ', paso ' + (c + 1));
+
+    if (fila < 5) {
+      const nivel = patrones[fila][c];
+      if (nivel) {
+        const alpha = Math.round(Math.max(0.35, FUERZAS[nivel]) * 255).toString(16).padStart(2, '0');
+        celda.style.background = COLORES[fila] + alpha;
+        celda.style.borderColor = COLORES[fila];
+      }
+      celda.addEventListener('click', () => ciclarPercusion(fila, c, celda));
+    } else {
+      const semitono = patrones[fila][c];
+      if (semitono >= 0) {
+        const midi = midiDeSemitono(fila, semitono);
+        celda.textContent = nombreNota(midi);
+        celda.style.background = COLORES[fila];
+        celda.style.borderColor = COLORES[fila];
+      }
+      celda.addEventListener('click', () => ciclarNota(fila, c, celda));
+    }
+
+    contenedor.append(celda);
+  }
+
+  return contenedor;
+}
+
+function pintarGrilla() {
+  const g = $('grilla');
+  g.replaceChildren();
+
+  const voces = NOMBRES_VOCES[estiloActivo.familia];
+
+  for (let fila = 0; fila < 7; fila++) {
+    const contenedor = document.createElement('div');
+    contenedor.className = 'voz' + (fila >= 5 ? ' voz--notas' : '');
+
+    const nombre = document.createElement('div');
+    nombre.className = 'nombre';
+    nombre.style.color = COLORES[fila];
+    const spanNombre = document.createElement('span');
+    spanNombre.textContent = voces[fila];
+    nombre.append(spanNombre);
+    if (fila >= 5) {
+      const small = document.createElement('small');
+      small.textContent = 'Click cambia nota';
+      nombre.append(small);
+    }
+    contenedor.append(nombre);
+
+    contenedor.append(pintarFilaDePasos(fila, 0, voces));
+    contenedor.append(pintarFilaDePasos(fila, 8, voces));
+
+    g.append(contenedor);
+  }
+}
+
+function ciclarPercusion(fila, col, celda) {
+  patrones[fila][col] = (patrones[fila][col] + 1) % 4;
+  const nivel = patrones[fila][col];
+  if (nivel) {
+    const alpha = Math.round(Math.max(0.35, FUERZAS[nivel]) * 255).toString(16).padStart(2, '0');
+    celda.style.background = COLORES[fila] + alpha;
+    celda.style.borderColor = COLORES[fila];
+    iniciarAudio();
+    disparar(fila, ctx.currentTime + 0.01, FUERZAS[nivel], 0);
+  } else {
+    celda.style.background = '';
+    celda.style.borderColor = '';
+  }
+}
+
+// Ciclo cromático: -1 (vacío) → 0 (tónica) → 1 → 2 … → 11 → -1.
+function ciclarNota(fila, col, celda) {
+  const actual = patrones[fila][col];
+  let siguiente;
+  if (actual < 0) siguiente = 0;
+  else if (actual >= 11) siguiente = -1;
+  else siguiente = actual + 1;
+  patrones[fila][col] = siguiente;
+
+  if (siguiente >= 0) {
+    const midi = midiDeSemitono(fila, siguiente);
+    celda.textContent = nombreNota(midi);
+    celda.style.background = COLORES[fila];
+    celda.style.borderColor = COLORES[fila];
+    iniciarAudio();
+    disparar(fila, ctx.currentTime + 0.01, 0.85, midi);
+  } else {
+    celda.textContent = '';
+    celda.style.background = '';
+    celda.style.borderColor = '';
+  }
+}
+
+function pintarMezcla() {
+  const voces = NOMBRES_VOCES[estiloActivo.familia];
+  const cont = $('panel-mezcla');
+  cont.replaceChildren();
+
+  const titulo = document.createElement('div');
+  titulo.className = 'subtitulo';
+  titulo.style.marginTop = '0';
+  titulo.textContent = 'Volumen por voz';
+  cont.append(titulo);
+
+  voces.forEach((nombre, i) => {
+    const fila = document.createElement('div');
+    fila.className = 'fila-panel';
+
+    const label = document.createElement('label');
+    label.style.color = COLORES[i];
+    label.textContent = nombre;
+    fila.append(label);
+
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = '0';
+    slider.max = '100';
+    slider.value = String(Math.round(volumen[i] * 100));
+    slider.addEventListener('input', () => {
+      volumen[i] = Number(slider.value) / 100;
+    });
+    fila.append(slider);
+
+    const acciones = document.createElement('span');
+    const botonMute = document.createElement('button');
+    botonMute.type = 'button';
+    botonMute.className = 'boton-mini' + (silenciados[i] ? ' boton-mini--on' : '');
+    botonMute.textContent = 'M';
+    botonMute.addEventListener('click', () => {
+      silenciados[i] = !silenciados[i];
+      pintarMezcla();
+    });
+    acciones.append(botonMute);
+
+    const botonSolo = document.createElement('button');
+    botonSolo.type = 'button';
+    botonSolo.className = 'boton-mini' + (solistas[i] ? ' boton-mini--on boton-mini--solo' : '');
+    botonSolo.textContent = 'S';
+    botonSolo.addEventListener('click', () => {
+      solistas[i] = !solistas[i];
+      pintarMezcla();
+    });
+    acciones.append(botonSolo);
+    fila.append(acciones);
+
+    cont.append(fila);
+  });
+}
+
+function pintarEfectos() {
+  const defs = [
+    ['reverb', 'Reverb'],
+    ['eco', 'Eco'],
+    ['saturacion', 'Saturación'],
+    ['filtro', 'Filtro'],
+  ];
+  const cont = $('panel-efectos');
+  cont.replaceChildren();
+
+  const titulo = document.createElement('div');
+  titulo.className = 'subtitulo';
+  titulo.style.marginTop = '0';
+  titulo.textContent = 'Efectos globales';
+  cont.append(titulo);
+
+  for (const [clave, etiqueta] of defs) {
+    const fila = document.createElement('div');
+    fila.className = 'fila-panel';
+
+    const label = document.createElement('label');
+    label.textContent = etiqueta;
+    fila.append(label);
+
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = '0';
+    slider.max = '100';
+    slider.value = String(efectos[clave]);
+
+    const valor = document.createElement('span');
+    valor.textContent = String(efectos[clave]);
+
+    slider.addEventListener('input', () => {
+      efectos[clave] = Number(slider.value);
+      valor.textContent = String(efectos[clave]);
+      aplicarEfectos();
+    });
+    fila.append(slider);
+    fila.append(valor);
+
+    cont.append(fila);
+  }
+}
+
+function pintarBpm() {
+  $('bpm').value = String(bpm);
+  $('bpmv').textContent = String(bpm);
+  $('swing').value = String(swing);
+  $('swingv').textContent = swing + '%';
+}
+
+function pintarTodo() {
+  pintarChipsFamilia();
+  pintarChipsEstilo();
+  pintarInfo();
+  pintarGrilla();
+  pintarMezcla();
+  pintarEfectos();
+  pintarBpm();
+}
+
+/* ================================================================
+   CARGA.
+   ================================================================ */
+
+// Convierte la definición del patrón (grados de escala o
+// caracteres) a la estructura interna:
+//   filas 0-4: nivel 0-3
+//   filas 5-6: semitono -1..11 (donde -1 = vacío)
+function normalizarPatron(definicion, escala) {
+  const pasos = ESCALAS[escala].pasos;
+  const filas = [];
+  for (let i = 0; i < 7; i++) {
+    const def = definicion[i];
+    if (Array.isArray(def)) {
+      const fila = Array(16).fill(-1);
+      for (let c = 0; c < 16 && c < def.length; c++) {
+        const grado = Number(def[c]) || 0;
+        if (grado > 0) {
+          const idx = grado - 1;
+          const octava = Math.floor(idx / pasos.length);
+          const semitono = (pasos[idx % pasos.length] + 12 * octava) % 12;
+          fila[c] = semitono;
+        }
+      }
+      filas.push(fila);
+    } else {
+      const s = String(def || '').padEnd(16, '.').slice(0, 16);
+      const fila = Array.from(s).map((ch) => Math.max(0, CARACTERES.indexOf(ch)));
+      filas.push(fila);
+    }
+  }
+  return filas;
+}
+
+function cargar(id) {
+  const estilo = ESTILOS.find((e) => e.id === id);
+  if (!estilo) return;
+  estiloActivo = estilo;
+  familiaActiva = estilo.familia;
+
+  patrones = normalizarPatron(estilo.patrones, estilo.escala);
+  bpm = estilo.bpm;
+  swing = estilo.swing;
+  efectos = { ...estilo.efectos };
+  volumen = VOL_INICIAL.slice();
+  silenciados = Array(7).fill(false);
+  solistas = Array(7).fill(false);
+
+  pintarTodo();
+  aplicarEfectos();
+}
+
+/* ================================================================
+   EVENTOS.
+   ================================================================ */
+
+$('play').addEventListener('click', alternarReproduccion);
+
+$('bpm').addEventListener('input', (ev) => {
+  bpm = Number(ev.target.value);
+  $('bpmv').textContent = String(bpm);
+  pintarInfo();
+  aplicarEfectos();
+});
+
+$('swing').addEventListener('input', (ev) => {
+  swing = Number(ev.target.value);
+  $('swingv').textContent = swing + '%';
+});
+
+$('reset').addEventListener('click', () => cargar(estiloActivo.id));
+
+$('limpiar').addEventListener('click', () => {
+  for (let f = 0; f < 7; f++) {
+    if (f < 5) patrones[f] = Array(16).fill(0);
+    else patrones[f] = Array(16).fill(-1);
+  }
+  pintarGrilla();
+});
+
+$('btn-mezcla').addEventListener('click', () => {
+  const abierto = !$('panel-mezcla').hidden;
+  $('panel-mezcla').hidden = abierto;
+  $('btn-mezcla').setAttribute('aria-pressed', String(!abierto));
+  if (!abierto) {
+    $('panel-efectos').hidden = true;
+    $('btn-efectos').setAttribute('aria-pressed', 'false');
+  }
+});
+
+$('btn-efectos').addEventListener('click', () => {
+  const abierto = !$('panel-efectos').hidden;
+  $('panel-efectos').hidden = abierto;
+  $('btn-efectos').setAttribute('aria-pressed', String(!abierto));
+  if (!abierto) {
+    $('panel-mezcla').hidden = true;
+    $('btn-mezcla').setAttribute('aria-pressed', 'false');
+  }
+});
+
+document.addEventListener('keydown', (ev) => {
+  if (ev.code === 'Space' && ev.target.tagName !== 'INPUT' && ev.target.tagName !== 'BUTTON') {
+    ev.preventDefault();
+    alternarReproduccion();
+  }
+});
+
+cargar('villera_clasica');
+})();
+</script>
+</body>
+</html>

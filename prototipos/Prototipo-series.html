@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototipo Series y Películas — Ahora Sí</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pcb: #0C2F26; --pcb2: #123F34; --pcb3: #0e3529;
+    --paper: #EEF2E8; --ink: #0A1F1A;
+    --gold: #E3BC55; --sky: #8DB7D8; --rose: #EBA9A2;
+    --verde: #4ade80; --rojo: #f87171; --gris: #8a9a91;
+    --dim: #A9C2B6;
+    --fuente-titulo: 'Bricolage Grotesque', 'Trebuchet MS', system-ui, sans-serif;
+    --fuente-cuerpo: 'Figtree', system-ui, -apple-system, sans-serif;
+    --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-pill: 999px;
+    --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+    --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
+    --t: .15s ease;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--pcb); color: var(--paper);
+    font: 400 16px/1.6 var(--fuente-cuerpo);
+    padding: 20px 16px 80px; -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 720px; margin: 0 auto; }
+  h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.1; letter-spacing: -.02em; margin: 0; }
+  a { color: var(--sky); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .proto-cab {
+    text-align: center; padding: 8px 0 20px;
+    border-bottom: 1px solid rgba(238,242,232,.15); margin-bottom: 20px;
+  }
+  .proto-cab h1 { font-size: 18px; color: var(--gold); }
+  .proto-cab p { color: var(--dim); font-size: 12px; margin: 6px 0 0; }
+
+  .toggle-vista {
+    display: flex; gap: 6px; justify-content: center; align-items: center;
+    margin-top: 12px; font-size: 12px; color: var(--dim);
+  }
+  .toggle-vista button {
+    padding: 6px 14px; border-radius: var(--r-pill);
+    border: 1.5px solid rgba(238,242,232,.3);
+    background: transparent; color: var(--paper);
+    font-size: 12px; font-weight: 600; cursor: pointer;
+  }
+  .toggle-vista button[aria-pressed="true"] {
+    background: var(--gold); color: var(--ink); border-color: var(--gold);
+  }
+
+  .cabecera {
+    position: relative; padding: 20px 16px;
+    margin: -8px -16px 20px; border-radius: var(--r-lg);
+    background-color: var(--pcb3);
+    background-image:
+      linear-gradient(rgba(227,188,85,.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(227,188,85,.07) 1px, transparent 1px);
+    background-size: 24px 24px;
+    border: 1px solid rgba(227,188,85,.15);
+  }
+  .cabecera h1 { color: var(--gold); }
+  .cabecera .lead { color: var(--dim); font-size: 14px; margin: 4px 0 0; }
+
+  .abrir-form {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; padding: 14px 24px; border-radius: var(--r-md);
+    background: var(--gold); color: var(--ink);
+    font-weight: 700; font-size: 15px; border: 0; cursor: pointer;
+    margin-bottom: 20px; transition: filter var(--t);
+  }
+  .abrir-form:hover { filter: brightness(1.05); }
+
+  .form {
+    display: flex; flex-direction: column; gap: 10px;
+    background: var(--pcb3); padding: 16px; border-radius: var(--r-md);
+    border-left: 3px solid var(--sky); margin-bottom: 20px;
+  }
+  .form input, .form select, .form textarea {
+    padding: 11px 14px; border-radius: var(--r-md);
+    border: 1.5px solid rgba(238,242,232,.3);
+    background: rgba(238,242,232,.04); color: var(--paper);
+    font: inherit; font-size: 15px; width: 100%; font-family: inherit;
+    transition: border-color var(--t), background var(--t);
+  }
+  .form input:focus, .form select:focus, .form textarea:focus {
+    border-color: var(--sky); outline: none; background: rgba(238,242,232,.08);
+  }
+  .form textarea { min-height: 80px; resize: vertical; }
+  .form__fila { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .form__fila--tres { grid-template-columns: 1fr 1fr 1fr; }
+  .form__fila--cuatro { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .form__botones { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+  .form__seccion {
+    padding-top: 10px; margin-top: 4px;
+    border-top: 1px dashed rgba(238,242,232,.15);
+  }
+  .form__seccion-titulo {
+    color: var(--sky); font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px;
+  }
+  .form__seccion--oculta { display: none; }
+
+  .btn-primario {
+    padding: 10px 22px; border-radius: var(--r-md);
+    background: var(--gold); color: var(--ink); font-weight: 700;
+    font-size: 14px; border: 0; cursor: pointer;
+  }
+  .btn-primario:hover { filter: brightness(1.05); }
+  .btn-secundario {
+    padding: 10px 22px; border-radius: var(--r-md);
+    background: transparent; color: var(--paper);
+    border: 1.5px solid rgba(238,242,232,.35);
+    font-weight: 500; font-size: 14px; cursor: pointer;
+  }
+  .btn-secundario:hover { border-color: var(--rojo); color: var(--rojo); }
+
+  .filtros { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .chip {
+    padding: 6px 14px; border-radius: var(--r-pill);
+    border: 1.5px solid rgba(238,242,232,.3);
+    background: transparent; color: var(--paper);
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: border-color var(--t), color var(--t), background var(--t);
+  }
+  .chip:hover { border-color: var(--gold); color: var(--gold); }
+  .chip[aria-pressed="true"] {
+    background: var(--gold); border-color: var(--gold); color: var(--ink); font-weight: 600;
+  }
+  .chip--destacado {
+    border-color: rgba(141,183,216,.5);
+    color: var(--sky);
+  }
+
+  .progreso {
+    display: inline-block; padding: 4px 12px; border-radius: var(--r-pill);
+    background: rgba(227,188,85,.15); color: var(--gold);
+    font-size: 13px; font-weight: 600; margin: 0 0 16px;
+  }
+
+  .aviso-ranking {
+    padding: 10px 14px; margin-bottom: 12px;
+    background: rgba(141,183,216,.1);
+    border-left: 3px solid var(--sky);
+    border-radius: var(--r-sm);
+    color: var(--sky);
+    font-size: 13px;
+  }
+
+  /* ═══ Sección "En curso" ═══ */
+  .en-curso {
+    margin-bottom: 20px;
+  }
+  .en-curso__titulo {
+    color: var(--sky);
+    font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em;
+    margin: 0 0 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .en-curso__titulo::after {
+    content: ""; flex: 1; height: 1px;
+    background: rgba(141,183,216,.25);
+  }
+
+  .lista { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+
+  /* ═══ Tarjeta con carátula ═══ */
+  .card {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    gap: 14px;
+    align-items: start;
+    padding: 14px;
+    background: var(--pcb2);
+    border-radius: var(--r-md);
+    border-left: 3px solid var(--gris);
+    transition: border-color var(--t);
+  }
+  .card--pendiente { border-left-color: var(--gold); }
+  .card--viendo    { border-left-color: var(--sky); }
+  .card--vista     { border-left-color: var(--verde); }
+  .card--abandonada{ border-left-color: var(--rose); opacity: .75; }
+  .card--en-curso  {
+    box-shadow: 0 0 0 1px rgba(141,183,216,.25);
+  }
+
+  .card__caratula {
+    width: 80px; height: 120px;
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background: var(--pcb3);
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid rgba(238,242,232,.1);
+  }
+  .card__caratula img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .card__caratula-vacia {
+    font-family: var(--fuente-titulo);
+    font-size: 32px; font-weight: 800;
+    color: var(--dim);
+    letter-spacing: -.04em;
+    opacity: .5;
+  }
+  .card__puntaje-flotante {
+    position: absolute;
+    bottom: 6px; right: 6px;
+    background: rgba(10,31,26,.92);
+    border: 1.5px solid var(--gold);
+    color: var(--gold);
+    font-family: var(--fuente-titulo);
+    font-size: 14px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: var(--r-pill);
+    letter-spacing: -.02em;
+    line-height: 1.2;
+  }
+  .card--vista .card__puntaje-flotante { border-color: var(--verde); color: var(--verde); }
+  .card--viendo .card__puntaje-flotante { border-color: var(--sky); color: var(--sky); }
+  .card--abandonada .card__puntaje-flotante { border-color: var(--rose); color: var(--rose); }
+
+  .card__cuerpo { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .card__cabecera { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .card__titulo {
+    font-family: var(--fuente-titulo); font-size: 17px; font-weight: 700;
+    color: var(--paper); letter-spacing: -.01em;
+  }
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: var(--r-pill);
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .badge--serie    { background: rgba(141,183,216,.2); color: var(--sky); }
+  .badge--pelicula { background: rgba(235,169,162,.2); color: var(--rose); }
+  .badge--estado-pendiente  { background: rgba(227,188,85,.18); color: var(--gold); }
+  .badge--estado-viendo     { background: rgba(141,183,216,.18); color: var(--sky); }
+  .badge--estado-vista      { background: rgba(74,222,128,.18); color: var(--verde); }
+  .badge--estado-abandonada { background: rgba(138,154,145,.18); color: var(--gris); }
+
+  /* Badge de progreso de capítulo: T2 · E5 */
+  .badge-progreso {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 2px 8px; border-radius: var(--r-pill);
+    background: rgba(141,183,216,.15);
+    color: var(--sky);
+    font-size: 11px; font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .02em;
+  }
+  .badge-progreso__t { color: var(--dim); font-weight: 600; }
+
+  .card__meta {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    color: var(--dim); font-size: 12px;
+  }
+  .card__nota {
+    margin: 4px 0 0; color: var(--dim); font-size: 14px;
+    line-height: 1.5; font-style: italic; white-space: pre-wrap;
+  }
+
+  /* Progreso del capítulo */
+  .progreso-cap {
+    display: flex; flex-direction: column; gap: 4px; margin-top: 6px;
+  }
+  .progreso-cap__label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 11px; color: var(--dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .progreso-cap__label b { color: var(--sky); font-weight: 700; }
+  .card__barra {
+    height: 4px; background: rgba(238,242,232,.1);
+    border-radius: var(--r-pill); overflow: hidden;
+  }
+  .card__barra i {
+    display: block; height: 100%; background: var(--gold); border-radius: var(--r-pill);
+  }
+  .card--vista .card__barra i { background: var(--verde); }
+  .card--viendo .card__barra i { background: var(--sky); }
+  .card--abandonada .card__barra i { background: var(--rose); }
+
+  .card__acciones {
+    display: flex; flex-direction: column; gap: 4px;
+    align-items: stretch; flex-shrink: 0;
+  }
+  .btn-mini {
+    padding: 6px 12px; font-size: 12px; font-weight: 500;
+    border-radius: var(--r-pill);
+    border: 1.5px solid rgba(238,242,232,.3);
+    background: transparent; color: var(--paper);
+    cursor: pointer; transition: border-color var(--t), color var(--t);
+    white-space: nowrap;
+  }
+  .btn-mini:hover { border-color: var(--gold); color: var(--gold); }
+  .btn-link {
+    display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+    border-color: rgba(141,183,216,.5); color: var(--sky);
+  }
+  .btn-link:hover { border-color: var(--sky); color: var(--sky); }
+  .btn-cap {
+    border-color: rgba(141,183,216,.5); color: var(--sky);
+    font-weight: 600;
+  }
+  .btn-cap:hover { background: var(--sky); color: var(--ink); border-color: var(--sky); }
+
+  /* ═══ Fila compacta con drag ═══ */
+  .fila {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    background: var(--pcb2);
+    border-radius: var(--r-md);
+    border-left: 3px solid var(--gris);
+    touch-action: pan-y;
+  }
+  .fila--pendiente { border-left-color: var(--gold); }
+  .fila--viendo    { border-left-color: var(--sky); }
+  .fila--vista     { border-left-color: var(--verde); }
+  .fila--abandonada{ border-left-color: var(--rose); opacity: .75; }
+
+  .fila--arrastrando {
+    background: var(--pcb3);
+    border-left-color: var(--gold);
+    box-shadow: 0 8px 24px rgba(0,0,0,.4);
+    cursor: grabbing;
+    opacity: .95;
+  }
+
+  .fila__handle {
+    width: 24px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--dim); cursor: grab;
+    font-size: 14px; line-height: 1;
+    letter-spacing: -.05em;
+    user-select: none; touch-action: none; flex-shrink: 0;
+  }
+  .fila__handle:active { cursor: grabbing; }
+
+  .fila__puntaje {
+    font-family: var(--fuente-titulo);
+    font-size: 20px; font-weight: 800;
+    color: var(--gold); min-width: 32px; text-align: center;
+    letter-spacing: -.02em; line-height: 1;
+    flex-shrink: 0;
+  }
+  .fila__puntaje--vacio { color: var(--dim); font-size: 16px; }
+
+  .fila__cuerpo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .fila__titulo {
+    font-family: var(--fuente-titulo); font-size: 15px; font-weight: 700;
+    color: var(--paper); letter-spacing: -.01em;
+  }
+  .fila__meta {
+    display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+    font-size: 11px; color: var(--dim);
+  }
+  .fila__acciones { display: flex; gap: 4px; flex-shrink: 0; }
+
+  /* Formulario de edición inline */
+  .edit {
+    padding: 16px; background: var(--pcb3); border-radius: var(--r-md);
+    border-left: 3px solid var(--sky);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .edit__preview-caratula {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .edit__preview-caratula img {
+    width: 60px; height: 90px; object-fit: cover;
+    border-radius: var(--r-md);
+    border: 1px solid rgba(238,242,232,.15);
+  }
+  .edit__preview-caratula .vacia {
+    width: 60px; height: 90px;
+    border-radius: var(--r-md);
+    border: 1.5px dashed rgba(238,242,232,.2);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--dim); font-size: 24px;
+    font-family: var(--fuente-titulo); font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .vacio {
+    color: var(--dim); font-style: italic; padding: 20px 0; text-align: center;
+  }
+
+  .toast-zona {
+    position: fixed; left: 16px; right: 16px; bottom: 20px;
+    max-width: 600px; margin: 0 auto; z-index: 1000; pointer-events: none;
+  }
+  .toast {
+    padding: 12px 16px; background: var(--pcb3);
+    border: 1.5px solid var(--gold); border-radius: var(--r-lg);
+    box-shadow: 0 4px 16px rgba(0,0,0,.4);
+    color: var(--paper); font-size: 14px;
+    transform: translateY(140%); transition: transform .3s ease;
+    pointer-events: auto;
+  }
+  .toast--visible { transform: translateY(0); }
+
+  .log {
+    position: fixed; left: 12px; right: 12px; bottom: 12px;
+    max-width: 600px; margin: 0 auto; padding: 8px 14px;
+    background: rgba(10,31,26,.92); border: 1px solid rgba(227,188,85,.3);
+    border-radius: 8px; font-family: ui-monospace, monospace;
+    font-size: 11px; color: var(--gold);
+    max-height: 50px; overflow: auto; z-index: 999;
+  }
+
+  @media (max-width: 560px) {
+    .card { grid-template-columns: 64px 1fr; gap: 12px; }
+    .card__caratula { width: 64px; height: 96px; }
+    .card__caratula-vacia { font-size: 26px; }
+    .card__acciones { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; }
+    .form__fila, .form__fila--tres, .form__fila--cuatro { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="proto-cab">
+    <h1>Prototipo Series y Películas — v3</h1>
+    <p>Seguimiento de capítulos para series. Todo en memoria.</p>
+    <div class="toggle-vista">
+      <span>Vista:</span>
+      <button id="btn-vista-card" aria-pressed="true">Tarjeta</button>
+      <button id="btn-vista-fila" aria-pressed="false">Compacta</button>
+    </div>
+  </div>
+
+  <section class="cabecera">
+    <h1>Series y películas</h1>
+    <p class="lead">Lo que vimos, lo que estamos viendo y lo que queda por ver.</p>
+  </section>
+
+  <div id="bloque-registro"></div>
+  <div id="filtros"></div>
+  <p class="progreso" id="progreso"></p>
+  <div id="aviso-ranking"></div>
+  <div id="en-curso"></div>
+  <ul class="lista" id="lista"></ul>
+
+</main>
+
+<div class="toast-zona" id="toast-zona"></div>
+<div class="log" id="log">Listo.</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ================================================================
+   Datos de prueba.
+   ================================================================ */
+
+const TIPOS = [
+  { id: 'serie', etiqueta: 'Serie' },
+  { id: 'pelicula', etiqueta: 'Película' },
+];
+
+const ESTADOS = [
+  { id: 'pendiente', etiqueta: 'Pendiente' },
+  { id: 'viendo', etiqueta: 'Viendo' },
+  { id: 'vista', etiqueta: 'Vista' },
+  { id: 'abandonada', etiqueta: 'Abandonada' },
+];
+
+const DONDE = ['Netflix', 'Prime', 'Disney+', 'Max', 'Apple TV', 'Cine', 'YouTube', 'Otra'];
+
+let datos = [
+  {
+    id: 's1', titulo: 'Dark', tipo: 'serie', estado: 'vista',
+    puntuacion: 9, posicion: 1,
+    temporadaActual: 3, capituloActual: 8,
+    totalTemporadas: 3, totalCapitulosTemporada: 8,
+    nota: 'Enredada pero vale la pena. La temporada 2 es la mejor.',
+    donde: 'Netflix', recomendadaPor: 'Nico', autor: 'Yayo',
+    caratula: 'https://picsum.photos/seed/dark/160/240',
+    link: 'https://www.netflix.com/title/80100172',
+  },
+  {
+    id: 's2', titulo: 'Dune: Parte 2', tipo: 'pelicula', estado: 'vista',
+    puntuacion: 8, posicion: 2,
+    temporadaActual: null, capituloActual: null,
+    totalTemporadas: null, totalCapitulosTemporada: null,
+    nota: 'Impresionante en el cine. En casa pierde un poco.',
+    donde: 'Cine', recomendadaPor: '', autor: 'Yayo',
+    caratula: 'https://picsum.photos/seed/dune2/160/240',
+    link: '',
+  },
+  {
+    id: 's3', titulo: 'Severance', tipo: 'serie', estado: 'viendo',
+    puntuacion: 8, posicion: 3,
+    temporadaActual: 2, capituloActual: 5,
+    totalTemporadas: 2, totalCapitulosTemporada: 10,
+    nota: 'Vamos por la mitad. Nos tiene enganchados.',
+    donde: 'Apple TV', recomendadaPor: 'Nico', autor: 'Luci',
+    caratula: 'https://picsum.photos/seed/severance/160/240',
+    link: 'https://tv.apple.com/cl/show/severance/umc.cmc.1srk2goyh2q2zdxcx605w8vtx',
+  },
+  {
+    id: 's4', titulo: 'Cien años de soledad', tipo: 'serie', estado: 'pendiente',
+    puntuacion: null, posicion: 4,
+    temporadaActual: null, capituloActual: null,
+    totalTemporadas: 1, totalCapitulosTemporada: 8,
+    nota: '', donde: 'Netflix', recomendadaPor: '', autor: 'Yayo',
+    caratula: 'https://picsum.photos/seed/soledad/160/240',
+    link: '',
+  },
+  {
+    id: 's5', titulo: 'The Bear', tipo: 'serie', estado: 'viendo',
+    puntuacion: null, posicion: 5,
+    temporadaActual: 1, capituloActual: 3,
+    totalTemporadas: 3, totalCapitulosTemporada: 8,
+    nota: 'Recién empezamos. La cocina es un personaje más.',
+    donde: 'Disney+', recomendadaPor: '', autor: 'Yayo',
+    caratula: 'https://picsum.photos/seed/thebear/160/240',
+    link: '',
+  },
+  {
+    id: 's6', titulo: 'El Señor de los Anillos: Los Anillos de Poder', tipo: 'serie', estado: 'abandonada',
+    puntuacion: 4, posicion: 6,
+    temporadaActual: 1, capituloActual: 3,
+    totalTemporadas: 2, totalCapitulosTemporada: 8,
+    nota: 'No nos enganchó. La dejamos en el capítulo 3.',
+    donde: 'Prime', recomendadaPor: '', autor: 'Yayo',
+    caratula: '',
+    link: '',
+  },
+];
+
+let vista = 'card';
+let filtro = 'todas';
+let formularioAbierto = false;
+let editandoId = null;
+
+const $ = (id) => document.getElementById(id);
+
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const k in attrs || {}) {
+    const v = attrs[k];
+    if (k === 'class') e.className = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (v !== false && v != null) e.setAttribute(k, v);
+  }
+  kids.flat().forEach((c) => {
+    if (c == null || c === false) return;
+    e.append(c.nodeType ? c : document.createTextNode(c));
+  });
+  return e;
+}
+
+function log(msg) { $('log').textContent = msg; }
+
+function toast(msg) {
+  const zona = $('toast-zona');
+  const t = h('div', { class: 'toast' }, msg);
+  zona.replaceChildren(t);
+  t.offsetWidth;
+  t.classList.add('toast--visible');
+  setTimeout(() => {
+    t.classList.remove('toast--visible');
+    setTimeout(() => zona.replaceChildren(), 300);
+  }, 2800);
+}
+
+function etiquetaTipo(id) { return TIPOS.find((t) => t.id === id)?.etiqueta || id; }
+function etiquetaEstado(id) { return ESTADOS.find((e) => e.id === id)?.etiqueta || id; }
+function inicial(titulo) { return (titulo || '?').trim().charAt(0).toUpperCase(); }
+
+function tieneSeguimiento(it) {
+  return it.tipo === 'serie'
+    && it.temporadaActual != null
+    && it.capituloActual != null;
+}
+
+function etiquetaCapitulo(it) {
+  if (!tieneSeguimiento(it)) return '';
+  return `T${it.temporadaActual} · E${it.capituloActual}`;
+}
+
+function itemsFiltrados() {
+  let base = datos.slice();
+  if (filtro === 'serie' || filtro === 'pelicula') {
+    base = base.filter((d) => d.tipo === filtro);
+  } else if (filtro !== 'todas') {
+    base = base.filter((d) => d.estado === filtro);
+  }
+  if (vista === 'fila') {
+    base.sort((a, b) => (a.posicion ?? 9999) - (b.posicion ?? 9999));
+  } else {
+    base.sort((a, b) => (b.creadoEn || '').localeCompare(a.creadoEn || ''));
+  }
+  return base;
+}
+
+function enCurso() {
+  return datos.filter((d) => d.tipo === 'serie' && d.estado === 'viendo');
+}
+
+/* ================================================================
+   Registro
+   ================================================================ */
+
+function pintarBloqueRegistro() {
+  const cont = $('bloque-registro');
+  cont.replaceChildren();
+
+  if (!formularioAbierto) {
+    cont.append(h('button', {
+      class: 'abrir-form', type: 'button',
+      onclick: () => { formularioAbierto = true; pintar(); },
+    }, '+ Añadir serie o película'));
+    return;
+  }
+
+  cont.append(pintarFormularioNuevo());
+}
+
+function pintarFormularioNuevo() {
+  const inputTitulo = h('input', { name: 'titulo', placeholder: 'Título', required: true, maxlength: 200 });
+  const selectTipo = h('select', { name: 'tipo' }, ...TIPOS.map((t) => h('option', { value: t.id }, t.etiqueta)));
+  const selectEstado = h('select', { name: 'estado' },
+    h('option', { value: 'pendiente' }, 'Pendiente'),
+    h('option', { value: 'viendo' }, 'Viendo'),
+    h('option', { value: 'vista' }, 'Vista'),
+    h('option', { value: 'abandonada' }, 'Abandonada')
+  );
+  const selectDonde = h('select', { name: 'donde' },
+    h('option', { value: '' }, '¿Dónde la vimos?'),
+    ...DONDE.map((d) => h('option', { value: d }, d))
+  );
+  const inputPunt = h('input', { name: 'puntuacion', type: 'number', min: 1, max: 10, placeholder: '1-10' });
+  const inputReco = h('input', { name: 'recomendadaPor', placeholder: '¿Quién la recomendó?', maxlength: 100 });
+  const inputCaratula = h('input', { name: 'caratula', type: 'url', placeholder: 'URL de la carátula (opcional)' });
+  const inputLink = h('input', { name: 'link', type: 'url', placeholder: 'Link externo (opcional)' });
+  const textareaNota = h('textarea', { name: 'nota', placeholder: 'Nota corta (opcional)', maxlength: 500, rows: 3 });
+
+  // Sección de seguimiento (solo si es serie)
+  const inputTempActual = h('input', { name: 'temporadaActual', type: 'number', min: 1, placeholder: 'Ej. 2' });
+  const inputCapActual = h('input', { name: 'capituloActual', type: 'number', min: 1, placeholder: 'Ej. 5' });
+  const inputTotalTemp = h('input', { name: 'totalTemporadas', type: 'number', min: 1, placeholder: 'Ej. 3' });
+  const inputTotalCap = h('input', { name: 'totalCapitulosTemporada', type: 'number', min: 1, placeholder: 'Ej. 10' });
+
+  const seccionSeguimiento = h('div', { class: 'form__seccion' },
+    h('div', { class: 'form__seccion-titulo' }, 'Seguimiento de capítulos'),
+    h('div', { class: 'form__fila--cuatro form__fila' },
+      inputTempActual, inputCapActual, inputTotalTemp, inputTotalCap
+    ),
+    h('p', { style: 'color:var(--dim);font-size:11px;margin:6px 0 0;' },
+      'Temporada actual · Capítulo actual · Total temporadas · Capítulos por temporada. Todos opcionales.')
+  );
+
+  function actualizarSeccion() {
+    if (selectTipo.value === 'serie') {
+      seccionSeguimiento.classList.remove('form__seccion--oculta');
+    } else {
+      seccionSeguimiento.classList.add('form__seccion--oculta');
+    }
+  }
+  selectTipo.addEventListener('change', actualizarSeccion);
+  actualizarSeccion();
+
+  return h('form', { class: 'form', onsubmit: (ev) => {
+    ev.preventDefault();
+    const fd = new FormData(ev.target);
+    const puntRaw = String(fd.get('puntuacion') || '').trim();
+    const punt = puntRaw ? Number(puntRaw) : null;
+    if (punt !== null && (punt < 1 || punt > 10)) { toast('La puntuación va de 1 a 10.'); return; }
+
+    const esSerie = String(fd.get('tipo')) === 'serie';
+    const tA = esSerie ? intONull(fd.get('temporadaActual')) : null;
+    const cA = esSerie ? intONull(fd.get('capituloActual')) : null;
+    const tT = esSerie ? intONull(fd.get('totalTemporadas')) : null;
+    const cT = esSerie ? intONull(fd.get('totalCapitulosTemporada')) : null;
+
+    const maxPos = datos.reduce((m, d) => Math.max(m, d.posicion || 0), 0);
+    const id = 'n' + Date.now();
+    datos = [{
+      id,
+      titulo: String(fd.get('titulo') || '').trim(),
+      tipo: String(fd.get('tipo') || 'serie'),
+      estado: String(fd.get('estado') || 'pendiente'),
+      puntuacion: punt,
+      posicion: maxPos + 1,
+      temporadaActual: tA, capituloActual: cA,
+      totalTemporadas: tT, totalCapitulosTemporada: cT,
+      nota: String(fd.get('nota') || '').trim(),
+      donde: String(fd.get('donde') || ''),
+      recomendadaPor: String(fd.get('recomendadaPor') || '').trim(),
+      caratula: String(fd.get('caratula') || '').trim(),
+      link: String(fd.get('link') || '').trim(),
+      autor: 'Yayo',
+      creadoEn: new Date().toISOString(),
+    }, ...datos];
+    formularioAbierto = false;
+    toast('Añadido.');
+    pintar();
+  }},
+    h('div', { class: 'form__fila' }, inputTitulo, selectTipo),
+    h('div', { class: 'form__fila form__fila--tres' }, selectEstado, selectDonde, inputPunt),
+    inputReco,
+    inputCaratula,
+    inputLink,
+    textareaNota,
+    seccionSeguimiento,
+    h('div', { class: 'form__botones' },
+      h('button', { type: 'button', class: 'btn-secundario', onclick: () => { formularioAbierto = false; pintar(); } }, 'Cancelar'),
+      h('button', { type: 'submit', class: 'btn-primario' }, 'Añadir')
+    )
+  );
+}
+
+function intONull(v) {
+  const s = String(v ?? '').trim();
+  if (!s) return null;
+  const n = Number(s);
+  if (!Number.isFinite(n) || n < 1) return null;
+  return Math.round(n);
+}
+
+/* ================================================================
+   Filtros, progreso, aviso
+   ================================================================ */
+
+function pintarFiltros() {
+  const cont = $('filtros');
+  cont.replaceChildren();
+  const chips = h('div', { class: 'filtros' });
+
+  const opciones = [
+    { id: 'todas', etiqueta: 'Todas' },
+    { id: 'en_curso', etiqueta: 'Viendo ahora', destacado: true },
+    { id: 'pendiente', etiqueta: 'Pendientes' },
+    { id: 'vista', etiqueta: 'Vistas' },
+    { id: 'serie', etiqueta: 'Series' },
+    { id: 'pelicula', etiqueta: 'Películas' },
+  ];
+
+  for (const o of opciones) {
+    const clase = 'chip' + (o.destacado ? ' chip--destacado' : '');
+    chips.append(h('button', {
+      class: clase, type: 'button',
+      'aria-pressed': String(filtro === o.id),
+      onclick: () => { filtro = o.id; pintar(); },
+    }, o.etiqueta));
+  }
+  cont.append(chips);
+}
+
+function pintarProgreso() {
+  const p = $('progreso');
+  const total = datos.length;
+  if (total === 0) { p.textContent = ''; return; }
+  const vistas = datos.filter((d) => d.estado === 'vista').length;
+  p.textContent = `${vistas} de ${total} vistas`;
+}
+
+function pintarAvisoRanking() {
+  const aviso = $('aviso-ranking');
+  aviso.replaceChildren();
+  if (vista === 'fila' && filtro !== 'todas') {
+    aviso.append(h('div', { class: 'aviso-ranking' },
+      'Quita los filtros para poder reordenar el ranking.'
+    ));
+  }
+}
+
+/* ================================================================
+   Sección "En curso"
+   ================================================================ */
+
+function pintarEnCurso() {
+  const cont = $('en-curso');
+  cont.replaceChildren();
+
+  if (filtro !== 'todas') return;
+  const lista = enCurso();
+  if (lista.length === 0) return;
+
+  const seccion = h('div', { class: 'en-curso' });
+  seccion.append(h('h2', { class: 'en-curso__titulo' }, 'Viendo ahora'));
+  const ul = h('ul', { class: 'lista' });
+  for (const it of lista) {
+    ul.append(vista === 'fila' ? pintarFila(it, true) : pintarCard(it, true));
+  }
+  seccion.append(ul);
+  cont.append(seccion);
+}
+
+/* ================================================================
+   Lista principal
+   ================================================================ */
+
+function pintar() {
+  pintarBloqueRegistro();
+  pintarFiltros();
+  pintarProgreso();
+  pintarAvisoRanking();
+  pintarEnCurso();
+
+  const lista = $('lista');
+  lista.replaceChildren();
+
+  // Si estamos en "Todas", las series en curso ya salen arriba.
+  // Acá sacamos las que están en curso para no duplicarlas.
+  let items = itemsFiltrados();
+  if (filtro === 'todas') {
+    items = items.filter((d) => !(d.tipo === 'serie' && d.estado === 'viendo'));
+  }
+
+  if (items.length === 0) {
+    lista.append(h('li', { class: 'vacio' }, 'Sin títulos en este filtro.'));
+    return;
+  }
+
+  for (const it of items) {
+    if (editandoId === it.id) {
+      lista.append(pintarFormularioEdicion(it));
+    } else if (vista === 'fila') {
+      lista.append(pintarFila(it));
+    } else {
+      lista.append(pintarCard(it));
+    }
+  }
+}
+
+/* ═══ Tarjeta ═══ */
+
+function pintarCard(it, esEnCurso = false) {
+  const puntaje = it.puntuacion;
+  const pct = puntaje ? (puntaje / 10) * 100 : 0;
+  const conSeg = tieneSeguimiento(it);
+
+  const caratula = h('div', { class: 'card__caratula' });
+  if (it.caratula) {
+    caratula.append(h('img', {
+      src: it.caratula, alt: '', loading: 'lazy',
+      onerror: (ev) => {
+        ev.target.remove();
+        caratula.append(h('span', { class: 'card__caratula-vacia' }, inicial(it.titulo)));
+      },
+    }));
+  } else {
+    caratula.append(h('span', { class: 'card__caratula-vacia' }, inicial(it.titulo)));
+  }
+  if (puntaje != null) {
+    caratula.append(h('span', { class: 'card__puntaje-flotante' }, String(puntaje)));
+  }
+
+  // Cabecera
+  const cabecera = h('div', { class: 'card__cabecera' });
+  cabecera.append(h('span', { class: 'card__titulo' }, it.titulo));
+  cabecera.append(h('span', { class: `badge badge--${it.tipo}` }, etiquetaTipo(it.tipo)));
+  if (conSeg && esEnCurso) {
+    cabecera.append(h('span', { class: 'badge-progreso' }, etiquetaCapitulo(it)));
+  } else {
+    cabecera.append(h('span', { class: `badge badge--estado-${it.estado}` }, etiquetaEstado(it.estado)));
+  }
+
+  // Cuerpo
+  const cuerpo = h('div', { class: 'card__cuerpo' });
+  cuerpo.append(cabecera);
+  if (it.donde || it.recomendadaPor || it.autor) {
+    cuerpo.append(h('div', { class: 'card__meta' },
+      it.donde ? h('span', {}, it.donde) : null,
+      it.recomendadaPor ? h('span', {}, 'Recomendada por ' + it.recomendadaPor) : null,
+      h('span', {}, it.autor)
+    ));
+  }
+  if (it.nota) cuerpo.append(h('p', { class: 'card__nota' }, it.nota));
+
+  // Barra de progreso de capítulo si es serie en curso
+  if (conSeg && esEnCurso && it.totalCapitulosTemporada) {
+    const pctCap = Math.min(100, (it.capituloActual / it.totalCapitulosTemporada) * 100);
+    cuerpo.append(h('div', { class: 'progreso-cap' },
+      h('div', { class: 'progreso-cap__label' },
+        h('span', {}, `Temporada ${it.temporadaActual} · capítulo ${it.capituloActual} de ${it.totalCapitulosTemporada}`),
+        h('b', {}, Math.round(pctCap) + '%')
+      ),
+      h('div', { class: 'card__barra' }, h('i', { style: `width:${pctCap}%` }))
+    ));
+  } else if (puntaje != null) {
+    cuerpo.append(h('div', { class: 'card__barra' }, h('i', { style: `width:${pct}%` })));
+  }
+
+  // Acciones
+  const acciones = h('div', { class: 'card__acciones' });
+  if (it.link) {
+    acciones.append(h('a', {
+      class: 'btn-mini btn-link', href: it.link, target: '_blank', rel: 'noopener',
+    }, 'Ver'));
+  }
+  if (conSeg && esEnCurso) {
+    acciones.append(h('button', {
+      class: 'btn-mini btn-cap', type: 'button',
+      onclick: () => avanzarCapitulo(it.id),
+    }, '+1 cap.'));
+  }
+  acciones.append(
+    h('button', { class: 'btn-mini', type: 'button', onclick: () => cambiarEstado(it.id) }, 'Estado'),
+    h('button', { class: 'btn-mini', type: 'button', onclick: () => { editandoId = it.id; pintar(); } }, 'Editar'),
+    h('button', { class: 'btn-mini', type: 'button', onclick: () => eliminar(it.id) }, 'Quitar')
+  );
+
+  const clases = `card card--${it.estado}` + (esEnCurso ? ' card--en-curso' : '');
+  return h('li', { class: clases, 'data-id': it.id }, caratula, cuerpo, acciones);
+}
+
+/* ═══ Fila compacta ═══ */
+
+function pintarFila(it, esEnCurso = false) {
+  const puntaje = it.puntuacion;
+  const puedeArrastrar = filtro === 'todas';
+  const conSeg = tieneSeguimiento(it);
+
+  const handle = h('div', {
+    class: 'fila__handle', 'aria-label': 'Arrastrar para reordenar', role: 'button',
+  }, '⠿');
+  if (puedeArrastrar) {
+    handle.addEventListener('pointerdown', (ev) => iniciarArrastre(ev, it.id));
+  } else {
+    handle.style.opacity = '.3';
+    handle.style.cursor = 'not-allowed';
+  }
+
+  const meta = h('div', { class: 'fila__meta' },
+    h('span', { class: `badge badge--${it.tipo}` }, etiquetaTipo(it.tipo)),
+    conSeg && esEnCurso
+      ? h('span', { class: 'badge-progreso' }, etiquetaCapitulo(it))
+      : h('span', { class: `badge badge--estado-${it.estado}` }, etiquetaEstado(it.estado)),
+    it.donde ? h('span', {}, it.donde) : null,
+    it.recomendadaPor ? h('span', {}, '· ' + it.recomendadaPor) : null
+  );
+
+  const acciones = h('div', { class: 'fila__acciones' });
+  if (it.link) {
+    acciones.append(h('a', { class: 'btn-mini btn-link', href: it.link, target: '_blank', rel: 'noopener' }, 'Ver'));
+  }
+  if (conSeg && esEnCurso) {
+    acciones.append(h('button', { class: 'btn-mini btn-cap', type: 'button', onclick: () => avanzarCapitulo(it.id) }, '+1'));
+  }
+  acciones.append(
+    h('button', { class: 'btn-mini', type: 'button', onclick: () => cambiarEstado(it.id) }, 'Estado'),
+    h('button', { class: 'btn-mini', type: 'button', onclick: () => { editandoId = it.id; pintar(); } }, 'Editar')
+  );
+
+  return h('li', { class: `fila fila--${it.estado}`, 'data-id': it.id },
+    handle,
+    h('span', { class: 'fila__puntaje' + (puntaje == null ? ' fila__puntaje--vacio' : '') },
+      puntaje != null ? String(puntaje) : '—'),
+    h('div', { class: 'fila__cuerpo' },
+      h('span', { class: 'fila__titulo' }, it.titulo),
+      meta
+    ),
+    acciones
+  );
+}
+
+/* ═══ Drag & drop ═══ */
+
+let arrastrando = null;
+let pointerIdActivo = null;
+
+function iniciarArrastre(ev, id) {
+  if (filtro !== 'todas') return;
+  const fila = ev.target.closest('li.fila');
+  if (!fila) return;
+  ev.preventDefault();
+
+  arrastrando = { id, fila };
+  pointerIdActivo = ev.pointerId;
+  fila.classList.add('fila--arrastrando');
+  fila.setPointerCapture(ev.pointerId);
+
+  fila.addEventListener('pointermove', manejarArrastre);
+  fila.addEventListener('pointerup', soltarArrastre);
+  fila.addEventListener('pointercancel', soltarArrastre);
+}
+
+function manejarArrastre(ev) {
+  if (!arrastrando) return;
+  const { fila } = arrastrando;
+  const lista = fila.parentNode;
+  if (!lista) return;
+  const y = ev.clientY;
+  const otras = [...lista.querySelectorAll('li.fila:not(.fila--arrastrando)')];
+  let insertado = false;
+  for (const otra of otras) {
+    const rect = otra.getBoundingClientRect();
+    const medio = rect.top + rect.height / 2;
+    if (y < medio) {
+      if (fila.nextElementSibling !== otra) lista.insertBefore(fila, otra);
+      insertado = true;
+      break;
+    }
+  }
+  if (!insertado && lista.lastElementChild !== fila) lista.append(fila);
+}
+
+function soltarArrastre(ev) {
+  if (!arrastrando) return;
+  const { fila } = arrastrando;
+
+  fila.classList.remove('fila--arrastrando');
+  fila.removeEventListener('pointermove', manejarArrastre);
+  fila.removeEventListener('pointerup', soltarArrastre);
+  fila.removeEventListener('pointercancel', soltarArrastre);
+  try { fila.releasePointerCapture(pointerIdActivo); } catch (e) {}
+
+  const lista = fila.parentNode;
+  const items = [...lista.querySelectorAll('li.fila')];
+  let i = 1;
+  for (const el of items) {
+    const id = el.dataset.id;
+    const d = datos.find((x) => x.id === id);
+    if (d) d.posicion = i++;
+  }
+  arrastrando = null;
+  pointerIdActivo = null;
+  toast('Ranking actualizado.');
+}
+
+/* ═══ Edición inline ═══ */
+
+function pintarFormularioEdicion(it) {
+  const inputTitulo = h('input', { value: it.titulo || '', name: 'titulo', required: true, maxlength: 200 });
+  const selectTipo = h('select', { name: 'tipo' }, ...TIPOS.map((t) => {
+    const o = h('option', { value: t.id }, t.etiqueta);
+    if (t.id === it.tipo) o.setAttribute('selected', '');
+    return o;
+  }));
+  const selectEstado = h('select', { name: 'estado' }, ...ESTADOS.map((e) => {
+    const o = h('option', { value: e.id }, e.etiqueta);
+    if (e.id === it.estado) o.setAttribute('selected', '');
+    return o;
+  }));
+  const selectDonde = h('select', { name: 'donde' },
+    h('option', { value: '' }, '¿Dónde la vimos?'),
+    ...DONDE.map((d) => {
+      const o = h('option', { value: d }, d);
+      if (d === it.donde) o.setAttribute('selected', '');
+      return o;
+    })
+  );
+  const inputPunt = h('input', { name: 'puntuacion', type: 'number', min: 1, max: 10, value: it.puntuacion != null ? String(it.puntuacion) : '', placeholder: '1-10' });
+  const inputReco = h('input', { name: 'recomendadaPor', value: it.recomendadaPor || '', placeholder: 'Recomendada por', maxlength: 100 });
+  const inputCaratula = h('input', { name: 'caratula', type: 'url', value: it.caratula || '', placeholder: 'URL de la carátula' });
+  const inputLink = h('input', { name: 'link', type: 'url', value: it.link || '', placeholder: 'Link externo' });
+  const textareaNota = h('textarea', { name: 'nota', placeholder: 'Nota', maxlength: 500, rows: 3 }, it.nota || '');
+
+  const inputTempActual = h('input', { name: 'temporadaActual', type: 'number', min: 1, value: it.temporadaActual != null ? String(it.temporadaActual) : '', placeholder: 'Temporada actual' });
+  const inputCapActual = h('input', { name: 'capituloActual', type: 'number', min: 1, value: it.capituloActual != null ? String(it.capituloActual) : '', placeholder: 'Capítulo actual' });
+  const inputTotalTemp = h('input', { name: 'totalTemporadas', type: 'number', min: 1, value: it.totalTemporadas != null ? String(it.totalTemporadas) : '', placeholder: 'Total temporadas' });
+  const inputTotalCap = h('input', { name: 'totalCapitulosTemporada', type: 'number', min: 1, value: it.totalCapitulosTemporada != null ? String(it.totalCapitulosTemporada) : '', placeholder: 'Caps por temporada' });
+
+  const seccionSeg = h('div', { class: 'form__seccion' },
+    h('div', { class: 'form__seccion-titulo' }, 'Seguimiento de capítulos'),
+    h('div', { class: 'form__fila--cuatro form__fila' },
+      inputTempActual, inputCapActual, inputTotalTemp, inputTotalCap
+    )
+  );
+
+  function actualizarSeg() {
+    if (selectTipo.value === 'serie') seccionSeg.classList.remove('form__seccion--oculta');
+    else seccionSeg.classList.add('form__seccion--oculta');
+  }
+  selectTipo.addEventListener('change', actualizarSeg);
+  actualizarSeg();
+
+  // Preview carátula
+  const preview = h('div', { class: 'edit__preview-caratula' });
+  function pintarPreview() {
+    preview.replaceChildren();
+    const url = inputCaratula.value.trim();
+    if (url) {
+      const img = h('img', { src: url, alt: '', onerror: () => {
+        img.remove();
+        preview.prepend(h('div', { class: 'vacia' }, inicial(inputTitulo.value)));
+      }});
+      preview.append(img);
+    } else {
+      preview.append(h('div', { class: 'vacia' }, inicial(inputTitulo.value)));
+    }
+    preview.append(h('span', { style: 'color:var(--dim);font-size:12px;' }, 'Vista previa'));
+  }
+  pintarPreview();
+  inputCaratula.addEventListener('input', pintarPreview);
+  inputTitulo.addEventListener('input', pintarPreview);
+
+  return h('li', { class: 'edit', 'data-id': it.id },
+    h('div', { class: 'form__fila' }, inputTitulo, selectTipo),
+    h('div', { class: 'form__fila form__fila--tres' }, selectEstado, selectDonde, inputPunt),
+    inputReco,
+    preview,
+    inputCaratula,
+    inputLink,
+    textareaNota,
+    seccionSeg,
+    h('div', { class: 'form__botones' },
+      h('button', { type: 'button', class: 'btn-secundario', onclick: () => { editandoId = null; pintar(); } }, 'Cancelar'),
+      h('button', { type: 'button', class: 'btn-primario', onclick: () => {
+        const puntRaw = inputPunt.value.trim();
+        const punt = puntRaw ? Number(puntRaw) : null;
+        if (punt !== null && (punt < 1 || punt > 10)) { toast('La puntuación va de 1 a 10.'); return; }
+        const esSerie = selectTipo.value === 'serie';
+        it.titulo = inputTitulo.value.trim() || it.titulo;
+        it.tipo = selectTipo.value;
+        it.estado = selectEstado.value;
+        it.donde = selectDonde.value;
+        it.puntuacion = punt;
+        it.recomendadaPor = inputReco.value.trim();
+        it.caratula = inputCaratula.value.trim();
+        it.link = inputLink.value.trim();
+        it.nota = textareaNota.value.trim();
+        it.temporadaActual = esSerie ? intONull(inputTempActual.value) : null;
+        it.capituloActual = esSerie ? intONull(inputCapActual.value) : null;
+        it.totalTemporadas = esSerie ? intONull(inputTotalTemp.value) : null;
+        it.totalCapitulosTemporada = esSerie ? intONull(inputTotalCap.value) : null;
+        editandoId = null;
+        toast('Guardado.');
+        pintar();
+      }}, 'Guardar')
+    )
+  );
+}
+
+/* ================================================================
+   Acciones
+   ================================================================ */
+
+function avanzarCapitulo(id) {
+  const it = datos.find((d) => d.id === id);
+  if (!it || !tieneSeguimiento(it)) return;
+
+  const cap = (it.capituloActual || 0) + 1;
+  const total = it.totalCapitulosTemporada;
+
+  if (total && cap > total) {
+    // Fin de temporada
+    const temp = it.temporadaActual || 1;
+    const totalTemp = it.totalTemporadas;
+    if (totalTemp && temp >= totalTemp) {
+      it.estado = 'vista';
+      it.puntuacion = it.puntuacion || null;
+      toast('Última temporada terminada. Marcada como vista.');
+    } else {
+      if (confirm(`Terminaste la temporada ${temp} de "${it.titulo}". ¿Pasar a la temporada ${temp + 1}, capítulo 1?`)) {
+        it.temporadaActual = temp + 1;
+        it.capituloActual = 1;
+        toast(`Temporada ${temp + 1}, capítulo 1.`);
+      } else {
+        return;
+      }
+    }
+  } else {
+    it.capituloActual = cap;
+    toast(`T${it.temporadaActual} · E${cap}`);
+  }
+  pintar();
+}
+
+function cambiarEstado(id) {
+  const it = datos.find((d) => d.id === id);
+  if (!it) return;
+  const orden = ['pendiente', 'viendo', 'vista', 'abandonada'];
+  const i = orden.indexOf(it.estado);
+  it.estado = orden[(i + 1) % orden.length];
+  toast('Estado: ' + etiquetaEstado(it.estado));
+  pintar();
+}
+
+function eliminar(id) {
+  const it = datos.find((d) => d.id === id);
+  if (!it) return;
+  if (!confirm('¿Quitar "' + it.titulo + '"?')) return;
+  datos = datos.filter((d) => d.id !== id);
+  toast('Quitado.');
+  pintar();
+}
+
+/* ================================================================
+   Toggle de vista
+   ================================================================ */
+
+$('btn-vista-card').addEventListener('click', () => {
+  vista = 'card';
+  $('btn-vista-card').setAttribute('aria-pressed', 'true');
+  $('btn-vista-fila').setAttribute('aria-pressed', 'false');
+  pintar();
+});
+$('btn-vista-fila').addEventListener('click', () => {
+  vista = 'fila';
+  $('btn-vista-card').setAttribute('aria-pressed', 'false');
+  $('btn-vista-fila').setAttribute('aria-pressed', 'true');
+  pintar();
+});
+
+pintar();
+})();
+</script>
+</body>
+</html>

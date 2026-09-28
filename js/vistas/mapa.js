@@ -1,13 +1,21 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/mapa.js
-   Versión: 1.0.0
-   Propósito: vista del mapa de lugares. Muestra Chile con
-              marcadores para cada lugar registrado (verde los
-              visitados, dorado los pendientes). Lista debajo con
-              acciones de editar, eliminar y marcar visitado.
-              Formulario colapsable para agregar lugares, con
-              coordenadas por click en el mapa o ubicación actual.
+   Versión: 1.2.0
+   Propósito: vista del mapa de lugares. Muestra Chile centrado
+              en Chillán. Buscador de direcciones y lugares con
+              Nominatim (acepta POIs: puentes, parques, museos).
+              Marcadores propios. Lista con acciones.
+              v1.2.0: se amplía el buscador para incluir POIs.
+                      Se agregan extratags, namedetails, dedupe,
+                      limit=8. Se cambia countrycodes=cl por
+                      viewbox + bounded=1 (más flexible para
+                      lugares turísticos). Fallback sin filtros
+                      geográficos si la primera búsqueda no
+                      devuelve nada. Cada resultado lleva un badge
+                      con su tipo (calle, pueblo, puente, etc.).
+              v1.1.0: centro en Chillán, buscador con Nominatim,
+                      autocompletado, flyTo.
               v1.0.0: versión inicial.
    ================================================================ */
 
@@ -20,10 +28,19 @@ import { h, limpiarContenedor, formatearFecha, escaparHtml } from '../nucleo/uti
 
 const log = crearLogger('vista:mapa');
 
-const CENTRO_CHILE = [-35.5, -71.0];
-const ZOOM_INICIAL = 5;
-const TILES_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+const CENTRO_CHILLAN = [-36.6067, -72.1034];
+const ZOOM_INICIAL = 7;
+const ZOOM_RESULTADO = 14;
+const TILES_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 const TILES_ATRIBUCION = '© OpenStreetMap';
+const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
+const MIN_CARACTERES_BUSQUEDA = 3;
+const DEBOUNCE_BUSQUEDA_MS = 500;
+const LIMITE_RESULTADOS = 8;
+
+/* Viewbox que cubre Chile continental + insular + Antártica.
+   Formato: oeste, norte, este, sur (lon_min, lat_max, lon_max, lat_min). */
+const VIEWBOX_CHILE = '-109.5,-17.5,-66.0,-56.0';
 
 const registro = {
   contenedor: null,
@@ -35,13 +52,13 @@ const registro = {
   capaMarcadores: null,
   contenedorMapaEl: null,
   listaEl: null,
+  bloqueRegistroEl: null,
+  progresoEl: null,
   formularioAbierto: false,
   editandoId: null,
-  // Formulario activo: 'crear' | id de lugar | null
   formularioActivo: null,
-  // Inputs activos del formulario, para que el click en el mapa
-  // rellene las coordenadas correctas.
   inputsActivos: null,
+  timeoutBusqueda: null,
 };
 
 /* ---------- Iconos --------------------------------------------- */
@@ -70,7 +87,7 @@ function inicializarMapa() {
   }
 
   registro.mapa = L.map(registro.contenedorMapaEl, {
-    center: CENTRO_CHILE,
+    center: CENTRO_CHILLAN,
     zoom: ZOOM_INICIAL,
     zoomControl: true,
   });
@@ -86,7 +103,6 @@ function inicializarMapa() {
 }
 
 function manejarClickMapa(ev) {
-  // Solo si hay un formulario activo rellenamos coordenadas.
   if (!registro.formularioActivo || !registro.inputsActivos) return;
   const { lat, lng } = ev.latlng;
   registro.inputsActivos.lat.value = lat.toFixed(6);
@@ -154,6 +170,220 @@ function montarEstructura() {
   pintarBloqueRegistro();
 }
 
+/* ---------- Búsqueda (Nominatim) ------------------------------ */
+
+/**
+ * Etiquetas legibles para los tipos más comunes que devuelve
+ * Nominatim. Si el tipo no está en el mapa, se muestra el `type`
+ * crudo con la primera letra en mayúscula.
+ */
+const ETIQUETAS_TIPO = {
+  // Lugares administrativos y poblados
+  city: 'Ciudad',
+  town: 'Pueblo',
+  village: 'Aldea',
+  hamlet: 'Caserío',
+  suburb: 'Barrio',
+  neighbourhood: 'Barrio',
+  municipality: 'Comuna',
+  county: 'Provincia',
+  state: 'Región',
+  region: 'Región',
+  country: 'País',
+  // Vías
+  road: 'Calle',
+  street: 'Calle',
+  residential: 'Calle',
+  pedestrian: 'Pasaje',
+  path: 'Sendero',
+  footway: 'Sendero',
+  track: 'Camino',
+  primary: 'Ruta',
+  secondary: 'Ruta',
+  tertiary: 'Ruta',
+  motorway: 'Autopista',
+  trunk: 'Ruta',
+  // Lugares naturales y turísticos
+  peak: 'Cumbre',
+  mountain_pass: 'Paso',
+  water: 'Agua',
+  river: 'Río',
+  lake: 'Lago',
+  bay: 'Bahía',
+  beach: 'Playa',
+  forest: 'Bosque',
+  park: 'Parque',
+  nature_reserve: 'Reserva',
+  protected_area: 'Área protegida',
+  bridge: 'Puente',
+  // Turismo y cultura
+  attraction: 'Atracción',
+  viewpoint: 'Mirador',
+  museum: 'Museo',
+  monument: 'Monumento',
+  memorial: 'Memorial',
+  artwork: 'Obra',
+  gallery: 'Galería',
+  tourism: 'Turismo',
+  hotel: 'Hotel',
+  hostel: 'Hostal',
+  camp_site: 'Camping',
+  picnic_site: 'Picnic',
+  alpine_hut: 'Refugio',
+  wilderness_hut: 'Refugio',
+  information: 'Información',
+  // Comercio y servicios
+  restaurant: 'Restaurante',
+  cafe: 'Café',
+  bar: 'Bar',
+  pub: 'Pub',
+  fast_food: 'Comida',
+  supermarket: 'Supermercado',
+  market: 'Feria',
+  pharmacy: 'Farmacia',
+  hospital: 'Hospital',
+  clinic: 'Clínica',
+  school: 'Escuela',
+  university: 'Universidad',
+  library: 'Biblioteca',
+  bank: 'Banco',
+  fuel: 'Bencinera',
+  bus_station: 'Terminal',
+  aerodrome: 'Aeródromo',
+  railway: 'Estación',
+  place_of_worship: 'Templo',
+  // Otros
+  administrative: 'Administrativo',
+  building: 'Edificio',
+  house: 'Casa',
+  boundary: 'Límite',
+};
+
+function etiquetaDeResultado(r) {
+  const clave = r.type || r.class || '';
+  if (ETIQUETAS_TIPO[clave]) return ETIQUETAS_TIPO[clave];
+  if (!clave) return '';
+  return clave.charAt(0).toUpperCase() + clave.slice(1);
+}
+
+/**
+ * Normaliza el resultado de Nominatim a lo que la UI necesita.
+ */
+function normalizarResultado(r) {
+  return {
+    lat: Number(r.lat),
+    lon: Number(r.lon),
+    nombreCorto: String(r.display_name || '').split(',')[0].trim() || 'Lugar',
+    direccion: r.display_name || '',
+    etiqueta: etiquetaDeResultado(r),
+  };
+}
+
+async function consultarNominatim(consulta, conFiltroChile) {
+  const url = new URL(NOMINATIM_URL);
+  url.searchParams.set('format', 'json');
+  url.searchParams.set('q', consulta.trim());
+  url.searchParams.set('limit', String(LIMITE_RESULTADOS));
+  url.searchParams.set('addressdetails', '1');
+  url.searchParams.set('namedetails', '1');
+  url.searchParams.set('extratags', '1');
+  url.searchParams.set('dedupe', '1');
+
+  if (conFiltroChile) {
+    url.searchParams.set('viewbox', VIEWBOX_CHILE);
+    url.searchParams.set('bounded', '1');
+  }
+
+  const r = await fetch(url.toString(), {
+    headers: { Accept: 'application/json' },
+  });
+  if (!r.ok) throw new Error(`Nominatim respondió ${r.status}`);
+  return await r.json();
+}
+
+/**
+ * Busca una dirección o lugar. Primero intenta limitar a Chile
+ * con viewbox+bounded. Si no encuentra nada, reintenta sin
+ * filtros geográficos. Así encuentra POIs que no están
+ * etiquetados en Chile o que están mal ubicados en el mapa.
+ */
+async function buscarDireccion(consulta) {
+  let resultados = await consultarNominatim(consulta, true);
+  if (!resultados || resultados.length === 0) {
+    resultados = await consultarNominatim(consulta, false);
+  }
+  return resultados || [];
+}
+
+function programarBusqueda(valor, contenedorResultados, inputLat, inputLng, inputNombre) {
+  clearTimeout(registro.timeoutBusqueda);
+  if (!valor || valor.trim().length < MIN_CARACTERES_BUSQUEDA) {
+    contenedorResultados.hidden = true;
+    limpiarContenedor(contenedorResultados);
+    return;
+  }
+
+  registro.timeoutBusqueda = setTimeout(async () => {
+    pintarResultadosCargando(contenedorResultados);
+    try {
+      const crudos = await buscarDireccion(valor);
+      const resultados = crudos
+        .map(normalizarResultado)
+        .filter((r) => !Number.isNaN(r.lat) && !Number.isNaN(r.lon));
+      pintarResultados(resultados, contenedorResultados, inputLat, inputLng, inputNombre);
+    } catch (e) {
+      log.warn('Error al buscar:', e.message);
+      pintarResultadosError(contenedorResultados, 'No se pudo buscar. Revisa tu conexión.');
+    }
+  }, DEBOUNCE_BUSQUEDA_MS);
+}
+
+function pintarResultadosCargando(contenedor) {
+  contenedor.hidden = false;
+  limpiarContenedor(contenedor);
+  contenedor.append(h('li', { class: 'mapa__resultado-cargando' }, 'Buscando…'));
+}
+
+function pintarResultadosError(contenedor, texto) {
+  contenedor.hidden = false;
+  limpiarContenedor(contenedor);
+  contenedor.append(h('li', { class: 'mapa__resultado-cargando' }, texto));
+}
+
+function pintarResultados(resultados, contenedor, inputLat, inputLng, inputNombre) {
+  contenedor.hidden = false;
+  limpiarContenedor(contenedor);
+
+  if (!resultados || resultados.length === 0) {
+    contenedor.append(h('li', { class: 'mapa__resultado-cargando' }, 'Sin resultados.'));
+    return;
+  }
+
+  for (const r of resultados) {
+    contenedor.append(h('li', {
+      class: 'mapa__resultado',
+      onclick: () => {
+        inputLat.value = r.lat.toFixed(6);
+        inputLng.value = r.lon.toFixed(6);
+        if (inputNombre && !inputNombre.value.trim()) {
+          inputNombre.value = r.nombreCorto;
+        }
+        if (registro.mapa) {
+          registro.mapa.flyTo([r.lat, r.lon], ZOOM_RESULTADO, { duration: 0.8 });
+        }
+        contenedor.hidden = true;
+        limpiarContenedor(contenedor);
+      },
+    },
+      h('div', { class: 'mapa__resultado-cabecera' },
+        h('strong', {}, r.nombreCorto),
+        r.etiqueta ? h('span', { class: 'mapa__resultado-tipo' }, r.etiqueta) : null
+      ),
+      h('span', { class: 'mapa__resultado-direccion' }, r.direccion)
+    ));
+  }
+}
+
 /* ---------- Bloque de registro -------------------------------- */
 
 function pintarBloqueRegistro() {
@@ -180,6 +410,13 @@ function pintarBloqueRegistro() {
 
 function pintarFormularioNuevo() {
   const inputNombre = h('input', { name: 'nombre', placeholder: 'Nombre del lugar', required: true, maxlength: 100 });
+  const inputBusqueda = h('input', {
+    type: 'search',
+    name: 'busqueda',
+    placeholder: 'Buscar calle, pueblo, cerro, museo…',
+    autocomplete: 'off',
+  });
+  const contenedorResultados = h('ul', { class: 'mapa__resultados', hidden: '' });
   const inputLat = h('input', { name: 'latitud', placeholder: 'Latitud', required: true, type: 'number', step: 'any' });
   const inputLng = h('input', { name: 'longitud', placeholder: 'Longitud', required: true, type: 'number', step: 'any' });
   const inputRegion = h('input', { name: 'region', placeholder: 'Región o zona (opcional)', maxlength: 100 });
@@ -190,11 +427,19 @@ function pintarFormularioNuevo() {
   );
   const inputFecha = h('input', { type: 'date', name: 'fechaVisita' });
 
+  inputBusqueda.addEventListener('input', () => {
+    programarBusqueda(inputBusqueda.value, contenedorResultados, inputLat, inputLng, inputNombre);
+  });
+
   registro.inputsActivos = { lat: inputLat, lng: inputLng };
 
   return h('form', { class: 'vista__form mapa__form', 'data-accion': 'crear' },
-    h('p', { class: 'mapa__ayuda' },
-      'Haz clic en el mapa para elegir la ubicación, escribe las coordenadas, o usa tu ubicación actual.'),
+    h('div', { class: 'mapa__buscador' },
+      inputBusqueda,
+      contenedorResultados,
+      h('p', { class: 'mapa__ayuda' },
+        'Busca una dirección o lugar, haz clic en el mapa, o escribe las coordenadas a mano.')
+    ),
     inputNombre,
     h('div', { class: 'mapa__fila-coords' },
       inputLat,
@@ -226,6 +471,13 @@ function pintarFormularioNuevo() {
 
 function pintarFormularioEdicion(lugar) {
   const inputNombre = h('input', { value: lugar.nombre || '', name: 'nombre', placeholder: 'Nombre', required: true, maxlength: 100 });
+  const inputBusqueda = h('input', {
+    type: 'search',
+    name: 'busqueda',
+    placeholder: 'Buscar otra dirección o lugar…',
+    autocomplete: 'off',
+  });
+  const contenedorResultados = h('ul', { class: 'mapa__resultados', hidden: '' });
   const inputLat = h('input', { value: String(lugar.latitud ?? ''), name: 'latitud', placeholder: 'Latitud', required: true, type: 'number', step: 'any' });
   const inputLng = h('input', { value: String(lugar.longitud ?? ''), name: 'longitud', placeholder: 'Longitud', required: true, type: 'number', step: 'any' });
   const inputRegion = h('input', { value: lugar.region || '', name: 'region', placeholder: 'Región o zona', maxlength: 100 });
@@ -237,10 +489,17 @@ function pintarFormularioEdicion(lugar) {
   selectEstado.value = lugar.estado;
   const inputFecha = h('input', { type: 'date', name: 'fechaVisita', value: fechaParaInput(lugar.fechaVisita) });
 
+  inputBusqueda.addEventListener('input', () => {
+    programarBusqueda(inputBusqueda.value, contenedorResultados, inputLat, inputLng, inputNombre);
+  });
+
   registro.inputsActivos = { lat: inputLat, lng: inputLng };
 
   return h('li', { class: 'pieza-edit mapa__pieza-edit', 'data-id': lugar.id },
-    h('p', { class: 'mapa__ayuda' }, 'Haz clic en el mapa para mover el punto.'),
+    h('div', { class: 'mapa__buscador' },
+      inputBusqueda,
+      contenedorResultados
+    ),
     inputNombre,
     h('div', { class: 'mapa__fila-coords' }, inputLat, inputLng),
     inputRegion,
@@ -403,6 +662,13 @@ function usarUbicacionActual() {
     (pos) => {
       registro.inputsActivos.lat.value = pos.coords.latitude.toFixed(6);
       registro.inputsActivos.lng.value = pos.coords.longitude.toFixed(6);
+      if (registro.mapa) {
+        registro.mapa.flyTo(
+          [pos.coords.latitude, pos.coords.longitude],
+          ZOOM_RESULTADO,
+          { duration: 0.8 }
+        );
+      }
       pintarOk('Coordenadas actualizadas.');
     },
     (err) => {
@@ -481,7 +747,7 @@ async function manejarClick(ev) {
     registro.formularioAbierto = true;
     pintarBloqueRegistro();
     setTimeout(() => {
-      const input = registro.bloqueRegistroEl.querySelector('input[name="nombre"]');
+      const input = registro.bloqueRegistroEl.querySelector('input[name="busqueda"]');
       if (input) input.focus();
     }, 60);
   } else if (accion === 'cerrar-formulario') {
@@ -538,6 +804,7 @@ export async function activar(contenedor) {
   registro.editandoId = null;
   registro.formularioActivo = null;
   registro.inputsActivos = null;
+  registro.timeoutBusqueda = null;
 
   const { signal } = registro.abortador;
   contenedor.addEventListener('submit', manejarSubmit, { signal });
@@ -554,6 +821,9 @@ export async function activar(contenedor) {
 }
 
 export function limpiar() {
+  clearTimeout(registro.timeoutBusqueda);
+  registro.timeoutBusqueda = null;
+
   registro.desuscribir.forEach((fn) => fn());
   registro.desuscribir = [];
   registro.abortador?.abort();
