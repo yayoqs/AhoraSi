@@ -1,16 +1,16 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/app.js
-   Versión: 2.13.0
+   Versión: 2.14.0
    Propósito: punto de entrada. Arranca sesión, monta el shell
               de navegación por hash, monta/desmonta las vistas, y
               mantiene Realtime activo mientras hay sesión.
-              v2.13.0: se agrega la vista Juegos al nav, después
-                      de Series. Se corrige el typo "dialago" en
-                      manejarSalir() (era "dialogo").
-              v2.12.0: vista Series en el nav.
-              v2.11.0: vista Mapa en el nav.
-              v2.10.0: vista Ideas en el nav.
+              v2.14.0: se agrega la vista Recetas al nav, después
+                      de Juegos.
+              v2.13.0: vista Juegos. Typo "dialago" corregido.
+              v2.12.0: vista Series.
+              v2.11.0: vista Mapa.
+              v2.10.0: vista Ideas.
               v2.9.0: hero como primera vista.
               v2.8.0: login rediseñado, Mi cuenta, nombre visible.
               v2.7.0: manejarSalir() con mostrarConfirmacion().
@@ -44,6 +44,7 @@ import * as vistaFlora from './vistas/flora.js';
 import * as vistaMapa from './vistas/mapa.js';
 import * as vistaSeries from './vistas/series.js';
 import * as vistaJuegos from './vistas/juegos.js';
+import * as vistaRecetas from './vistas/recetas.js';
 import * as vistaRespuesta from './vistas/respuesta.js';
 import * as vistaPercusion from './vistas/percusion.js';
 import * as vistaCuenta from './vistas/cuenta.js';
@@ -62,6 +63,7 @@ const VISTAS = {
   mapa: { titulo: 'Mapa', modulo: vistaMapa },
   series: { titulo: 'Series', modulo: vistaSeries },
   juegos: { titulo: 'Juegos', modulo: vistaJuegos },
+  recetas: { titulo: 'Recetas', modulo: vistaRecetas },
   percusion: { titulo: 'Percusión', modulo: vistaPercusion },
   respuesta: { titulo: 'Respuesta', modulo: vistaRespuesta },
   cuenta: { titulo: 'Mi cuenta', modulo: vistaCuenta, oculta: true },

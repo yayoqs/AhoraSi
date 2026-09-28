@@ -1,9 +1,12 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/repositorios/kit.js
-   Versión: 1.3.0
+   Versión: 1.4.0
    Propósito: acceso a ahorasi_kit.
-              v1.3.0: crear() y marcar() con idempotencia automática.
+              v1.4.0: se agrega actualizar(id, cambios) con
+                      idempotencia. Permite editar categoria e
+                      item. Emite kit:actualizado.
+              v1.3.0: crear() y marcar() con idempotencia.
               v1.2.0: sin envío de permisos de fila.
               v1.1.0: usa _contexto.js.
               v1.0.0: versión inicial.
@@ -93,6 +96,60 @@ export async function crear(datos, opciones = {}) {
       return Resultado.fallo(`Error al crear item: ${e.message}`);
     }
   });
+}
+
+export async function actualizar(id, cambios, opciones = {}) {
+  if (!id) return Resultado.fallo('Falta el id del item');
+  if (!cambios || typeof cambios !== 'object') {
+    return Resultado.fallo('Los cambios deben ser un objeto');
+  }
+  if (cambios.categoria !== undefined && !cambios.categoria.trim()) {
+    return Resultado.fallo('La categoría no puede quedar vacía');
+  }
+  if (cambios.categoria !== undefined && cambios.categoria.length > 50) {
+    return Resultado.fallo('Categoría demasiado larga');
+  }
+  if (cambios.item !== undefined && !cambios.item.trim()) {
+    return Resultado.fallo('El item no puede quedar vacío');
+  }
+  if (cambios.item !== undefined && cambios.item.length > 100) {
+    return Resultado.fallo('Item demasiado largo');
+  }
+
+  const ctx = obtenerContexto();
+  if (!ctx.exito) return ctx;
+
+  const data = {};
+  if (cambios.categoria !== undefined) data.categoria = cambios.categoria.trim();
+  if (cambios.item !== undefined) data.item = cambios.item.trim();
+
+  if (Object.keys(data).length === 0) {
+    return Resultado.fallo('Sin cambios válidos');
+  }
+
+  return conIdempotenciaParaActualizar(
+    TABLA,
+    ctx.datos.usuarioId,
+    id,
+    data,
+    opciones,
+    async () => {
+      try {
+        const r = await obtenerTablesDB().updateRow({
+          databaseId: obtenerDatabaseId(),
+          tableId: TABLA,
+          rowId: id,
+          data,
+        });
+        const item = normalizar(r);
+        emitir('kit:actualizado', item);
+        return Resultado.ok(item);
+      } catch (e) {
+        log.error('actualizar:', e.message);
+        return Resultado.fallo(`Error al actualizar item: ${e.message}`);
+      }
+    }
+  );
 }
 
 export async function marcar(id, listo, opciones = {}) {

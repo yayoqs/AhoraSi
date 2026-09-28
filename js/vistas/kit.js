@@ -1,15 +1,20 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/kit.js
-   Versión: 1.4.0
+   Versión: 1.5.0
    Propósito: vista del kit de campamento. Formulario colapsable
               para agregar items. Los items se agrupan por
               categoría con checkbox para marcar listo. Barra de
-              progreso con el total.
-              v1.4.0: la categoría ahora es un select con lista
-                      cerrada de diez opciones. Motivo: consistencia
-                      en el agrupamiento. Antes era texto libre y
-                      aparecían categorías casi duplicadas.
+              progreso con el total. Edición inline de categoría
+              e item.
+              v1.5.0: se agrega edición inline de cada item.
+                      Botón "Editar" convierte la fila en un
+                      formulario con select de categoría y campo
+                      de texto para el item. El select incluye
+                      las 10 categorías fijas más la categoría
+                      actual si es que no está en la lista (para
+                      no perder items con categorías antiguas).
+              v1.4.0: categoría como select con lista cerrada.
               v1.3.0: formulario colapsable, id="vista-kit".
               v1.2.1: mostrarConfirmacion().
               v1.2.0: activar() pinta primero.
@@ -45,6 +50,7 @@ const registro = {
   desuscribir: [],
   items: [],
   formularioAbierto: false,
+  editandoId: null,
 };
 
 function agruparPorCategoria(items) {
@@ -96,6 +102,69 @@ function pintarBloqueRegistro() {
   return cont;
 }
 
+/* ---------- Edición inline ------------------------------------ */
+
+function pintarItemEnEdicion(it) {
+  // Categorías disponibles: las fijas + la actual si no está en la
+  // lista. Así los items con categorías viejas se pueden editar sin
+  // perder su categoría.
+  const categorias = CATEGORIAS.includes(it.categoria)
+    ? CATEGORIAS
+    : [it.categoria, ...CATEGORIAS];
+
+  const selectCategoria = h('select', { name: 'categoria', required: true },
+    ...categorias.map((c) => {
+      const op = h('option', { value: c }, c);
+      if (c === it.categoria) op.setAttribute('selected', '');
+      return op;
+    })
+  );
+
+  const inputItem = h('input', {
+    name: 'item',
+    value: it.item || '',
+    placeholder: 'Item',
+    required: true,
+    maxlength: 100,
+  });
+
+  return h('li', { class: 'pieza-edit', style: 'list-style:none;', 'data-id': it.id },
+    selectCategoria,
+    inputItem,
+    h('div', { class: 'pieza-edit__botones' },
+      h('button', {
+        type: 'button', class: 'btn-primario',
+        onclick: () => guardarEdicion(it.id, {
+          categoria: selectCategoria.value,
+          item: inputItem.value,
+        }),
+      }, 'Guardar'),
+      h('button', {
+        type: 'button', class: 'btn-secundario',
+        onclick: () => {
+          registro.editandoId = null;
+          pintar();
+        },
+      }, 'Cancelar')
+    )
+  );
+}
+
+async function guardarEdicion(id, valores) {
+  const r = await repoKit.actualizar(id, {
+    categoria: valores.categoria,
+    item: valores.item,
+  });
+  if (r.exito) {
+    const i = registro.items.findIndex((x) => x.id === id);
+    if (i >= 0) registro.items[i] = r.datos;
+    registro.editandoId = null;
+    pintar();
+  } else {
+    pintarError(r.error);
+  }
+}
+
 /* ---------- Pintar -------------------------------------------- */
 
 function pintar() {
@@ -124,28 +193,38 @@ function pintar() {
           h('section', { class: 'kit__grupo' },
             h('h3', { class: 'kit__grupo-titulo' }, categoria),
             h('ul', { class: 'vista__lista' },
-              ...items.map((it) => h('li', {
-                class: 'vista__item' + (it.listo ? ' vista__item--completo' : ''),
-                'data-id': it.id,
-              },
-                h('label', { class: 'vista__check' },
-                  h('input', {
-                    type: 'checkbox',
-                    'data-accion': 'toggle',
-                    'data-id': it.id,
-                    checked: it.listo ? '' : null,
-                  }),
-                  h('span', {}, it.item)
-                ),
-                h('div', { class: 'acciones' },
-                  it.listo && it.marcadoPor ? distintivoAutor(it.marcadoPor) : null,
-                  h('button', {
-                    type: 'button',
-                    'data-accion': 'eliminar',
-                    'data-id': it.id,
-                  }, 'Eliminar')
-                )
-              ))
+              ...items.map((it) => {
+                if (registro.editandoId === it.id) {
+                  return pintarItemEnEdicion(it);
+                }
+                return h('li', {
+                  class: 'vista__item' + (it.listo ? ' vista__item--completo' : ''),
+                  'data-id': it.id,
+                },
+                  h('label', { class: 'vista__check' },
+                    h('input', {
+                      type: 'checkbox',
+                      'data-accion': 'toggle',
+                      'data-id': it.id,
+                      checked: it.listo ? '' : null,
+                    }),
+                    h('span', {}, it.item)
+                  ),
+                  h('div', { class: 'acciones' },
+                    it.listo && it.marcadoPor ? distintivoAutor(it.marcadoPor) : null,
+                    h('button', {
+                      type: 'button',
+                      'data-accion': 'editar',
+                      'data-id': it.id,
+                    }, 'Editar'),
+                    h('button', {
+                      type: 'button',
+                      'data-accion': 'eliminar',
+                      'data-id': it.id,
+                    }, 'Eliminar')
+                  )
+                );
+              })
             )
           )
         )
@@ -244,6 +323,9 @@ async function manejarClick(ev) {
   } else if (accion === 'cerrar-formulario') {
     registro.formularioAbierto = false;
     pintar();
+  } else if (accion === 'editar') {
+    registro.editandoId = id;
+    pintar();
   } else if (accion === 'eliminar') {
     const ok = await mostrarConfirmacion(
       'Eliminar item del kit',
@@ -267,6 +349,7 @@ export async function activar(contenedor) {
   registro.contenedor = contenedor;
   registro.abortador = new AbortController();
   registro.formularioAbierto = false;
+  registro.editandoId = null;
 
   const { signal } = registro.abortador;
   contenedor.addEventListener('submit', manejarSubmit, { signal });
@@ -291,5 +374,6 @@ export function limpiar() {
   if (registro.contenedor) limpiarContenedor(registro.contenedor);
   registro.items = [];
   registro.formularioAbierto = false;
+  registro.editandoId = null;
   registro.contenedor = null;
 }

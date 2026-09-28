@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prototipo Recetas — Ahora Sí</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: dark;
+    --pcb: #0C2F26; --pcb2: #123F34; --pcb3: #0e3529;
+    --paper: #EEF2E8; --ink: #0A1F1A;
+    --gold: #E3BC55; --sky: #8DB7D8; --rose: #EBA9A2;
+    --verde: #4ade80; --rojo: #f87171; --gris: #8a9a91;
+    --dim: #A9C2B6;
+    --fuente-titulo: 'Bricolage Grotesque', 'Trebuchet MS', system-ui, sans-serif;
+    --fuente-cuerpo: 'Figtree', system-ui, -apple-system, sans-serif;
+    --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-pill: 999px;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--pcb); color: var(--paper);
+    font: 400 15px/1.55 var(--fuente-cuerpo);
+    padding: 16px 14px 80px;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 16px);
+  }
+  main { max-width: 720px; margin: 0 auto; }
+  h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.1; letter-spacing: -.02em; margin: 0; }
+
+  .proto-cab {
+    text-align: center; padding: 8px 0 20px;
+    border-bottom: 1px solid rgba(238,242,232,.15); margin-bottom: 20px;
+  }
+  .proto-cab h1 { font-size: 18px; color: var(--gold); }
+  .proto-cab p { color: var(--dim); font-size: 12px; margin: 6px 0 0; }
+
+  .cabecera {
+    padding: 20px 16px;
+    margin: -8px -14px 20px;
+    border-radius: var(--r-lg);
+    background-color: var(--pcb3);
+    background-image: radial-gradient(circle, rgba(227,188,85,.14) 1px, transparent 1.5px);
+    background-size: 22px 22px;
+    border: 1px solid rgba(227,188,85,.15);
+  }
+  .cabecera h1 { color: var(--gold); font-size: 26px; }
+  .cabecera p { color: var(--dim); font-size: 14px; margin: 6px 0 0; }
+
+  .abrir-form {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; padding: 14px 24px; border-radius: var(--r-md);
+    background: var(--gold); color: var(--ink);
+    font: 700 15px var(--fuente-cuerpo); border: 0; cursor: pointer;
+    margin-bottom: 16px;
+    transition: filter .12s, transform .12s;
+  }
+  .abrir-form:hover { filter: brightness(1.05); }
+  .abrir-form:active { transform: translateY(1px); }
+
+  .chips {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .chip {
+    padding: 6px 14px;
+    border-radius: var(--r-pill);
+    border: 1.5px solid rgba(238,242,232,.3);
+    background: transparent;
+    color: var(--paper);
+    font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    transition: border-color .12s, color .12s, background .12s;
+  }
+  .chip:hover { border-color: var(--gold); color: var(--gold); }
+  .chip[aria-pressed="true"] {
+    background: var(--gold); border-color: var(--gold); color: var(--ink); font-weight: 600;
+  }
+
+  /* ═══ LAYOUT LIBRO CON ÍNDICE ═══ */
+
+  .layout-libro {
+    display: flex;
+    gap: 0;
+    align-items: stretch;
+  }
+
+  .paginas {
+    flex: 1;
+    min-width: 0;
+    padding-right: 8px;
+  }
+
+  .indice-lateral {
+    width: 32px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 4px 0 16px;
+    position: sticky;
+    top: 16px;
+    align-self: flex-start;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .indice-lateral::-webkit-scrollbar { display: none; }
+
+  .indice-tab {
+    width: 26px;
+    height: 38px;
+    border-radius: 8px 0 0 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    color: var(--ink);
+    opacity: .55;
+    transition: transform .18s ease, opacity .18s ease, width .18s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    writing-mode: horizontal-tb;
+  }
+  .indice-tab.activo {
+    opacity: 1;
+    width: 30px;
+    transform: translateX(-4px);
+    box-shadow: -4px 3px 12px rgba(0,0,0,.35);
+  }
+  .indice-tab:hover { opacity: 1; }
+
+  /* Ocultar el índice en pantallas muy chicas donde no cabe */
+  @media (max-width: 420px) {
+    .indice-lateral { width: 26px; gap: 6px; }
+    .indice-tab { width: 22px; height: 32px; font-size: 9px; }
+    .indice-tab.activo { width: 26px; }
+  }
+
+  /* ═══ LISTA AGRUPADA ═══ */
+
+  .lista-recetas { list-style: none; padding: 0; margin: 0; }
+
+  .grupo-categoria {
+    margin-bottom: 28px;
+    scroll-margin-top: 16px;
+  }
+  .grupo-categoria:last-child { margin-bottom: 0; }
+
+  .grupo-categoria__cab {
+    display: flex; align-items: baseline; gap: 10px;
+    padding-bottom: 8px; margin-bottom: 12px;
+    border-bottom: 2px solid var(--cat-color, var(--gold));
+  }
+  .grupo-categoria__cab h2 {
+    font-size: 18px;
+    color: var(--cat-color, var(--gold));
+  }
+  .grupo-categoria__contador {
+    font-size: 12px; color: var(--dim); font-weight: 600;
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tarjetas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+
+  .tarjeta {
+    background: var(--pcb2);
+    border-radius: var(--r-md);
+    border-left: 3px solid var(--cat-color, var(--gold));
+    cursor: pointer;
+    transition: transform .12s, border-color .12s;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+  .tarjeta:active { transform: scale(.97); }
+
+  .tarjeta__foto {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--pcb3);
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tarjeta__inicial {
+    font-family: var(--fuente-titulo);
+    font-size: 44px;
+    font-weight: 800;
+    letter-spacing: -.04em;
+    color: var(--cat-color, var(--gold));
+    opacity: .5;
+  }
+  .tarjeta__foto img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .tarjeta__cuerpo {
+    padding: 10px 12px 12px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .tarjeta__titulo {
+    font-family: var(--fuente-titulo);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--paper);
+    letter-spacing: -.01em;
+    line-height: 1.2;
+  }
+  .tarjeta__meta {
+    display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+    font-size: 11px; color: var(--dim);
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: var(--r-pill);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .badge--sub {
+    background: rgba(196,174,235,.18);
+    color: #C4AEEB;
+  }
+  .badge--foto {
+    background: rgba(141,183,216,.18);
+    color: var(--sky);
+  }
+
+  /* ═══ MODALES ═══ */
+
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9500;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    background: rgba(10,31,26,.85);
+    opacity: 0;
+    transition: opacity .2s ease;
+  }
+  @media (min-width: 640px) {
+    .modal { align-items: center; padding: 20px; }
+  }
+  .modal--visible { opacity: 1; }
+
+  .modal__tarjeta {
+    background: var(--pcb2);
+    border: 1px solid rgba(238,242,232,.15);
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    width: 100%;
+    max-width: 620px;
+    max-height: 92vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(100%);
+    transition: transform .25s cubic-bezier(.4,0,.2,1);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (min-width: 640px) {
+    .modal__tarjeta {
+      border-radius: var(--r-lg);
+      transform: translateY(20px);
+      max-height: 88vh;
+    }
+  }
+  .modal--visible .modal__tarjeta { transform: translateY(0); }
+
+  .modal__handle {
+    width: 40px; height: 4px;
+    background: rgba(238,242,232,.2);
+    border-radius: 4px;
+    margin: 10px auto 4px;
+    flex-shrink: 0;
+  }
+  @media (min-width: 640px) { .modal__handle { display: none; } }
+
+  .modal__cabecera {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 20px 8px;
+    flex-shrink: 0;
+  }
+  .modal__cabecera h2 {
+    flex: 1;
+    font-size: 20px;
+    color: var(--paper);
+    font-family: var(--fuente-titulo);
+  }
+  .modal__cerrar {
+    background: rgba(238,242,232,.1);
+    border: 1px solid rgba(238,242,232,.2);
+    color: var(--paper);
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .modal__cerrar:hover {
+    background: var(--rojo); border-color: var(--rojo); color: var(--ink);
+  }
+
+  .modal__cuerpo {
+    padding: 4px 20px 20px;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .modal__pie {
+    display: flex;
+    gap: 8px;
+    padding: 12px 20px;
+    border-top: 1px solid rgba(238,242,232,.1);
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    background: var(--pcb2);
+    position: sticky;
+    bottom: 0;
+  }
+
+  .detalle__meta {
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    font-size: 12px; color: var(--dim);
+  }
+  .detalle__foto {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    background-size: cover;
+    background-position: center;
+    border-radius: var(--r-md);
+    background-color: var(--pcb3);
+  }
+
+  .detalle__seccion-titulo {
+    color: var(--sky);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 8px;
+  }
+
+  .detalle__ingredientes {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+
+  .ing-simple {
+    padding: 10px 12px;
+    background: var(--pcb3);
+    border-radius: var(--r-sm);
+    border-left: 3px solid var(--gold);
+    font-size: 14px;
+  }
+
+  .ing-sub {
+    background: var(--pcb3);
+    border-radius: var(--r-sm);
+    border-left: 3px solid #C4AEEB;
+    overflow: hidden;
+  }
+  .ing-sub summary {
+    padding: 10px 12px;
+    cursor: pointer;
+    list-style: none;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 14px;
+  }
+  .ing-sub summary::-webkit-details-marker { display: none; }
+  .ing-sub summary::before {
+    content: '▶';
+    font-size: 10px;
+    transition: transform .2s;
+    flex-shrink: 0;
+  }
+  .ing-sub[open] summary::before { transform: rotate(90deg); }
+  .ing-sub__nombre { flex: 1; font-weight: 600; }
+  .ing-sub__cantidad {
+    background: rgba(196,174,235,.15);
+    color: #C4AEEB;
+    padding: 2px 10px;
+    border-radius: var(--r-pill);
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .ing-sub__hijos {
+    padding: 4px 12px 12px 30px;
+    border-top: 1px dashed rgba(238,242,232,.1);
+    list-style: none;
+    margin: 0;
+    display: flex; flex-direction: column; gap: 6px;
+    font-size: 13px;
+  }
+  .ing-sub__hijos li {
+    color: var(--dim);
+    padding-left: 14px;
+    position: relative;
+  }
+  .ing-sub__hijos li::before {
+    content: '·';
+    position: absolute; left: 4px;
+    color: var(--dim);
+  }
+
+  .detalle__pasos {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .detalle__paso {
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .detalle__paso-num {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--ink);
+    font-weight: 800;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-family: var(--fuente-titulo);
+  }
+  .detalle__paso-texto {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.6;
+    padding-top: 4px;
+  }
+
+  .detalle__nota {
+    padding: 12px 14px;
+    background: var(--pcb3);
+    border-left: 3px solid var(--sky);
+    border-radius: var(--r-sm);
+    color: var(--dim);
+    font-size: 14px;
+    font-style: italic;
+    white-space: pre-wrap;
+    line-height: 1.6;
+  }
+
+  .btn-primario {
+    padding: 10px 20px;
+    border-radius: var(--r-md);
+    background: var(--gold);
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 14px;
+    border: 0;
+    cursor: pointer;
+  }
+  .btn-primario:hover { filter: brightness(1.05); }
+
+  .btn-secundario {
+    padding: 10px 20px;
+    border-radius: var(--r-md);
+    background: transparent;
+    color: var(--paper);
+    border: 1.5px solid rgba(238,242,232,.35);
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .btn-secundario:hover { border-color: var(--gold); color: var(--gold); }
+
+  .btn-peligro {
+    padding: 10px 20px;
+    border-radius: var(--r-md);
+    background: transparent;
+    color: var(--rojo);
+    border: 1.5px solid rgba(248,113,113,.5);
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .btn-peligro:hover { background: var(--rojo); color: var(--ink); border-color: var(--rojo); }
+
+  .form-fila {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  @media (max-width: 480px) { .form-fila { grid-template-columns: 1fr; } }
+
+  .campo {
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .campo label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--sky);
+  }
+  .campo input,
+  .campo select,
+  .campo textarea {
+    padding: 11px 14px;
+    border-radius: var(--r-md);
+    border: 1.5px solid rgba(238,242,232,.3);
+    background: rgba(238,242,232,.04);
+    color: var(--paper);
+    font: inherit;
+    font-size: 15px;
+    font-family: inherit;
+    width: 100%;
+    transition: border-color .12s, background .12s;
+  }
+  .campo input:focus,
+  .campo select:focus,
+  .campo textarea:focus {
+    border-color: var(--sky);
+    outline: none;
+    background: rgba(238,242,232,.08);
+  }
+  .campo textarea { min-height: 70px; resize: vertical; }
+
+  .lista-editable {
+    display: flex; flex-direction: column; gap: 6px;
+    margin-bottom: 8px;
+  }
+  .fila-editable {
+    display: flex; gap: 6px; align-items: center;
+  }
+  .fila-editable input,
+  .fila-editable select {
+    flex: 1;
+    padding: 9px 12px;
+    border-radius: var(--r-sm);
+    border: 1.5px solid rgba(238,242,232,.25);
+    background: rgba(238,242,232,.04);
+    color: var(--paper);
+    font: inherit;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  .fila-editable input:focus,
+  .fila-editable select:focus {
+    border-color: var(--sky); outline: none;
+  }
+  .fila-editable .btn-quitar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1.5px solid rgba(248,113,113,.4);
+    color: var(--rojo);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .fila-editable .btn-quitar:hover {
+    background: var(--rojo); color: var(--ink); border-color: var(--rojo);
+  }
+  .fila-editable--sub {
+    display: grid;
+    grid-template-columns: 1fr 80px 80px 32px;
+    gap: 6px;
+    align-items: center;
+  }
+  @media (max-width: 480px) {
+    .fila-editable--sub {
+      grid-template-columns: 1fr 60px 60px 32px;
+    }
+  }
+
+  .btn-agregar-linea {
+    padding: 8px 14px;
+    border-radius: var(--r-sm);
+    background: transparent;
+    border: 1.5px dashed rgba(238,242,232,.3);
+    color: var(--dim);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color .12s, color .12s;
+  }
+  .btn-agregar-linea:hover {
+    border-color: var(--gold); color: var(--gold);
+  }
+
+  .tipo-ing {
+    display: flex; gap: 4px; margin-bottom: 8px;
+  }
+  .tipo-ing button {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: var(--r-sm);
+    border: 1.5px solid rgba(238,242,232,.25);
+    background: transparent;
+    color: var(--dim);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .tipo-ing button:hover {
+    border-color: var(--gold); color: var(--gold);
+  }
+
+  .vacio {
+    color: var(--dim); font-style: italic; padding: 20px 0; text-align: center;
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="proto-cab">
+    <h1>Prototipo Recetas — v2</h1>
+    <p>Con índice lateral derecho para moverse entre categorías. Datos en memoria.</p>
+  </div>
+
+  <header class="cabecera">
+    <h1>Recetas</h1>
+    <p>Lo que cocinamos juntos. Con sub-recetas y fotos.</p>
+  </header>
+
+  <button class="abrir-form" id="btn-nueva">+ Nueva receta</button>
+  <div class="chips" id="chips"></div>
+
+  <div class="layout-libro">
+    <div class="paginas" id="paginas"></div>
+    <nav class="indice-lateral" id="indice" aria-label="Categorías"></nav>
+  </div>
+
+</main>
+
+<script>
+(() => {
+'use strict';
+
+const $ = (id) => document.getElementById(id);
+
+const CATEGORIAS = {
+  'Desayuno': '#E3BC55',
+  'Almuerzo': '#4ade80',
+  'Cena':     '#8DB7D8',
+  'Postre':   '#EBA9A2',
+  'Snack':    '#F2C879',
+  'Bebida':   '#C4AEEB',
+  'Salsa':    '#F29E6B',
+};
+
+const NOMBRES_CATEGORIA = Object.keys(CATEGORIAS);
+
+/* ================================================================
+   DATOS EN MEMORIA.
+   ================================================================ */
+
+let recetas = [
+  {
+    id: 'pan-amasado',
+    titulo: 'Pan amasado',
+    categoria: 'Desayuno',
+    autor: 'Yayo',
+    nota: 'El secreto es no amasar de más. Queda mejor si lo dejamos levar toda la noche.',
+    ingredientes: [
+      { tipo: 'simple', texto: '1 kg de harina' },
+      { tipo: 'simple', texto: '2 cucharadas de manteca' },
+      { tipo: 'simple', texto: '1 cucharada de sal' },
+      { tipo: 'simple', texto: '500 ml de agua tibia' },
+      { tipo: 'simple', texto: '25 g de levadura fresca' },
+    ],
+    pasos: [
+      'Disolver la levadura en el agua tibia con una pizca de azúcar. Dejar reposar 10 minutos.',
+      'Formar una corona con la harina, poner la sal al centro, agregar la manteca derretida y el agua con levadura.',
+      'Amasar hasta que la masa quede suave y no se pegue en las manos.',
+      'Dejar levar tapada en un lugar tibio por 1 hora, o toda la noche en el refrigerador.',
+      'Formar bollos, aplastarlos un poco y pincharlos con un tenedor.',
+      'Hornear a 200°C por 20-25 minutos hasta que estén dorados.',
+    ],
+    fotos: ['https://picsum.photos/seed/pan1/600/400'],
+    creadoEn: '2026-09-10T12:00:00',
+  },
+  {
+    id: 'salsa-tomate',
+    titulo: 'Salsa de tomate casera',
+    categoria: 'Salsa',
+    autor: 'Yayo',
+    nota: 'Rinde para varias preparaciones. Se guarda hasta una semana en el refrigerador.',
+    ingredientes: [
+      { tipo: 'simple', texto: '1 kg de tomates maduros' },
+      { tipo: 'simple', texto: '1 cebolla grande' },
+      { tipo: 'simple', texto: '3 dientes de ajo' },
+      { tipo: 'simple', texto: 'Albahaca fresca' },
+      { tipo: 'simple', texto: 'Sal, pimienta y orégano' },
+      { tipo: 'simple', texto: '2 cucharadas de aceite de oliva' },
+    ],
+    pasos: [
+      'Picar la cebolla y el ajo. Sudar en aceite de oliva a fuego bajo por 10 minutos.',
+      'Pelar los tomates y picarlos. Agregar a la olla.',
+      'Cocinar a fuego medio-bajo por 40 minutos, revolviendo cada tanto.',
+      'Agregar la albahaca picada, la sal, la pimienta y el orégano.',
+      'Procesar si se quiere más fina, o dejar rústica.',
+    ],
+    fotos: ['https://picsum.photos/seed/salsa1/600/400'],
+    creadoEn: '2026-09-11T12:00:00',
+  },
+  {
+    id: 'pizza-casera',
+    titulo: 'Pizza casera',
+    categoria: 'Cena',
+    autor: 'Luci',
+    nota: '',
+    ingredientes: [
+      { tipo: 'simple', texto: '1 masa de pizza' },
+      { tipo: 'sub', recetaId: 'salsa-tomate', cantidad: 200, unidad: 'g' },
+      { tipo: 'simple', texto: '200 g de mozzarella' },
+      { tipo: 'simple', texto: 'Albahaca fresca' },
+      { tipo: 'simple', texto: 'Aceite de oliva' },
+    ],
+    pasos: [
+      'Precalentar el horno al máximo con la bandeja dentro.',
+      'Estirar la masa sobre papel mantequilla.',
+      'Cubrir con la salsa de tomate casera.',
+      'Repartir la mozzarella en trozos.',
+      'Hornear 8-10 minutos hasta que el borde esté dorado.',
+      'Sacar, agregar la albahaca fresca y un chorrito de aceite de oliva.',
+    ],
+    fotos: ['https://picsum.photos/seed/pizza1/600/400'],
+    creadoEn: '2026-09-15T12:00:00',
+  },
+  {
+    id: 'queque-platano',
+    titulo: 'Queque de plátano',
+    categoria: 'Postre',
+    autor: 'Luci',
+    nota: 'Queda mejor con plátanos bien maduros, casi negros.',
+    ingredientes: [
+      { tipo: 'simple', texto: '3 plátanos maduros' },
+      { tipo: 'simple', texto: '2 huevos' },
+      { tipo: 'simple', texto: '1/2 taza de azúcar' },
+      { tipo: 'simple', texto: '1/3 taza de aceite' },
+      { tipo: 'simple', texto: '1 1/2 taza de harina' },
+      { tipo: 'simple', texto: '1 cucharadita de polvos de hornear' },
+      { tipo: 'simple', texto: '1 pizca de sal' },
+    ],
+    pasos: [
+      'Precalentar el horno a 180°C. Engrasar un molde.',
+      'Machacar los plátanos y mezclar con los huevos, el azúcar y el aceite.',
+      'Agregar la harina, los polvos de hornear y la sal. Mezclar sin batir de más.',
+      'Poner en el molde y hornear por 50-55 minutos.',
+      'Dejar enfriar antes de desmoldar.',
+    ],
+    fotos: ['https://picsum.photos/seed/queque1/600/400'],
+    creadoEn: '2026-09-18T12:00:00',
+  },
+  {
+    id: 'limonada-hierbabuena',
+    titulo: 'Limonada con hierbabuena',
+    categoria: 'Bebida',
+    autor: 'Yayo',
+    nota: 'Se puede endulzar con miel en vez de azúcar.',
+    ingredientes: [
+      { tipo: 'simple', texto: '4 limones' },
+      { tipo: 'simple', texto: '1 litro de agua fría' },
+      { tipo: 'simple', texto: '3 cucharadas de azúcar' },
+      { tipo: 'simple', texto: 'Hojas de hierbabuena fresca' },
+      { tipo: 'simple', texto: 'Hielo' },
+    ],
+    pasos: [
+      'Exprimir los limones y colar el jugo.',
+      'Disolver el azúcar en un poco de agua caliente y dejar enfriar.',
+      'Mezclar el jugo, el jarabe y el agua fría.',
+      'Agregar la hierbabuena y machacarla un poco para que suelte el aroma.',
+      'Servir con hielo.',
+    ],
+    fotos: [],
+    creadoEn: '2026-09-20T12:00:00',
+  },
+];
+
+let filtroCategoria = null;
+let modalActivo = null;
+let borrador = null;
+let observer = null;
+
+/* ================================================================
+   HELPERS.
+   ================================================================ */
+
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const k in attrs || {}) {
+    const v = attrs[k];
+    if (k === 'class') e.className = v;
+    else if (k === 'html') e.innerHTML = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (v !== false && v != null) e.setAttribute(k, v);
+  }
+  kids.flat().forEach((c) => {
+    if (c == null || c === false) return;
+    e.append(c.nodeType ? c : document.createTextNode(c));
+  });
+  return e;
+}
+
+function generarId(titulo) {
+  return (titulo || 'receta')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    + '-' + Date.now().toString(36).slice(-4);
+}
+
+function recetaPorId(id) {
+  return recetas.find((r) => r.id === id);
+}
+
+/* ================================================================
+   RENDER PRINCIPAL.
+   ================================================================ */
+
+function pintarChips() {
+  const cont = $('chips');
+  cont.replaceChildren();
+
+  const opciones = [{ id: null, nombre: 'Todas' }]
+    .concat(NOMBRES_CATEGORIA.map((c) => ({ id: c, nombre: c })));
+
+  for (const op of opciones) {
+    cont.append(h('button', {
+      type: 'button',
+      class: 'chip',
+      'aria-pressed': String(filtroCategoria === op.id),
+      onclick: () => {
+        filtroCategoria = filtroCategoria === op.id ? null : op.id;
+        pintarTodo();
+      },
+    }, op.nombre));
+  }
+}
+
+function recetasFiltradas() {
+  if (!filtroCategoria) return recetas;
+  return recetas.filter((r) => r.categoria === filtroCategoria);
+}
+
+function pintarTodo() {
+  pintarChips();
+  pintarLista();
+  pintarIndice();
+  engancharObserver();
+}
+
+function pintarLista() {
+  const cont = $('paginas');
+  cont.replaceChildren();
+
+  const lista = recetasFiltradas();
+  if (lista.length === 0) {
+    cont.append(h('p', { class: 'vacio' },
+      filtroCategoria ? 'No hay recetas en esta categoría.' : 'Todavía no hay recetas.'));
+    return;
+  }
+
+  const grupos = {};
+  for (const r of lista) {
+    if (!grupos[r.categoria]) grupos[r.categoria] = [];
+    grupos[r.categoria].push(r);
+  }
+
+  const ul = h('ul', { class: 'lista-recetas' });
+  for (const cat of NOMBRES_CATEGORIA) {
+    const items = grupos[cat];
+    if (!items) continue;
+    ul.append(pintarGrupo(cat, items));
+  }
+  cont.append(ul);
+}
+
+function pintarGrupo(categoria, items) {
+  const color = CATEGORIAS[categoria];
+
+  const tarjetas = h('div', { class: 'tarjetas' });
+  for (const r of items) {
+    tarjetas.append(pintarTarjeta(r, color));
+  }
+
+  return h('li', {
+    class: 'grupo-categoria',
+    id: 'cap-' + categoria.toLowerCase().replace(/\s+/g, '-'),
+    'data-categoria': categoria,
+    style: `--cat-color: ${color}`,
+  },
+    h('div', { class: 'grupo-categoria__cab' },
+      h('h2', {}, categoria),
+      h('span', { class: 'grupo-categoria__contador' }, String(items.length))
+    ),
+    tarjetas
+  );
+}
+
+function pintarTarjeta(r, color) {
+  const foto = r.fotos && r.fotos[0];
+
+  const fotoDiv = h('div', { class: 'tarjeta__foto' });
+  if (foto) {
+    fotoDiv.append(h('img', { src: foto, alt: '', loading: 'lazy' }));
+  } else {
+    fotoDiv.append(h('span', { class: 'tarjeta__inicial' },
+      (r.titulo || '?').trim().charAt(0).toUpperCase()));
+  }
+
+  const tieneSub = r.ingredientes.some((i) => i.tipo === 'sub');
+
+  const meta = h('div', { class: 'tarjeta__meta' });
+  meta.append(h('span', {}, r.autor || ''));
+  if (tieneSub) meta.append(h('span', { class: 'badge badge--sub' }, 'Con sub'));
+  if (foto) meta.append(h('span', { class: 'badge badge--foto' }, 'Foto'));
+
+  return h('article', {
+    class: 'tarjeta',
+    style: `--cat-color: ${color}`,
+    onclick: () => abrirDetalle(r.id),
+  },
+    fotoDiv,
+    h('div', { class: 'tarjeta__cuerpo' },
+      h('div', { class: 'tarjeta__titulo' }, r.titulo),
+      meta
+    )
+  );
+}
+
+/* ================================================================
+   ÍNDICE LATERAL.
+   ================================================================ */
+
+function pintarIndice() {
+  const cont = $('indice');
+  cont.replaceChildren();
+
+  // El índice solo tiene sentido cuando no hay filtro y hay más de
+  // una categoría visible.
+  if (filtroCategoria) return;
+
+  const lista = recetasFiltradas();
+  const cats = NOMBRES_CATEGORIA.filter((c) => lista.some((r) => r.categoria === c));
+  if (cats.length < 2) return;
+
+  for (const cat of cats) {
+    const color = CATEGORIAS[cat];
+    const id = 'cap-' + cat.toLowerCase().replace(/\s+/g, '-');
+    cont.append(h('button', {
+      type: 'button',
+      class: 'indice-tab',
+      'data-cat': id,
+      style: `background: ${color};`,
+      title: cat,
+      'aria-label': 'Ir a ' + cat,
+      onclick: () => {
+        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      },
+    }, cat.slice(0, 3)));
+  }
+}
+
+function engancharObserver() {
+  if (observer) {
+    observer.disconnect();
+    observer = null;
+  }
+
+  const tabs = $('indice').querySelectorAll('.indice-tab');
+  const caps = $('paginas').querySelectorAll('.grupo-categoria');
+  if (!tabs.length || !caps.length) return;
+
+  // Marcar el primero como activo por defecto.
+  tabs[0].classList.add('activo');
+
+  observer = new IntersectionObserver((entries) => {
+    entries.forEach((ent) => {
+      if (ent.isIntersecting) {
+        const catId = ent.target.id;
+        tabs.forEach((t) => {
+          t.classList.toggle('activo', t.dataset.cat === catId);
+        });
+      }
+    });
+  }, {
+    root: null,
+    rootMargin: '-20% 0px -70% 0px',
+    threshold: 0,
+  });
+
+  caps.forEach((c) => observer.observe(c));
+}
+
+/* ================================================================
+   MODAL DE DETALLE.
+   ================================================================ */
+
+function abrirDetalle(id) {
+  cerrarModal();
+  const r = recetaPorId(id);
+  if (!r) return;
+
+  const color = CATEGORIAS[r.categoria] || 'var(--gold)';
+
+  const modal = h('div', { class: 'modal', 'data-modal': 'detalle' });
+  const tarjeta = h('div', { class: 'modal__tarjeta' });
+
+  tarjeta.append(
+    h('div', { class: 'modal__handle' }),
+    h('div', { class: 'modal__cabecera' },
+      h('h2', {}, r.titulo),
+      h('button', {
+        type: 'button',
+        class: 'modal__cerrar',
+        onclick: cerrarModal,
+        'aria-label': 'Cerrar',
+      }, '×')
+    )
+  );
+
+  const cuerpo = h('div', { class: 'modal__cuerpo' });
+
+  cuerpo.append(
+    h('div', { class: 'detalle__meta' },
+      h('span', {
+        class: 'badge',
+        style: `background: ${color}33; color: ${color}; padding: 4px 10px; font-size: 11px;`,
+      }, r.categoria),
+      h('span', {}, 'Por ' + (r.autor || 'desconocido'))
+    )
+  );
+
+  if (r.fotos && r.fotos[0]) {
+    cuerpo.append(h('div', {
+      class: 'detalle__foto',
+      style: `background-image: url('${r.fotos[0]}')`,
+    }));
+  }
+
+  cuerpo.append(
+    h('section', {},
+      h('p', { class: 'detalle__seccion-titulo' }, 'Ingredientes'),
+      pintarIngredientes(r.ingredientes)
+    )
+  );
+
+  cuerpo.append(
+    h('section', {},
+      h('p', { class: 'detalle__seccion-titulo' }, 'Preparación'),
+      pintarPasos(r.pasos)
+    )
+  );
+
+  if (r.nota) {
+    cuerpo.append(
+      h('section', {},
+        h('p', { class: 'detalle__seccion-titulo' }, 'Nota'),
+        h('div', { class: 'detalle__nota' }, r.nota)
+      )
+    );
+  }
+
+  tarjeta.append(cuerpo);
+
+  tarjeta.append(
+    h('div', { class: 'modal__pie' },
+      h('button', {
+        type: 'button', class: 'btn-peligro',
+        onclick: () => confirmarEliminar(r.id),
+      }, 'Eliminar'),
+      h('button', {
+        type: 'button', class: 'btn-secundario',
+        onclick: () => cerrarModal(),
+      }, 'Cerrar'),
+      h('button', {
+        type: 'button', class: 'btn-primario',
+        onclick: () => abrirFormulario(r.id),
+      }, 'Editar')
+    )
+  );
+
+  modal.append(tarjeta);
+  modal.addEventListener('click', (ev) => {
+    if (ev.target === modal) cerrarModal();
+  });
+  document.body.append(modal);
+  modal.offsetWidth;
+  modal.classList.add('modal--visible');
+  modalActivo = modal;
+}
+
+function pintarIngredientes(ingredientes) {
+  const ul = h('ul', { class: 'detalle__ingredientes' });
+
+  for (const ing of ingredientes) {
+    if (ing.tipo === 'simple') {
+      ul.append(h('li', { class: 'ing-simple' }, ing.texto));
+    } else if (ing.tipo === 'sub') {
+      const sub = recetaPorId(ing.recetaId);
+      const nombreSub = sub ? sub.titulo : '(sub-receta eliminada)';
+      const cantidad = [ing.cantidad, ing.unidad].filter(Boolean).join(' ');
+
+      const hijosUl = h('ul', { class: 'ing-sub__hijos' });
+      if (sub) {
+        for (const subIng of sub.ingredientes) {
+          if (subIng.tipo === 'simple') {
+            hijosUl.append(h('li', {}, subIng.texto));
+          } else {
+            const subSub = recetaPorId(subIng.recetaId);
+            hijosUl.append(h('li', {},
+              `📦 ${subSub ? subSub.titulo : '(desconocida)'}`));
+          }
+        }
+      }
+
+      ul.append(h('li', { class: 'ing-sub' },
+        h('details', {},
+          h('summary', {},
+            h('span', { class: 'ing-sub__nombre' }, '📦 ' + nombreSub),
+            cantidad ? h('span', { class: 'ing-sub__cantidad' }, cantidad) : null
+          ),
+          sub ? hijosUl : null
+        )
+      ));
+    }
+  }
+  return ul;
+}
+
+function pintarPasos(pasos) {
+  const ol = h('ol', { class: 'detalle__pasos' });
+  pasos.forEach((p, i) => {
+    ol.append(h('li', { class: 'detalle__paso' },
+      h('span', { class: 'detalle__paso-num' }, String(i + 1)),
+      h('span', { class: 'detalle__paso-texto' }, p)
+    ));
+  });
+  return ol;
+}
+
+/* ================================================================
+   MODAL DE FORMULARIO.
+   ================================================================ */
+
+function abrirFormulario(idReceta) {
+  cerrarModal();
+
+  const editando = idReceta ? recetaPorId(idReceta) : null;
+
+  borrador = editando
+    ? {
+        id: editando.id,
+        titulo: editando.titulo,
+        categoria: editando.categoria,
+        autor: editando.autor,
+        nota: editando.nota || '',
+        ingredientes: editando.ingredientes.map((i) => ({ ...i })),
+        pasos: editando.pasos.slice(),
+        fotos: (editando.fotos || []).slice(),
+      }
+    : {
+        id: null,
+        titulo: '',
+        categoria: NOMBRES_CATEGORIA[0],
+        autor: 'Yayo',
+        nota: '',
+        ingredientes: [],
+        pasos: [''],
+        fotos: [],
+      };
+
+  pintarFormulario();
+}
+
+function pintarFormulario() {
+  cerrarModal();
+
+  const editando = !!borrador.id;
+  const modal = h('div', { class: 'modal', 'data-modal': 'formulario' });
+  const tarjeta = h('div', { class: 'modal__tarjeta' });
+
+  tarjeta.append(
+    h('div', { class: 'modal__handle' }),
+    h('div', { class: 'modal__cabecera' },
+      h('h2', {}, editando ? 'Editar receta' : 'Nueva receta'),
+      h('button', {
+        type: 'button', class: 'modal__cerrar',
+        onclick: cerrarModal, 'aria-label': 'Cerrar',
+      }, '×')
+    )
+  );
+
+  const cuerpo = h('div', { class: 'modal__cuerpo' });
+
+  cuerpo.append(
+    h('div', { class: 'form-fila' },
+      h('div', { class: 'campo' },
+        h('label', {}, 'Título'),
+        h('input', {
+          type: 'text', value: borrador.titulo, maxlength: '100',
+          placeholder: 'Ej. Pan amasado',
+          oninput: (ev) => { borrador.titulo = ev.target.value; },
+        })
+      ),
+      h('div', { class: 'campo' },
+        h('label', {}, 'Categoría'),
+        h('select', {
+          onchange: (ev) => { borrador.categoria = ev.target.value; },
+        }, ...NOMBRES_CATEGORIA.map((c) => {
+          const op = h('option', { value: c }, c);
+          if (c === borrador.categoria) op.setAttribute('selected', '');
+          return op;
+        }))
+      )
+    )
+  );
+
+  const listaIng = h('div', { class: 'lista-editable' });
+  cuerpo.append(
+    h('div', { class: 'campo' },
+      h('label', {}, 'Ingredientes'),
+      listaIng,
+      h('div', { class: 'tipo-ing' },
+        h('button', {
+          type: 'button',
+          onclick: () => agregarIngredienteSimple(listaIng),
+        }, '+ Ingrediente simple'),
+        h('button', {
+          type: 'button',
+          onclick: () => agregarIngredienteSub(listaIng),
+        }, '+ Sub-receta')
+      )
+    )
+  );
+
+  const listaPasos = h('div', { class: 'lista-editable' });
+  cuerpo.append(
+    h('div', { class: 'campo' },
+      h('label', {}, 'Preparación'),
+      listaPasos,
+      h('button', {
+        type: 'button', class: 'btn-agregar-linea',
+        onclick: () => {
+          borrador.pasos.push('');
+          pintarPasosEditables(listaPasos);
+        },
+      }, '+ Añadir paso')
+    )
+  );
+
+  cuerpo.append(
+    h('div', { class: 'campo' },
+      h('label', {}, 'Nota (opcional)'),
+      h('textarea', {
+        placeholder: 'Algún detalle, truco o comentario sobre la receta',
+        maxlength: '500',
+        oninput: (ev) => { borrador.nota = ev.target.value; },
+      }, borrador.nota)
+    )
+  );
+
+  cuerpo.append(
+    h('div', { class: 'campo' },
+      h('label', {}, 'Foto (URL, opcional)'),
+      h('input', {
+        type: 'url',
+        value: borrador.fotos[0] || '',
+        placeholder: 'https://...',
+        oninput: (ev) => {
+          const v = ev.target.value.trim();
+          borrador.fotos = v ? [v] : [];
+        },
+      })
+    )
+  );
+
+  tarjeta.append(cuerpo);
+
+  tarjeta.append(
+    h('div', { class: 'modal__pie' },
+      h('button', {
+        type: 'button', class: 'btn-secundario',
+        onclick: cerrarModal,
+      }, 'Cancelar'),
+      h('button', {
+        type: 'button', class: 'btn-primario',
+        onclick: () => guardarFormulario(),
+      }, editando ? 'Guardar cambios' : 'Crear receta')
+    )
+  );
+
+  modal.append(tarjeta);
+  modal.addEventListener('click', (ev) => {
+    if (ev.target === modal) cerrarModal();
+  });
+  document.body.append(modal);
+  modal.offsetWidth;
+  modal.classList.add('modal--visible');
+  modalActivo = modal;
+
+  pintarIngredientesEditables(listaIng);
+  pintarPasosEditables(listaPasos);
+}
+
+function pintarIngredientesEditables(cont) {
+  cont.replaceChildren();
+
+  if (borrador.ingredientes.length === 0) {
+    cont.append(h('p', { style: 'color: var(--dim); font-size: 13px; font-style: italic; margin: 4px 0;' },
+      'Sin ingredientes todavía.'));
+    return;
+  }
+
+  borrador.ingredientes.forEach((ing, idx) => {
+    if (ing.tipo === 'simple') {
+      cont.append(h('div', { class: 'fila-editable' },
+        h('input', {
+          type: 'text',
+          value: ing.texto,
+          placeholder: 'Ej. 2 tazas de harina',
+          maxlength: '150',
+          oninput: (ev) => { ing.texto = ev.target.value; },
+        }),
+        h('button', {
+          type: 'button', class: 'btn-quitar',
+          onclick: () => {
+            borrador.ingredientes.splice(idx, 1);
+            pintarIngredientesEditables(cont);
+          },
+        }, '×')
+      ));
+    } else {
+      const opciones = recetas.filter((r) => r.id !== borrador.id);
+      const select = h('select', {
+        onchange: (ev) => { ing.recetaId = ev.target.value; },
+      }, ...opciones.map((r) => {
+        const op = h('option', { value: r.id }, r.titulo);
+        if (r.id === ing.recetaId) op.setAttribute('selected', '');
+        return op;
+      }));
+
+      cont.append(h('div', { class: 'fila-editable fila-editable--sub' },
+        select,
+        h('input', {
+          type: 'number',
+          value: String(ing.cantidad || ''),
+          placeholder: 'Cant.',
+          oninput: (ev) => { ing.cantidad = Number(ev.target.value) || 0; },
+        }),
+        h('input', {
+          type: 'text',
+          value: ing.unidad || '',
+          placeholder: 'Unidad',
+          maxlength: '10',
+          oninput: (ev) => { ing.unidad = ev.target.value; },
+        }),
+        h('button', {
+          type: 'button', class: 'btn-quitar',
+          onclick: () => {
+            borrador.ingredientes.splice(idx, 1);
+            pintarIngredientesEditables(cont);
+          },
+        }, '×')
+      ));
+    }
+  });
+}
+
+function pintarPasosEditables(cont) {
+  cont.replaceChildren();
+  borrador.pasos.forEach((p, idx) => {
+    cont.append(h('div', { class: 'fila-editable' },
+      h('input', {
+        type: 'text',
+        value: p,
+        placeholder: `Paso ${idx + 1}`,
+        maxlength: '300',
+        oninput: (ev) => { borrador.pasos[idx] = ev.target.value; },
+      }),
+      h('button', {
+        type: 'button', class: 'btn-quitar',
+        onclick: () => {
+          if (borrador.pasos.length === 1) {
+            borrador.pasos[0] = '';
+          } else {
+            borrador.pasos.splice(idx, 1);
+          }
+          pintarPasosEditables(cont);
+        },
+      }, '×')
+    ));
+  });
+}
+
+function agregarIngredienteSimple(cont) {
+  borrador.ingredientes.push({ tipo: 'simple', texto: '' });
+  pintarIngredientesEditables(cont);
+}
+
+function agregarIngredienteSub(cont) {
+  const disponibles = recetas.filter((r) => r.id !== borrador.id);
+  if (disponibles.length === 0) {
+    alert('No hay otras recetas para usar como sub-receta.');
+    return;
+  }
+  borrador.ingredientes.push({
+    tipo: 'sub',
+    recetaId: disponibles[0].id,
+    cantidad: 100,
+    unidad: 'g',
+  });
+  pintarIngredientesEditables(cont);
+}
+
+function guardarFormulario() {
+  if (!borrador.titulo.trim()) {
+    alert('Falta el título.');
+    return;
+  }
+  const ingredientesValidos = borrador.ingredientes.filter((i) =>
+    i.tipo === 'simple' ? i.texto.trim() : i.recetaId
+  );
+  if (ingredientesValidos.length === 0) {
+    alert('Agrega al menos un ingrediente.');
+    return;
+  }
+  const pasosValidos = borrador.pasos.map((p) => p.trim()).filter(Boolean);
+  if (pasosValidos.length === 0) {
+    alert('Agrega al menos un paso.');
+    return;
+  }
+
+  if (borrador.id) {
+    const r = recetaPorId(borrador.id);
+    if (r) {
+      r.titulo = borrador.titulo.trim();
+      r.categoria = borrador.categoria;
+      r.nota = borrador.nota.trim();
+      r.ingredientes = ingredientesValidos;
+      r.pasos = pasosValidos;
+      r.fotos = borrador.fotos.slice();
+    }
+  } else {
+    recetas.push({
+      id: generarId(borrador.titulo),
+      titulo: borrador.titulo.trim(),
+      categoria: borrador.categoria,
+      autor: borrador.autor,
+      nota: borrador.nota.trim(),
+      ingredientes: ingredientesValidos,
+      pasos: pasosValidos,
+      fotos: borrador.fotos.slice(),
+      creadoEn: new Date().toISOString(),
+    });
+  }
+
+  cerrarModal();
+  pintarTodo();
+}
+
+/* ================================================================
+   ELIMINAR.
+   ================================================================ */
+
+function confirmarEliminar(id) {
+  const r = recetaPorId(id);
+  if (!r) return;
+  if (!confirm(`¿Eliminar "${r.titulo}"?`)) return;
+
+  const usan = recetas.filter((x) => x.id !== id &&
+    x.ingredientes.some((i) => i.tipo === 'sub' && i.recetaId === id));
+
+  if (usan.length > 0) {
+    const nombres = usan.map((u) => u.titulo).join(', ');
+    if (!confirm(`Esta receta se usa como sub-receta en: ${nombres}. ¿Eliminar igual?`)) return;
+  }
+
+  recetas = recetas.filter((x) => x.id !== id);
+  cerrarModal();
+  pintarTodo();
+}
+
+/* ================================================================
+   MODAL: CERRAR.
+   ================================================================ */
+
+function cerrarModal() {
+  const m = modalActivo;
+  if (!m) return;
+  m.classList.remove('modal--visible');
+  setTimeout(() => {
+    if (m.parentNode) m.remove();
+  }, 200);
+  modalActivo = null;
+}
+
+$('btn-nueva').addEventListener('click', () => abrirFormulario(null));
+
+pintarTodo();
+})();
+</script>
+</body>
+</html>

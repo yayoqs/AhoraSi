@@ -1,11 +1,11 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/realtime.js
-   Versión: 1.5.0
+   Versión: 1.6.0
    Propósito: capa única sobre Realtime de Appwrite.
-              v1.5.0: se agrega ahorasi_chistes.
-              v1.4.0: se agregan retos, penitencias, preguntas,
-                      apuestas.
+              v1.6.0: se agrega ahorasi_recetas.
+              v1.5.0: ahorasi_chistes.
+              v1.4.0: retos, penitencias, preguntas, apuestas.
               v1.3.0: ahorasi_series.
               v1.2.0: ahorasi_lugares.
               v1.1.0: ahorasi_fotos.
@@ -41,6 +41,7 @@ const TABLAS = {
   ahorasi_preguntas: 'preguntas',
   ahorasi_apuestas: 'apuestas',
   ahorasi_chistes: 'chistes',
+  ahorasi_recetas: 'recetas',
 };
 
 let rt = null;
