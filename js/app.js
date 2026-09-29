@@ -1,13 +1,26 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/app.js
-   Versión: 2.14.0
+   Versión: 4.0.2
    Propósito: punto de entrada. Arranca sesión, monta el shell
-              de navegación por hash, monta/desmonta las vistas, y
-              mantiene Realtime activo mientras hay sesión.
-              v2.14.0: se agrega la vista Recetas al nav, después
-                      de Juegos.
-              v2.13.0: vista Juegos. Typo "dialago" corregido.
+              con topbar + chips + tabbar inferior, monta/desmonta
+              las vistas, aplica el acento dinámico por vista,
+              monta el botón flotante contextual, aplica el modo
+              noche y mantiene Realtime activo mientras hay sesión.
+              v4.0.2: reubicación de vistas. Kit se mueve de Vida
+                      a Afuera (entre Mapa y Fauna), porque es
+                      material de campamento, no de la vida
+                      cotidiana. Recetas pasa a ser la primera
+                      vista de Vida (antes iba al final).
+              v4.0.1: el primer grupo se llama Nido (antes
+                      Fogón). Se renombra la clave interna de
+                      'fogon' a 'nido' por consistencia.
+              v4.0.0: shell nuevo. Los cinco grupos pasan a ser
+                      Nido, Vida, Afuera, Juegos, Más.
+              v3.0.0: rediseño del shell. Tabbar inferior con
+                      cinco grupos.
+              v2.14.0: vista Recetas.
+              v2.13.0: vista Juegos.
               v2.12.0: vista Series.
               v2.11.0: vista Mapa.
               v2.10.0: vista Ideas.
@@ -15,11 +28,6 @@
               v2.8.0: login rediseñado, Mi cuenta, nombre visible.
               v2.7.0: manejarSalir() con mostrarConfirmacion().
               v2.6.0: navegar() e iniciarRealtime() no bloquean.
-              v2.5.x: Realtime al arrancar y al cerrar sesión.
-              v2.4.x: percusión, carta, respuesta, hitos, kit,
-                      fauna, flora, botón Salir.
-              v2.1.0: login integrado.
-              v2.0.0: shell con navegación.
               v1.0.0: verificación de arranque.
    ================================================================ */
 
@@ -28,7 +36,7 @@ import { crearLogger } from './nucleo/logger.js';
 import { arrancar as arrancarSesion } from './arranque/sesion-inicial.js';
 import { iniciarSesion, cerrarSesion } from './datos/sesion.js';
 import { iniciar as iniciarRealtime, detener as detenerRealtime } from './datos/realtime.js';
-import { obtener } from './nucleo/almacen.js';
+import { obtener, establecer } from './nucleo/almacen.js';
 import { al } from './nucleo/bus-eventos.js';
 import { h, limpiarContenedor } from './nucleo/utils.js';
 import { mostrarConfirmacion } from './nucleo/dialogos.js';
@@ -39,38 +47,95 @@ import * as vistaPlanes from './vistas/planes.js';
 import * as vistaIdeas from './vistas/ideas.js';
 import * as vistaHitos from './vistas/hitos.js';
 import * as vistaKit from './vistas/kit.js';
+import * as vistaRecetas from './vistas/recetas.js';
+import * as vistaMapa from './vistas/mapa.js';
 import * as vistaFauna from './vistas/fauna.js';
 import * as vistaFlora from './vistas/flora.js';
-import * as vistaMapa from './vistas/mapa.js';
 import * as vistaSeries from './vistas/series.js';
 import * as vistaJuegos from './vistas/juegos.js';
-import * as vistaRecetas from './vistas/recetas.js';
-import * as vistaRespuesta from './vistas/respuesta.js';
 import * as vistaPercusion from './vistas/percusion.js';
 import * as vistaCuenta from './vistas/cuenta.js';
 
 const log = crearLogger('app');
 
 const VISTAS = {
-  hero: { titulo: 'Bienvenida', modulo: vistaHero, oculta: true },
-  carta: { titulo: 'Carta', modulo: vistaCarta },
-  planes: { titulo: 'Planes', modulo: vistaPlanes },
-  ideas: { titulo: 'Ideas', modulo: vistaIdeas },
-  hitos: { titulo: 'Hitos', modulo: vistaHitos },
-  kit: { titulo: 'Kit', modulo: vistaKit },
-  fauna: { titulo: 'Fauna', modulo: vistaFauna },
-  flora: { titulo: 'Flora', modulo: vistaFlora },
-  mapa: { titulo: 'Mapa', modulo: vistaMapa },
-  series: { titulo: 'Series', modulo: vistaSeries },
-  juegos: { titulo: 'Juegos', modulo: vistaJuegos },
-  recetas: { titulo: 'Recetas', modulo: vistaRecetas },
-  percusion: { titulo: 'Percusión', modulo: vistaPercusion },
-  respuesta: { titulo: 'Respuesta', modulo: vistaRespuesta },
-  cuenta: { titulo: 'Mi cuenta', modulo: vistaCuenta, oculta: true },
+  hero: {
+    titulo: 'Bienvenida', grupo: null,
+    modulo: vistaHero, oculta: true, acento: 'terracota',
+  },
+  carta: {
+    titulo: 'Carta', grupo: 'nido',
+    modulo: vistaCarta, acento: 'terracota',
+  },
+  recetas: {
+    titulo: 'Recetas', grupo: 'vida',
+    modulo: vistaRecetas, acento: 'terracota', flotante: true,
+  },
+  planes: {
+    titulo: 'Planes', grupo: 'vida',
+    modulo: vistaPlanes, acento: 'azul-piedra',
+  },
+  ideas: {
+    titulo: 'Ideas', grupo: 'vida',
+    modulo: vistaIdeas, acento: 'ciruela',
+  },
+  hitos: {
+    titulo: 'Hitos', grupo: 'vida',
+    modulo: vistaHitos, acento: 'mostaza',
+  },
+  mapa: {
+    titulo: 'Mapa', grupo: 'afuera',
+    modulo: vistaMapa, acento: 'azul-piedra',
+  },
+  kit: {
+    titulo: 'Kit', grupo: 'afuera',
+    modulo: vistaKit, acento: 'musgo',
+  },
+  fauna: {
+    titulo: 'Fauna', grupo: 'afuera',
+    modulo: vistaFauna, acento: 'musgo', flotante: true,
+  },
+  flora: {
+    titulo: 'Flora', grupo: 'afuera',
+    modulo: vistaFlora, acento: 'musgo', flotante: true,
+  },
+  series: {
+    titulo: 'Series', grupo: 'juegos',
+    modulo: vistaSeries, acento: 'ciruela', flotante: true,
+  },
+  juegos: {
+    titulo: 'Juegos', grupo: 'juegos',
+    modulo: vistaJuegos, acento: 'ciruela',
+  },
+  percusion: {
+    titulo: 'Percusión', grupo: 'juegos',
+    modulo: vistaPercusion, acento: 'mostaza',
+  },
+  cuenta: {
+    titulo: 'Mi cuenta', grupo: 'mas',
+    modulo: vistaCuenta, acento: 'terracota',
+  },
 };
+
+const ICONO_NIDO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>';
+const ICONO_VIDA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/><path d="M4 17a3 3 0 0 1 3-3h11"/></svg>';
+const ICONO_AFUERA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18L14 8l-3 5-2-3-6 10z"/></svg>';
+const ICONO_JUEGOS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/></svg>';
+const ICONO_MAS = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>';
+
+const GRUPOS = {
+  nido:   { titulo: 'Nido',   icono: ICONO_NIDO,   vistas: ['carta'] },
+  vida:   { titulo: 'Vida',   icono: ICONO_VIDA,   vistas: ['recetas', 'planes', 'ideas', 'hitos'] },
+  afuera: { titulo: 'Afuera', icono: ICONO_AFUERA, vistas: ['mapa', 'kit', 'fauna', 'flora'] },
+  juegos: { titulo: 'Juegos', icono: ICONO_JUEGOS, vistas: ['series', 'juegos', 'percusion'] },
+  mas:    { titulo: 'Más',    icono: ICONO_MAS,    vistas: ['cuenta'] },
+};
+
+const ORDEN_GRUPOS = ['nido', 'vida', 'afuera', 'juegos', 'mas'];
 
 const RUTA_DEFECTO = 'carta';
 const CLAVE_HERO_VISTO = 'ahorasi:heroVisto';
+const CLAVE_MODO_NOCHE = 'ahorasi:modoNoche';
 
 const USUARIOS = [
   {
@@ -90,8 +155,12 @@ const USUARIOS = [
 ];
 
 let vistaActiva = null;
-let navContenedor = null;
+let vistaActivaId = null;
+let headerContenedor = null;
+let chipsContenedor = null;
 let vistasContenedor = null;
+let tabbarContenedor = null;
+let botonFlotanteEl = null;
 let usuarioElegido = null;
 
 function heroVisto() {
@@ -110,41 +179,174 @@ function marcarHeroVisto() {
   }
 }
 
+function leerModoNocheDeDisco() {
+  try {
+    return localStorage.getItem(CLAVE_MODO_NOCHE) === '1';
+  } catch (e) {
+    return false;
+  }
+}
+
+function aplicarModoNoche(activo) {
+  document.body.classList.toggle('modo-noche', !!activo);
+}
+
 function rutaInicial() {
   const hash = (location.hash || '').replace('#', '').trim();
   if (hash === 'hero' && heroVisto()) return RUTA_DEFECTO;
-  if (VISTAS[hash]) return hash;
+  if (VISTAS[hash] && !VISTAS[hash].oculta) return hash;
   if (!heroVisto()) return 'hero';
   return RUTA_DEFECTO;
 }
 
 function rutaDesdeHash() {
   const hash = (location.hash || '').replace('#', '').trim();
-  return VISTAS[hash] ? hash : RUTA_DEFECTO;
+  if (VISTAS[hash] && !VISTAS[hash].oculta) return hash;
+  return RUTA_DEFECTO;
 }
 
-function construirNav() {
-  limpiarContenedor(navContenedor);
-  for (const [id, ruta] of Object.entries(VISTAS)) {
-    if (ruta.oculta) continue;
-    navContenedor.append(h('a', {
-      href: '#' + id,
-      'data-ruta': id,
-      class: 'nav__enlace',
-    }, ruta.titulo));
+function grupoDe(vistaId) {
+  return VISTAS[vistaId]?.grupo || null;
+}
+
+function aplicarAcento(vistaId) {
+  const v = VISTAS[vistaId];
+  if (!v || !v.acento) return;
+  document.documentElement.style.setProperty('--accent', `var(--${v.acento})`);
+}
+
+function construirHeader(estadoSesion) {
+  limpiarContenedor(headerContenedor);
+
+  const nombreVisible = estadoSesion?.perfil?.nombre
+    || estadoSesion?.usuario?.email
+    || '';
+
+  const eyebrow = h('p', { class: 'shell__eyebrow' }, '');
+  const titulo = h('h1', { class: 'shell__titulo' }, '');
+  const usuario = h('button', { type: 'button', class: 'shell__btn-cuenta', title: nombreVisible, 'aria-label': 'Mi cuenta' });
+
+  usuario.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>';
+  usuario.addEventListener('click', () => navegar('cuenta'));
+
+  const topbarRow = h('div', { class: 'shell__topbar-row' },
+    h('div', {}, eyebrow, titulo),
+    usuario
+  );
+
+  const topbar = h('div', { class: 'shell__topbar' }, topbarRow);
+
+  const chips = h('nav', { class: 'shell__chips', id: 'chips' });
+
+  headerContenedor.append(topbar, chips);
+  chipsContenedor = chips;
+}
+
+function pintarHeader(vistaId) {
+  const vista = VISTAS[vistaId];
+  if (!vista) return;
+
+  const grupo = grupoDe(vistaId);
+  const grupoTitulo = grupo ? GRUPOS[grupo].titulo : '';
+
+  const eyebrow = headerContenedor.querySelector('.shell__eyebrow');
+  const titulo = headerContenedor.querySelector('.shell__titulo');
+
+  if (eyebrow) eyebrow.textContent = grupoTitulo;
+  if (titulo) titulo.textContent = vista.titulo;
+
+  limpiarContenedor(chipsContenedor);
+
+  if (!grupo) {
+    chipsContenedor.hidden = true;
+    return;
+  }
+
+  const vistasDelGrupo = GRUPOS[grupo].vistas;
+  if (vistasDelGrupo.length <= 1) {
+    chipsContenedor.hidden = true;
+    return;
+  }
+
+  chipsContenedor.hidden = false;
+  for (const id of vistasDelGrupo) {
+    chipsContenedor.append(h('button', {
+      type: 'button',
+      class: 'shell__chip' + (id === vistaId ? ' activo' : ''),
+      'data-vista': id,
+      onclick: () => navegar(id),
+    }, VISTAS[id].titulo));
   }
 }
 
-function marcarNavActiva(ruta) {
-  navContenedor.querySelectorAll('.nav__enlace').forEach((a) => {
-    a.classList.toggle('nav__enlace--activo', a.dataset.ruta === ruta);
+function pintarTabbar(vistaId) {
+  limpiarContenedor(tabbarContenedor);
+
+  const grupoActivo = grupoDe(vistaId);
+
+  for (const grupoId of ORDEN_GRUPOS) {
+    const grupo = GRUPOS[grupoId];
+    const boton = h('button', {
+      type: 'button',
+      class: 'tabbar__item' + (grupoId === grupoActivo ? ' activo' : ''),
+      'data-grupo': grupoId,
+      'aria-label': grupo.titulo,
+      onclick: () => navegarAlGrupo(grupoId),
+    });
+    boton.innerHTML = grupo.icono + `<span class="tabbar__label">${grupo.titulo}</span>`;
+    tabbarContenedor.append(boton);
+  }
+}
+
+function navegarAlGrupo(grupoId) {
+  const grupo = GRUPOS[grupoId];
+  if (!grupo) return;
+  if (grupoDe(vistaActivaId) === grupoId) return;
+  const primera = grupo.vistas[0];
+  if (primera) navegar(primera);
+}
+
+function crearBotonFlotante() {
+  const btn = h('button', {
+    type: 'button',
+    class: 'boton-flotante',
+    'aria-label': 'Añadir',
+    onclick: () => dispararAbrirFormulario(),
   });
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+  return btn;
+}
+
+function montarBotonFlotante() {
+  quitarBotonFlotante();
+  const v = VISTAS[vistaActivaId];
+  if (!v?.flotante) return;
+  botonFlotanteEl = crearBotonFlotante();
+  document.body.append(botonFlotanteEl);
+}
+
+function quitarBotonFlotante() {
+  if (botonFlotanteEl && botonFlotanteEl.parentNode) {
+    botonFlotanteEl.remove();
+  }
+  botonFlotanteEl = null;
+}
+
+function dispararAbrirFormulario() {
+  if (!vistasContenedor) return;
+  const btn = vistasContenedor.querySelector('[data-accion="abrir-formulario"]');
+  if (btn) {
+    btn.click();
+  } else {
+    log.warn('La vista', vistaActivaId, 'no tiene botón [data-accion="abrir-formulario"]');
+  }
 }
 
 async function montarVista(ruta) {
   const config = VISTAS[ruta];
   if (!config) return;
   vistaActiva = config;
+  vistaActivaId = ruta;
   try {
     await config.modulo.activar(vistasContenedor);
   } catch (e) {
@@ -155,6 +357,8 @@ async function montarVista(ruta) {
 }
 
 function navegar(ruta) {
+  if (!VISTAS[ruta] || VISTAS[ruta].oculta) ruta = RUTA_DEFECTO;
+
   if (vistaActiva) {
     try {
       vistaActiva.modulo.limpiar();
@@ -169,8 +373,13 @@ function navegar(ruta) {
     marcarHeroVisto();
   }
 
+  aplicarAcento(ruta);
+
   montarVista(ruta).catch((e) => log.error('Error al montar vista:', e));
-  marcarNavActiva(ruta);
+
+  pintarHeader(ruta);
+  pintarTabbar(ruta);
+  montarBotonFlotante();
 }
 
 function instalarNavegacion() {
@@ -202,42 +411,32 @@ function construirShell(estadoSesion) {
   }
   limpiarContenedor(app);
 
-  const nombreVisible = estadoSesion?.perfil?.nombre
-    || estadoSesion?.usuario?.email
-    || '';
-  const spanUsuario = h('span', { class: 'shell__usuario' }, nombreVisible);
-
-  const encabezado = h('header', { class: 'shell__header' },
-    h('div', { class: 'shell__marca' },
-      h('span', { class: 'shell__nombre' }, CONFIG.app.nombre),
-      spanUsuario
-    ),
-    h('nav', { class: 'nav', id: 'nav' }),
-    h('div', { class: 'shell__acciones' },
-      h('button', {
-        type: 'button',
-        class: 'shell__cuenta',
-        onclick: () => { location.hash = '#cuenta'; },
-      }, 'Mi cuenta'),
-      h('button', {
-        type: 'button',
-        class: 'shell__salir',
-        onclick: manejarSalir,
-      }, 'Salir')
-    )
-  );
-
+  const header = h('header', { class: 'shell__header' });
   const main = h('main', { class: 'shell__main', id: 'vistas' });
+  const tabbar = h('nav', { class: 'tabbar', 'aria-label': 'Navegación principal' });
 
-  app.append(encabezado, main);
+  const shell = h('div', { class: 'shell' }, header, main, tabbar);
+  app.append(shell);
 
-  navContenedor = encabezado.querySelector('#nav');
+  headerContenedor = header;
   vistasContenedor = main;
-  construirNav();
+  tabbarContenedor = tabbar;
+
+  construirHeader(estadoSesion);
 
   al('almacen:perfil', ({ valor }) => {
-    if (valor?.nombre) spanUsuario.textContent = valor.nombre;
+    if (valor?.nombre) {
+      const span = header.querySelector('.shell__btn-cuenta');
+      if (span) span.title = valor.nombre;
+    }
   });
+}
+
+function inicializarModoNoche() {
+  const activo = leerModoNocheDeDisco();
+  establecer('modoNoche', activo);
+  aplicarModoNoche(activo);
+  al('almacen:modoNoche', ({ valor }) => aplicarModoNoche(valor));
 }
 
 function mostrarLogin() {
@@ -349,6 +548,8 @@ async function principal() {
     );
     return;
   }
+
+  inicializarModoNoche();
 
   const estadoSesion = await arrancarSesion();
 

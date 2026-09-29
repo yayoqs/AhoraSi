@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ahora Sí — Carta</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --papel:        #F7F1E8;
+  --papel-2:      #EFE7DA;
+  --papel-3:      #FCF8F0;
+  --papel-carta:  #FBF4E6;
+  --borde:        #E2D7C5;
+  --borde-fuerte: #D2C4AC;
+  --tinta:        #1F1B16;
+  --tinta-suave:  #6B6155;
+  --tinta-tenue:  #A89B87;
+  --terracota:      #C9613B;
+  --terracota-clara:#E8A17A;
+  --terracota-papel:#F7E3D5;
+  --mostaza: #D9A421;
+  --musgo: #5A6B3E;
+  --sombra-1: 0 1px 2px rgba(31,27,22,.06);
+  --sombra-2: 0 12px 28px rgba(31,27,22,.10);
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-full: 999px;
+  --fuente-titulo: 'Bricolage Grotesque', system-ui, sans-serif;
+  --fuente-cuerpo: 'Figtree', system-ui, sans-serif;
+  --fuente-carta:  'Fraunces', Georgia, serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+h1,h2,h3,h4,p,ul,ol,li { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+button { background: none; border: none; cursor: pointer; font: inherit; color: inherit; }
+img { display: block; max-width: 100%; }
+
+body {
+  font-family: var(--fuente-cuerpo);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--tinta);
+  background: radial-gradient(ellipse at top, #2C2620 0%, #13100D 100%);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  -webkit-font-smoothing: antialiased;
+}
+@media (max-width: 520px) { body { padding: 0; display: block; } }
+
+.phone {
+  width: 390px;
+  height: 844px;
+  max-height: calc(100vh - 48px);
+  background: var(--papel);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 0 0 10px #0E0B08,
+    0 0 0 12px #2A2318,
+    0 30px 80px rgba(0,0,0,.55);
+}
+@media (max-width: 520px) {
+  .phone { width: 100%; height: 100dvh; max-height: none; border-radius: 0; box-shadow: none; }
+}
+
+/* ============================================================
+   SCREEN
+   ============================================================ */
+.screen-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--papel);
+  display: flex;
+  flex-direction: column;
+}
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ============================================================
+   TOPBAR
+   ============================================================ */
+.topbar {
+  flex-shrink: 0;
+  padding: 16px 20px 14px;
+  background: var(--papel);
+  position: relative;
+  z-index: 10;
+}
+.topbar__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.topbar__eyebrow {
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.topbar__title {
+  font-family: var(--fuente-titulo);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--terracota);
+}
+.topbar__btn {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  color: var(--tinta-suave);
+  transition: background .15s ease;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.topbar__btn:hover { background: var(--papel-2); }
+.topbar__btn svg { width: 20px; height: 20px; }
+
+/* Barra progreso */
+.reading-progress {
+  height: 2px;
+  background: color-mix(in oklab, var(--terracota) 12%, var(--papel));
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+  z-index: 9;
+}
+.reading-progress__bar {
+  height: 100%;
+  width: 0%;
+  background: var(--terracota);
+  border-radius: 0 2px 2px 0;
+  transition: width .12s linear;
+}
+
+/* ============================================================
+   CUERPO
+   ============================================================ */
+.screen__body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 22px 20px 120px;
+  -webkit-overflow-scrolling: touch;
+}
+.screen__body::-webkit-scrollbar { width: 0; }
+
+/* ============================================================
+   CARTA — HOJA
+   ============================================================ */
+.carta-hoja {
+  position: relative;
+  background: var(--papel-carta);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-lg);
+  padding: 30px 24px 28px;
+  box-shadow:
+    0 1px 2px rgba(31,27,22,.04),
+    0 12px 30px rgba(31,27,22,.06);
+  overflow: hidden;
+}
+.carta-hoja::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(201,97,59,.035) 0%, transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(201,97,59,.025) 0%, transparent 50%);
+}
+.carta-hoja::after {
+  content: '';
+  position: absolute;
+  top: 30px;
+  bottom: 30px;
+  left: 0;
+  width: 3px;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    var(--terracota-clara) 15%,
+    var(--terracota) 50%,
+    var(--terracota-clara) 85%,
+    transparent 100%);
+  opacity: .55;
+}
+
+.carta__fecha {
+  position: relative;
+  font-size: 11px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  margin-bottom: 22px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.carta__fecha::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--borde);
+}
+
+.carta__parrafo {
+  position: relative;
+  margin-bottom: 30px;
+}
+.carta__parrafo:last-of-type { margin-bottom: 0; }
+
+.carta__titulo-interno {
+  font-family: var(--fuente-carta);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 17px;
+  color: var(--terracota);
+  margin-bottom: 6px;
+  letter-spacing: -0.005em;
+}
+.carta__texto {
+  font-family: var(--fuente-carta);
+  font-size: 19px;
+  line-height: 1.7;
+  color: var(--tinta);
+  letter-spacing: -0.005em;
+  font-feature-settings: "onum" 1, "kern" 1;
+}
+
+.carta__separador {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 32px 0 26px;
+  color: var(--terracota-clara);
+  font-size: 12px;
+  letter-spacing: .5em;
+}
+.carta__separador span { transform: translateY(-1px); }
+
+.carta__firma {
+  position: relative;
+  text-align: right;
+  padding-top: 8px;
+}
+.carta__firma-texto {
+  font-family: var(--fuente-carta);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 30px;
+  color: var(--tinta);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  display: inline-block;
+  position: relative;
+  padding-bottom: 6px;
+}
+.carta__firma-texto::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 6px;
+  bottom: 0;
+  height: 2px;
+  background: var(--terracota);
+  border-radius: 2px;
+  opacity: .55;
+}
+.carta__firma-rol {
+  display: block;
+  font-family: var(--fuente-cuerpo);
+  font-style: normal;
+  font-weight: 600;
+  font-size: 10px;
+  color: var(--tinta-tenue);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  margin-top: 10px;
+}
+
+/* ============================================================
+   SECCIONES
+   ============================================================ */
+.seccion {
+  margin-top: 34px;
+}
+.seccion__cab {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.seccion__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--tinta);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+.seccion__titulo::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--borde);
+}
+.seccion__contador {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tinta-tenue);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+}
+
+/* Compromisos del otro (decorativos, NO marcables) */
+.compromisos__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.compromiso {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  background: var(--papel-2);
+  border-radius: var(--r-md);
+  border: 1px solid var(--borde);
+}
+.compromiso__check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--borde-fuerte);
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+}
+.compromiso__check svg {
+  width: 11px;
+  height: 11px;
+  color: var(--tinta-tenue);
+  opacity: .4;
+}
+.compromiso__cuerpo { flex: 1; min-width: 0; }
+.compromiso__titulo {
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--tinta);
+  margin-bottom: 3px;
+  line-height: 1.35;
+}
+.compromiso__desc {
+  font-size: 13px;
+  color: var(--tinta-suave);
+  line-height: 1.5;
+}
+
+/* Compromisos compartidos (editables) */
+.compartidos__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.compartido {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  background: color-mix(in oklab, var(--musgo) 6%, var(--papel-2));
+  border-radius: var(--r-md);
+  border: 1px solid color-mix(in oklab, var(--musgo) 20%, var(--borde));
+}
+.compartido__check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in oklab, var(--musgo) 40%, var(--borde-fuerte));
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: grid;
+  place-items: center;
+}
+.compartido__check svg {
+  width: 11px;
+  height: 11px;
+  color: color-mix(in oklab, var(--musgo) 60%, var(--tinta-tenue));
+  opacity: .75;
+}
+.compartido__cuerpo { flex: 1; min-width: 0; }
+.compartido__titulo {
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--tinta);
+  margin-bottom: 3px;
+  line-height: 1.35;
+}
+.compartido__desc {
+  font-size: 13px;
+  color: var(--tinta-suave);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+.compartido__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Distintivo de autor */
+.autor {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px 2px 2px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.autor__ini {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--papel);
+  font-family: var(--fuente-titulo);
+}
+.autor--luci { background: #F0E2E2; color: #8A5757; }
+.autor--luci .autor__ini { background: #D89A9A; }
+.autor--yayo { background: #EFE4CC; color: #6B4F1F; }
+.autor--yayo .autor__ini { background: #B8893C; }
+
+/* Botones mini */
+.btn-mini {
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  background: transparent;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  transition: all .15s ease;
+}
+.btn-mini:hover { background: var(--papel-3); color: var(--tinta); }
+.btn-mini--peligro:hover { background: #FBE9E9; color: #A03737; border-color: #E3B6B6; }
+
+/* Anexos */
+.anexos__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.anexo {
+  padding: 16px 18px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+}
+.anexo__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--tinta);
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+}
+.anexo__contenido {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--tinta-suave);
+  margin-bottom: 10px;
+}
+.anexo__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Form inline (agregar) */
+.form-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--papel-2);
+  border: 1px dashed var(--borde-fuerte);
+  border-radius: var(--r-md);
+}
+.form-inline input,
+.form-inline textarea {
+  padding: 10px 12px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: 14px;
+  color: var(--tinta);
+  width: 100%;
+}
+.form-inline input:focus,
+.form-inline textarea:focus {
+  outline: none;
+  border-color: var(--terracota);
+}
+.form-inline textarea { resize: vertical; min-height: 60px; }
+.form-inline__fila {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.btn {
+  padding: 10px 16px;
+  border-radius: var(--r-sm);
+  font-weight: 600;
+  font-size: 13px;
+  transition: all .15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn:active { transform: scale(.97); }
+.btn--primario {
+  background: var(--terracota);
+  color: var(--papel);
+}
+.btn--primario:hover { filter: brightness(1.05); }
+.btn--secundario {
+  background: transparent;
+  color: var(--tinta-suave);
+  border: 1px solid var(--borde-fuerte);
+}
+.btn--secundario:hover { background: var(--papel-3); color: var(--tinta); }
+.btn--full { width: 100%; justify-content: center; padding: 14px; font-size: 14px; }
+
+/* CTA Ver mi carta */
+.cta-carta {
+  margin-top: 36px;
+  padding: 20px;
+  background: linear-gradient(180deg,
+    var(--terracota-papel) 0%,
+    color-mix(in oklab, var(--terracota) 5%, var(--papel-2)) 100%);
+  border: 1px solid color-mix(in oklab, var(--terracota) 28%, var(--borde));
+  border-radius: var(--r-lg);
+  text-align: center;
+}
+.cta-carta__eyebrow {
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--terracota);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.cta-carta__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 19px;
+  color: var(--tinta);
+  margin-bottom: 6px;
+  letter-spacing: -0.015em;
+}
+.cta-carta__sub {
+  font-size: 13px;
+  color: var(--tinta-suave);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   MI CARTA — VACÍA
+   ============================================================ */
+.vacio-caja {
+  padding: 32px 24px;
+  background: var(--papel-2);
+  border: 1px dashed var(--borde-fuerte);
+  border-radius: var(--r-lg);
+  text-align: center;
+}
+.vacio-caja__emoji {
+  font-size: 40px;
+  margin-bottom: 12px;
+  line-height: 1;
+}
+.vacio-caja__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 19px;
+  color: var(--tinta);
+  letter-spacing: -0.015em;
+  margin-bottom: 8px;
+}
+.vacio-caja__sub {
+  font-size: 13.5px;
+  color: var(--tinta-suave);
+  line-height: 1.55;
+  margin-bottom: 20px;
+}
+.vacio-caja__botones {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ============================================================
+   MODO EDICIÓN
+   ============================================================ */
+.banner-edicion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: color-mix(in oklab, var(--mostaza) 14%, var(--papel-2));
+  border: 1px solid color-mix(in oklab, var(--mostaza) 35%, var(--borde));
+  border-radius: var(--r-md);
+  margin-bottom: 16px;
+}
+.banner-edicion__punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mostaza);
+  flex-shrink: 0;
+  animation: punto-pulso 1.6s ease-in-out infinite;
+}
+@keyframes punto-pulso {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .35; }
+}
+.banner-edicion__texto {
+  flex: 1;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: color-mix(in oklab, var(--mostaza) 70%, var(--tinta));
+  letter-spacing: .01em;
+}
+
+.campo-editable {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.campo-editable input,
+.campo-editable textarea {
+  padding: 11px 14px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: 15px;
+  color: var(--tinta);
+  width: 100%;
+  transition: border-color .15s ease;
+}
+.campo-editable input:focus,
+.campo-editable textarea:focus {
+  outline: none;
+  border-color: var(--terracota);
+  background: var(--papel-carta);
+}
+.campo-editable textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: var(--fuente-carta);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.campo-editable input::placeholder,
+.campo-editable textarea::placeholder {
+  color: var(--tinta-tenue);
+  font-style: italic;
+}
+
+.fila-editable {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.fila-editable__cuerpo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.btn-quitar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--borde-fuerte);
+  color: var(--tinta-suave);
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  margin-top: 4px;
+  transition: all .15s ease;
+}
+.btn-quitar:hover {
+  background: #FBE9E9;
+  color: #A03737;
+  border-color: #E3B6B6;
+}
+
+.btn-agregar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: transparent;
+  border: 1.5px dashed var(--borde-fuerte);
+  border-radius: var(--r-sm);
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+  font-weight: 600;
+  width: 100%;
+  justify-content: center;
+  transition: all .15s ease;
+  margin-bottom: 12px;
+}
+.btn-agregar:hover {
+  border-color: var(--terracota-clara);
+  color: var(--terracota);
+}
+
+/* Divisor fijar */
+.fijar-seccion {
+  display: flex;
+  justify-content: flex-end;
+  margin: 14px 0 0;
+}
+.btn-fijar {
+  padding: 8px 16px;
+  border-radius: var(--r-full);
+  background: var(--mostaza);
+  color: #3D2C0F;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  transition: all .15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-fijar:hover { filter: brightness(1.05); }
+.btn-fijar:active { transform: scale(.96); }
+.btn-fijar svg { width: 13px; height: 13px; }
+
+/* Barra flotante modo edición */
+.barra-edicion {
+  position: sticky;
+  bottom: 0;
+  margin: 20px -20px -120px;
+  padding: 12px 20px calc(12px + 78px);
+  background: linear-gradient(180deg, transparent 0%, var(--papel) 30%);
+  display: flex;
+  gap: 8px;
+  z-index: 5;
+}
+.barra-edicion .btn { flex: 1; }
+
+/* ============================================================
+   ANIMACIONES
+   ============================================================ */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.carta__parrafo {
+  animation: fade-up .55s cubic-bezier(.25,.9,.35,1) backwards;
+}
+.carta__parrafo:nth-of-type(1) { animation-delay: .05s; }
+.carta__parrafo:nth-of-type(2) { animation-delay: .18s; }
+.carta__parrafo:nth-of-type(3) { animation-delay: .31s; }
+.carta__parrafo:nth-of-type(4) { animation-delay: .44s; }
+.carta__separador,
+.carta__firma {
+  animation: fade-up .5s cubic-bezier(.25,.9,.35,1) .55s backwards;
+}
+.seccion { animation: fade-up .5s cubic-bezier(.25,.9,.35,1) .7s backwards; }
+
+/* ============================================================
+   TABBAR
+   ============================================================ */
+.tabbar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 78px;
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  background: rgba(247, 241, 232, .94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--borde);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 50;
+}
+.tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--tinta-tenue);
+  transition: all .18s ease;
+  border-radius: var(--r-md);
+  padding: 4px;
+  opacity: .55;
+}
+.tabbar__item svg {
+  width: 22px;
+  height: 22px;
+  transition: transform .18s ease;
+}
+.tabbar__label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+.tabbar__item:active { transform: scale(.92); }
+.tabbar__item.is-active {
+  color: var(--terracota);
+  opacity: 1;
+}
+.tabbar__item.is-active svg { transform: translateY(-1px); }
+.tabbar__item.is-active .tabbar__label { font-weight: 700; }
+
+.toast {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  padding: 10px 18px;
+  background: var(--tinta);
+  color: var(--papel);
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+  z-index: 100;
+  box-shadow: var(--sombra-2);
+  white-space: nowrap;
+}
+.toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ============================================================
+   DEBUG NAV (solo prototipo)
+   ============================================================ */
+.debug-nav {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--fuente-cuerpo);
+}
+.debug-nav__label {
+  font-size: 9px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+  font-weight: 700;
+}
+.debug-nav__btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--r-full);
+  backdrop-filter: blur(12px);
+  max-width: 240px;
+}
+.debug-nav__btns button {
+  padding: 6px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,.55);
+  border-radius: var(--r-full);
+  transition: all .15s ease;
+}
+.debug-nav__btns button:hover { color: rgba(255,255,255,.9); }
+.debug-nav__btns button.is-active {
+  background: rgba(255,255,255,.15);
+  color: #fff;
+}
+@media (max-width: 720px) { .debug-nav { display: none; } }
+</style>
+</head>
+
+<body>
+
+<!-- DEBUG NAV -->
+<nav class="debug-nav">
+  <span class="debug-nav__label">Estados · Carta</span>
+  <div class="debug-nav__btns">
+    <button data-estado="otro" class="is-active">Leyendo</button>
+    <button data-estado="mio-vacio">Mi carta</button>
+    <button data-estado="mio-contenido">Con contenido</button>
+    <button data-estado="edicion">Editando</button>
+  </div>
+</nav>
+
+
+<div class="phone">
+  <main class="screen-area">
+
+    <section class="screen">
+
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="topbar__row">
+          <div>
+            <p class="topbar__eyebrow" id="topbarEyebrow">De Yayo · para Luci</p>
+            <h1 class="topbar__title" id="topbarTitle">Carta</h1>
+          </div>
+          <button class="topbar__btn" aria-label="Opciones">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="5" cy="12" r="1.6"/>
+              <circle cx="12" cy="12" r="1.6"/>
+              <circle cx="19" cy="12" r="1.6"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="reading-progress" aria-hidden="true">
+        <div class="reading-progress__bar" id="readingBar"></div>
+      </div>
+
+      <!-- CUERPO -->
+      <div class="screen__body" id="scrollArea">
+
+        <!-- =====================================================
+             ESTADO: LEYENDO LA CARTA DEL OTRO
+             ===================================================== -->
+        <div id="estado-otro" class="estado">
+
+          <article class="carta-hoja">
+            <div class="carta__fecha">Hace 4 días</div>
+
+            <div class="carta__parrafo">
+              <div class="carta__titulo-interno">Idas y vueltas</div>
+              <p class="carta__texto">Sé que lo nuestro ha tenido idas y vueltas, y no te voy a decir que no. Lo que sí sé es que te tengo mucho cariño y que contigo quiero hacer las cosas bien.</p>
+            </div>
+
+            <div class="carta__parrafo">
+              <div class="carta__titulo-interno">Sin presión</div>
+              <p class="carta__texto">Esta página no es una presión ni una pregunta con fecha límite. Es mi forma de mostrarte, con lo que sé hacer, que lo pienso en serio.</p>
+            </div>
+
+            <div class="carta__parrafo">
+              <div class="carta__titulo-interno">Como eres</div>
+              <p class="carta__texto">Me gusta cómo eres: libre, curiosa, con las manos siempre metidas en algo, sea un tambor, un circuito o una máquina de barbero. No quiero que cambies nada de eso.</p>
+            </div>
+
+            <div class="carta__parrafo">
+              <div class="carta__titulo-interno">Sin apuro</div>
+              <p class="carta__texto">Tómate el tiempo que necesites. Lo que hay aquí sigue en pie igual.</p>
+            </div>
+
+            <div class="carta__separador" aria-hidden="true">
+              <span>·</span><span>·</span><span>·</span>
+            </div>
+
+            <div class="carta__firma">
+              <span class="carta__firma-texto">Yayo</span>
+              <span class="carta__firma-rol">Firmado</span>
+            </div>
+          </article>
+
+          <!-- Sus compromisos (decorativos) -->
+          <section class="seccion">
+            <div class="seccion__cab">
+              <h2 class="seccion__titulo">Sus compromisos</h2>
+              <span class="seccion__contador">4</span>
+            </div>
+            <ul class="compromisos__lista">
+              <li class="compromiso">
+                <span class="compromiso__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <div class="compromiso__cuerpo">
+                  <p class="compromiso__titulo">Decirte las cosas de frente</p>
+                  <p class="compromiso__desc">Incluso las incómodas, y a tiempo.</p>
+                </div>
+              </li>
+              <li class="compromiso">
+                <span class="compromiso__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <div class="compromiso__cuerpo">
+                  <p class="compromiso__titulo">Respetar tu libertad</p>
+                  <p class="compromiso__desc">Tus viajes, tu música, tu trabajo y tus espacios a solas.</p>
+                </div>
+              </li>
+              <li class="compromiso">
+                <span class="compromiso__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <div class="compromiso__cuerpo">
+                  <p class="compromiso__titulo">Cumplir lo que propongo</p>
+                  <p class="compromiso__desc">Si no puedo, aviso con tiempo y propongo otra fecha.</p>
+                </div>
+              </li>
+              <li class="compromiso">
+                <span class="compromiso__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <div class="compromiso__cuerpo">
+                  <p class="compromiso__titulo">Constancia, no impulsos</p>
+                  <p class="compromiso__desc">Que esto se note en los días normales, no solo en los buenos.</p>
+                </div>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Compromisos compartidos -->
+          <section class="seccion">
+            <div class="seccion__cab">
+              <h2 class="seccion__titulo">Compromisos compartidos</h2>
+              <span class="seccion__contador">2</span>
+            </div>
+            <ul class="compartidos__lista">
+              <li class="compartido">
+                <span class="compartido__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <div class="compartido__cuerpo">
+                  <p class="compartido__titulo">Un domingo al mes sin pantallas</p>
+                  <p class="compartido__desc">Cocinar, salir, leer. Lo que sea, pero sin celulares en la mesa.</p>
+                  <div class="compartido__meta">
+                    <span class="autor autor--luci"><span class="autor__ini">L</span>Luci</span>
+                    <button class="btn-mini">Editar</button>
+                    <button class="btn-mini btn-mini--peligro">Eliminar</button>
+                  </div>
+                </div>
+              </li>
+              <li class="compartido">
+                <span class="compartido__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <div class="compartido__cuerpo">
+                  <p class="compartido__titulo">Avisar cuando llegamos</p>
+                  <p class="compartido__desc">Un mensaje corto, siempre. Aunque sea tarde.</p>
+                  <div class="compartido__meta">
+                    <span class="autor autor--yayo"><span class="autor__ini">Y</span>Yayo</span>
+                    <button class="btn-mini">Editar</button>
+                    <button class="btn-mini btn-mini--peligro">Eliminar</button>
+                  </div>
+                </div>
+              </li>
+            </ul>
+
+            <form class="form-inline" onsubmit="event.preventDefault();">
+              <input type="text" placeholder="Título del compromiso" maxlength="200">
+              <textarea placeholder="Descripción" rows="2" maxlength="500"></textarea>
+              <div class="form-inline__fila">
+                <button type="submit" class="btn btn--primario">Agregar compromiso</button>
+              </div>
+            </form>
+          </section>
+
+          <!-- Anexos -->
+          <section class="seccion">
+            <div class="seccion__cab">
+              <h2 class="seccion__titulo">Anexos</h2>
+              <span class="seccion__contador">1</span>
+            </div>
+            <ul class="anexos__lista">
+              <li class="anexo">
+                <p class="anexo__titulo">Lista de cosas que quiero hacer contigo</p>
+                <p class="anexo__contenido">Ir a las termas de Chillán en invierno. Hacer pan juntos un domingo. Ver el amanecer en algún cerro cerca.</p>
+                <div class="anexo__meta">
+                  <span class="autor autor--yayo"><span class="autor__ini">Y</span>Yayo</span>
+                  <button class="btn-mini">Editar</button>
+                  <button class="btn-mini btn-mini--peligro">Eliminar</button>
+                </div>
+              </li>
+            </ul>
+
+            <form class="form-inline" onsubmit="event.preventDefault();">
+              <input type="text" placeholder="Título del anexo" maxlength="200">
+              <textarea placeholder="Contenido" rows="3"></textarea>
+              <div class="form-inline__fila">
+                <button type="submit" class="btn btn--primario">Agregar anexo</button>
+              </div>
+            </form>
+          </section>
+
+          <!-- CTA Ver mi carta -->
+          <aside class="cta-carta">
+            <p class="cta-carta__eyebrow">Tu turno</p>
+            <p class="cta-carta__titulo">¿Quieres escribirle algo a Yayo?</p>
+            <p class="cta-carta__sub">Puedes dejar tu propia carta, tus compromisos y una firma.</p>
+            <button class="btn btn--primario btn--full" id="btnVerMiCarta">
+              Ver mi carta
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+                <path d="M5 12h14M13 6l6 6-6 6"/>
+              </svg>
+            </button>
+          </aside>
+
+        </div>
+
+        <!-- =====================================================
+             ESTADO: MI CARTA VACÍA
+             ===================================================== -->
+        <div id="estado-mio-vacio" class="estado" hidden>
+          <div class="vacio-caja">
+            <div class="vacio-caja__emoji">✍️</div>
+            <h2 class="vacio-caja__titulo">Tu carta está en blanco</h2>
+            <p class="vacio-caja__sub">Puedes escribir desde cero, o cargar un texto de guía y editarlo a tu gusto.</p>
+            <div class="vacio-caja__botones">
+              <button class="btn btn--primario btn--full" id="btnEmpezarVacio">
+                Escribir desde cero
+              </button>
+              <button class="btn btn--secundario btn--full" id="btnCargarGuia">
+                Ver mensaje de prueba
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- =====================================================
+             ESTADO: MI CARTA CON CONTENIDO
+             ===================================================== -->
+        <div id="estado-mio-contenido" class="estado" hidden>
+          <article class="carta-hoja">
+            <div class="carta__fecha">Tu carta · hace 2 días</div>
+
+            <div class="carta__parrafo">
+              <div class="carta__titulo-interno">Lo que quiero decirte</div>
+              <p class="carta__texto">No sé muy bien por dónde empezar. Sé que hemos pasado por cosas, y que las cosas no son fáciles. Pero también sé que cuando estoy contigo todo se me ordena un poco.</p>
+            </div>
+
+            <div class="carta__parrafo">
+              <div class="carta__titulo-interno">Sobre nosotros</div>
+              <p class="carta__texto">No te pido que decidas nada hoy. Solo quería dejarte esto por escrito, para que lo puedas leer cuando quieras, sin que nadie te apure.</p>
+            </div>
+
+            <div class="carta__separador" aria-hidden="true">
+              <span>·</span><span>·</span><span>·</span>
+            </div>
+
+            <div class="carta__firma">
+              <span class="carta__firma-texto">Luci</span>
+              <span class="carta__firma-rol">Firmado</span>
+            </div>
+          </article>
+
+          <section class="seccion">
+            <div class="seccion__cab">
+              <h2 class="seccion__titulo">Mis compromisos</h2>
+              <span class="seccion__contador">2</span>
+            </div>
+            <ul class="compromisos__lista">
+              <li class="compromiso">
+                <span class="compromiso__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <div class="compromiso__cuerpo">
+                  <p class="compromiso__titulo">Decirte lo que siento</p>
+                  <p class="compromiso__desc">Aunque cueste y aunque no salga perfecto.</p>
+                </div>
+              </li>
+              <li class="compromiso">
+                <span class="compromiso__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <div class="compromiso__cuerpo">
+                  <p class="compromiso__titulo">Escucharte</p>
+                  <p class="compromiso__desc">Sin interrumpir, sin adelantarme.</p>
+                </div>
+              </li>
+            </ul>
+          </section>
+
+          <div style="margin-top: 28px; display: flex; flex-direction: column; gap: 8px;">
+            <button class="btn btn--primario btn--full" id="btnEditarMiCarta">
+              Editar mi carta
+            </button>
+            <button class="btn btn--secundario btn--full" id="btnVolverAlOtro">
+              Volver a la carta de Yayo
+            </button>
+          </div>
+        </div>
+
+        <!-- =====================================================
+             ESTADO: MODO EDICIÓN
+             ===================================================== -->
+        <div id="estado-edicion" class="estado" hidden>
+
+          <div class="banner-edicion">
+            <span class="banner-edicion__punto"></span>
+            <span class="banner-edicion__texto">Editando tu carta — fija cada sección cuando la tengas lista</span>
+          </div>
+
+          <!-- Manifiesto editable -->
+          <section class="seccion" style="margin-top: 0;">
+            <div class="seccion__cab">
+              <h2 class="seccion__titulo">Manifiesto</h2>
+            </div>
+            <div class="fila-editable">
+              <div class="fila-editable__cuerpo">
+                <input class="campo-editable" type="text" value="Lo que quiero decirte" placeholder="Título (opcional)" style="padding: 9px 12px; background: var(--papel-3); border: 1px solid var(--borde); border-radius: var(--r-sm); font-size: 14px; width: 100%;">
+                <textarea placeholder="Escribe aquí lo que quieras decirle. No hay prisa, no hay formato correcto." style="padding: 11px 14px; background: var(--papel-3); border: 1px solid var(--borde); border-radius: var(--r-sm); font-family: var(--fuente-carta); font-size: 16px; line-height: 1.55; resize: vertical; min-height: 100px; width: 100%; color: var(--tinta);">No sé muy bien por dónde empezar. Sé que hemos pasado por cosas, y que las cosas no son fáciles. Pero también sé que cuando estoy contigo todo se me ordena un poco.</textarea>
+              </div>
+              <button class="btn-quitar" aria-label="Eliminar">×</button>
+            </div>
+            <div class="fila-editable">
+              <div class="fila-editable__cuerpo">
+                <input type="text" value="Sobre nosotros" placeholder="Título (opcional)" style="padding: 9px 12px; background: var(--papel-3); border: 1px solid var(--borde); border-radius: var(--r-sm); font-size: 14px; width: 100%;">
+                <textarea placeholder="Escribe aquí lo que quieras decirle." style="padding: 11px 14px; background: var(--papel-3); border: 1px solid var(--borde); border-radius: var(--r-sm); font-family: var(--fuente-carta); font-size: 16px; line-height: 1.55; resize: vertical; min-height: 100px; width: 100%; color: var(--tinta);">No te pido que decidas nada hoy. Solo quería dejarte esto por escrito, para que lo puedas leer cuando quieras, sin que nadie te apure.</textarea>
+              </div>
+              <button class="btn-quitar" aria-label="Eliminar">×</button>
+            </div>
+            <button class="btn-agregar">+ Agregar párrafo</button>
+            <div class="fijar-seccion">
+              <button class="btn-fijar" data-fijar>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                Fijar manifiesto
+              </button>
+            </div>
+          </section>
+
+          <!-- Compromisos editables -->
+          <section class="seccion">
+            <div class="seccion__cab">
+              <h2 class="seccion__titulo">Mis compromisos</h2>
+            </div>
+            <div class="fila-editable">
+              <div class="fila-editable__cuerpo">
+                <input type="text" value="Decirte lo que siento" placeholder="Título" style="padding: 9px 12px; background: var(--papel-3); border: 1px solid var(--borde); border-radius: var(--r-sm); font-size: 14px; width: 100%;">
+                <textarea placeholder="Descripción" style="padding: 11px 14px; background: var(--papel-3); border: 1px solid var(--borde); border-radius: var(--r-sm); font-size: 14px; resize: vertical; min-height: 60px; width: 100%; color: var(--tinta);">Aunque cueste y aunque no salga perfecto.</textarea>
+              </div>
+              <button class="btn-quitar" aria-label="Eliminar">×</button>
+            </div>
+            <div class="fila-editable">
+              <div class="fila-editable__cuerpo">
+                <input type="text" value="Escucharte" placeholder="Título" style="padding: 9px 12px; background: var(--papel-3); border: 1px solid var(--borde); border-radius: var(--r-sm); font-size: 14px; width: 100%;">
+                <textarea placeholder="Descripción" style="padding: 11px 14px; background: var(--papel-3); border: 1px solid var(--borde); border-radius: var(--r-sm); font-size: 14px; resize: vertical; min-height: 60px; width: 100%; color: var(--tinta);">Sin interrumpir, sin adelantarme.</textarea>
+              </div>
+              <button class="btn-quitar" aria-label="Eliminar">×</button>
+            </div>
+            <button class="btn-agregar">+ Agregar compromiso</button>
+            <div class="fijar-seccion">
+              <button class="btn-fijar" data-fijar>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                Fijar compromisos
+              </button>
+            </div>
+          </section>
+
+          <!-- Firma -->
+          <section class="seccion">
+            <div class="seccion__cab">
+              <h2 class="seccion__titulo">Firma</h2>
+            </div>
+            <div class="campo-editable">
+              <input type="text" value="Luci" placeholder="Firma" style="font-family: var(--fuente-carta); font-style: italic; font-size: 20px; padding: 12px 14px;">
+            </div>
+            <div class="fijar-seccion">
+              <button class="btn-fijar" data-fijar>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                Fijar firma
+              </button>
+            </div>
+          </section>
+
+          <!-- Barra flotante -->
+          <div class="barra-edicion">
+            <button class="btn btn--secundario" id="btnCancelarEdicion">Cancelar</button>
+            <button class="btn btn--primario" id="btnFijarTodo">Fijar todo</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <div class="toast" id="toast">Próximamente</div>
+
+  <!-- TABBAR -->
+  <nav class="tabbar">
+    <button class="tabbar__item is-active" data-tab="nido">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+      </svg>
+      <span class="tabbar__label">Nido</span>
+    </button>
+    <button class="tabbar__item" data-tab="vida">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/>
+        <path d="M4 17a3 3 0 0 1 3-3h11"/>
+      </svg>
+      <span class="tabbar__label">Vida</span>
+    </button>
+    <button class="tabbar__item" data-tab="afuera">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 20h18L14 8l-3 5-2-3-6 10z"/>
+      </svg>
+      <span class="tabbar__label">Afuera</span>
+    </button>
+    <button class="tabbar__item" data-tab="juegos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+           stroke-linejoin="round">
+        <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/>
+      </svg>
+      <span class="tabbar__label">Juegos</span>
+    </button>
+    <button class="tabbar__item" data-tab="mas">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="5" cy="12" r="1.6"/>
+        <circle cx="12" cy="12" r="1.6"/>
+        <circle cx="19" cy="12" r="1.6"/>
+      </svg>
+      <span class="tabbar__label">Más</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- Estados ---------- */
+  const estados = {
+    otro: {
+      el: document.getElementById('estado-otro'),
+      eyebrow: 'De Yayo · para Luci',
+      title: 'Carta',
+    },
+    'mio-vacio': {
+      el: document.getElementById('estado-mio-vacio'),
+      eyebrow: 'Tu carta',
+      title: 'Carta',
+    },
+    'mio-contenido': {
+      el: document.getElementById('estado-mio-contenido'),
+      eyebrow: 'Tu carta · para Yayo',
+      title: 'Carta',
+    },
+    edicion: {
+      el: document.getElementById('estado-edicion'),
+      eyebrow: 'Editando',
+      title: 'Carta',
+    },
+  };
+
+  const debugBtns = document.querySelectorAll('.debug-nav__btns button');
+  const eyebrowEl = document.getElementById('topbarEyebrow');
+  const titleEl = document.getElementById('topbarTitle');
+  const scrollArea = document.getElementById('scrollArea');
+  const readingBar = document.getElementById('readingBar');
+
+  function mostrar(nombre) {
+    Object.entries(estados).forEach(([k, v]) => {
+      v.el.hidden = (k !== nombre);
+    });
+    const estado = estados[nombre];
+    if (estado) {
+      eyebrowEl.textContent = estado.eyebrow;
+      titleEl.textContent = estado.title;
+    }
+    debugBtns.forEach((b) => {
+      b.classList.toggle('is-active', b.dataset.estado === nombre);
+    });
+    scrollArea.scrollTop = 0;
+    actualizarProgreso();
+  }
+
+  debugBtns.forEach((b) => {
+    b.addEventListener('click', () => mostrar(b.dataset.estado));
+  });
+
+  /* ---------- Barra progreso ---------- */
+  function actualizarProgreso() {
+    const max = scrollArea.scrollHeight - scrollArea.clientHeight;
+    const pct = max > 0 ? (scrollArea.scrollTop / max) * 100 : 0;
+    readingBar.style.width = pct.toFixed(2) + '%';
+  }
+  scrollArea.addEventListener('scroll', actualizarProgreso, { passive: true });
+  window.addEventListener('resize', actualizarProgreso);
+
+  /* ---------- Transiciones del flujo ---------- */
+  document.getElementById('btnVerMiCarta').addEventListener('click', () => mostrar('mio-vacio'));
+  document.getElementById('btnEmpezarVacio').addEventListener('click', () => mostrar('edicion'));
+  document.getElementById('btnCargarGuia').addEventListener('click', () => mostrar('mio-contenido'));
+  document.getElementById('btnEditarMiCarta').addEventListener('click', () => mostrar('edicion'));
+  document.getElementById('btnVolverAlOtro').addEventListener('click', () => mostrar('otro'));
+  document.getElementById('btnCancelarEdicion').addEventListener('click', () => mostrar('mio-contenido'));
+  document.getElementById('btnFijarTodo').addEventListener('click', () => {
+    mostrar('mio-contenido');
+    mostrarToast('Todo fijado');
+  });
+
+  /* ---------- Botones fijar sección ---------- */
+  document.querySelectorAll('[data-fijar]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const seccion = btn.closest('.seccion');
+      seccion.style.transition = 'opacity .35s ease, transform .35s ease';
+      seccion.style.opacity = '0.4';
+      seccion.style.transform = 'translateY(-4px)';
+      setTimeout(() => {
+        seccion.style.opacity = '';
+        seccion.style.transform = '';
+        mostrarToast('Sección fijada');
+      }, 350);
+    });
+  });
+
+  /* ---------- Botones quitar fila ---------- */
+  document.querySelectorAll('.btn-quitar').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const fila = btn.closest('.fila-editable');
+      if (!fila) return;
+      fila.style.transition = 'opacity .25s ease, transform .25s ease';
+      fila.style.opacity = '0';
+      fila.style.transform = 'translateX(-12px)';
+      setTimeout(() => fila.remove(), 250);
+    });
+  });
+
+  /* ---------- Toast ---------- */
+  const toast = document.getElementById('toast');
+  let toastTimer = null;
+  function mostrarToast(texto) {
+    toast.textContent = texto;
+    toast.classList.add('is-visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 1600);
+  }
+
+  /* ---------- Tabbar ---------- */
+  document.querySelectorAll('.tabbar__item').forEach((item) => {
+    item.addEventListener('click', () => {
+      if (item.dataset.tab === 'nido') return;
+      mostrarToast('Próximamente');
+    });
+  });
+
+  /* ---------- Init ---------- */
+  actualizarProgreso();
+})();
+</script>
+
+</body>
+</html>

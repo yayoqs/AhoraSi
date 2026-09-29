@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ahora Sí — Vida</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --papel:        #F7F1E8;
+  --papel-2:      #EFE7DA;
+  --papel-3:      #FCF8F0;
+  --papel-carta:  #FBF4E6;
+  --borde:        #E2D7C5;
+  --borde-fuerte: #D2C4AC;
+  --tinta:        #1F1B16;
+  --tinta-suave:  #6B6155;
+  --tinta-tenue:  #A89B87;
+
+  --terracota:      #C9613B;
+  --terracota-clara:#E8A17A;
+  --terracota-papel:#F7E3D5;
+
+  --mostaza: #D9A421;
+  --mostaza-papel: #F8EDD0;
+
+  --musgo: #5A6B3E;
+  --musgo-papel: #E4E9D8;
+
+  --azul-piedra: #4A6785;
+  --azul-papel: #DFE6ED;
+
+  --ciruela: #7A3E5C;
+  --ciruela-papel: #EDDEE5;
+
+  --sombra-1: 0 1px 2px rgba(31,27,22,.06);
+  --sombra-2: 0 12px 28px rgba(31,27,22,.10);
+
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-full: 999px;
+
+  --fuente-titulo: 'Bricolage Grotesque', system-ui, sans-serif;
+  --fuente-cuerpo: 'Figtree', system-ui, sans-serif;
+  --fuente-carta:  'Fraunces', Georgia, serif;
+
+  --accent: var(--azul-piedra);
+  --accent-papel: var(--azul-papel);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+h1,h2,h3,h4,p,ul,ol,li { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+button { background: none; border: none; cursor: pointer; font: inherit; color: inherit; }
+img { display: block; max-width: 100%; }
+
+body {
+  font-family: var(--fuente-cuerpo);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--tinta);
+  background: radial-gradient(ellipse at top, #2C2620 0%, #13100D 100%);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  -webkit-font-smoothing: antialiased;
+}
+@media (max-width: 520px) { body { padding: 0; display: block; } }
+
+.phone {
+  width: 390px;
+  height: 844px;
+  max-height: calc(100vh - 48px);
+  background: var(--papel);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 0 0 10px #0E0B08,
+    0 0 0 12px #2A2318,
+    0 30px 80px rgba(0,0,0,.55);
+}
+@media (max-width: 520px) {
+  .phone { width: 100%; height: 100dvh; max-height: none; border-radius: 0; box-shadow: none; }
+}
+
+.screen-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--papel);
+  display: flex;
+  flex-direction: column;
+}
+.screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+/* ============================================================
+   TOPBAR — cambia de acento según sub-sección
+   ============================================================ */
+.topbar {
+  flex-shrink: 0;
+  padding: 16px 20px 12px;
+  background: var(--papel);
+  position: relative;
+  z-index: 10;
+}
+.topbar__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.topbar__eyebrow {
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  margin-bottom: 4px;
+  transition: color .3s ease;
+}
+.topbar__title {
+  font-family: var(--fuente-titulo);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--accent);
+  transition: color .3s ease;
+}
+.topbar__btn {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  color: var(--tinta-suave);
+  transition: background .15s ease;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.topbar__btn:hover { background: var(--papel-2); }
+.topbar__btn svg { width: 20px; height: 20px; }
+
+/* ============================================================
+   SUB-TABS
+   ============================================================ */
+.subtabs {
+  display: flex;
+  gap: 6px;
+  padding: 0 20px 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--papel);
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--borde);
+}
+.subtabs::-webkit-scrollbar { display: none; }
+.subtab {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  border-radius: var(--r-full);
+  transition: all .2s ease;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.subtab:hover { background: var(--papel-2); color: var(--tinta); }
+.subtab.is-active {
+  background: var(--tinta);
+  color: var(--papel);
+  border-color: var(--tinta);
+}
+
+/* ============================================================
+   CUERPO
+   ============================================================ */
+.screen__body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 22px 20px 120px;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+.screen__body::-webkit-scrollbar { width: 0; }
+
+.subpanel { display: none; }
+.subpanel.is-active { display: block; }
+
+/* ============================================================
+   ANIMACIONES
+   ============================================================ */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.subpanel.is-active > * {
+  animation: fade-up .4s cubic-bezier(.25,.9,.35,1) backwards;
+}
+.subpanel.is-active > *:nth-child(1) { animation-delay: .02s; }
+.subpanel.is-active > *:nth-child(2) { animation-delay: .06s; }
+.subpanel.is-active > *:nth-child(3) { animation-delay: .10s; }
+.subpanel.is-active > *:nth-child(4) { animation-delay: .14s; }
+
+/* ============================================================
+   COMPONENTES GENÉRICOS
+   ============================================================ */
+.seccion-cab {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+  margin-top: 24px;
+}
+.seccion-cab:first-child { margin-top: 0; }
+.seccion-cab h2 {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--tinta);
+  letter-spacing: -0.01em;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.seccion-cab h2::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--borde);
+}
+.seccion-cab__count {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tinta-tenue);
+  font-variant-numeric: tabular-nums;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 11px 16px;
+  border-radius: var(--r-sm);
+  font-weight: 600;
+  font-size: 13px;
+  transition: all .15s ease;
+  min-height: 42px;
+}
+.btn:active { transform: scale(.97); }
+.btn--primario { background: var(--accent); color: var(--papel); }
+.btn--primario:hover { filter: brightness(1.06); }
+.btn--secundario {
+  background: transparent;
+  color: var(--tinta-suave);
+  border: 1px solid var(--borde-fuerte);
+}
+.btn--secundario:hover { background: var(--papel-3); color: var(--tinta); }
+.btn--full { width: 100%; }
+
+.fab {
+  position: absolute;
+  bottom: 92px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-full);
+  background: var(--accent);
+  color: var(--papel);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 12px 28px color-mix(in oklab, var(--accent) 45%, transparent);
+  z-index: 40;
+  transition: transform .15s ease, background .3s ease;
+}
+.fab:active { transform: scale(.9); }
+.fab svg { width: 24px; height: 24px; }
+
+.autor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px 2px 2px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+.autor__ini {
+  width: 16px; height: 16px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 9px; font-weight: 800;
+  color: var(--papel);
+  font-family: var(--fuente-titulo);
+}
+.autor--luci { background: #F0E2E2; color: #8A5757; }
+.autor--luci .autor__ini { background: #D89A9A; }
+.autor--yayo { background: #EFE4CC; color: #6B4F1F; }
+.autor--yayo .autor__ini { background: #B8893C; }
+.autor--ambos { background: #E2E7DA; color: #4A5C3B; }
+.autor--ambos .autor__ini { background: #7A8B6B; }
+
+/* ============================================================
+   PLANES — estados visuales en la tarjeta
+   ============================================================ */
+.plan {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px 16px 16px 14px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-left-width: 4px;
+  border-radius: var(--r-md);
+  margin-bottom: 10px;
+  transition: all .2s ease;
+  cursor: pointer;
+  position: relative;
+}
+.plan:active { transform: scale(.99); }
+.plan--pendiente { border-left-color: var(--borde-fuerte); }
+.plan--si { border-left-color: var(--musgo); }
+.plan--quiza { border-left-color: var(--mostaza); }
+.plan--no { border-left-color: var(--terracota); }
+
+.plan__check {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid var(--borde-fuerte);
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: grid;
+  place-items: center;
+  transition: all .25s ease;
+  background: transparent;
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 11px;
+  color: var(--tinta-tenue);
+}
+.plan--si .plan__check { background: var(--musgo); border-color: var(--musgo); color: var(--papel); }
+.plan--quiza .plan__check { background: var(--mostaza); border-color: var(--mostaza); color: #3D2C0F; }
+.plan--no .plan__check { background: var(--terracota); border-color: var(--terracota); color: var(--papel); }
+
+.plan__cuerpo { flex: 1; min-width: 0; }
+.plan__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  color: var(--tinta);
+  margin-bottom: 4px;
+  line-height: 1.25;
+}
+.plan__desc {
+  font-size: 13px;
+  color: var(--tinta-suave);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+.plan__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 11.5px;
+  color: var(--tinta-tenue);
+}
+.plan__estado-texto {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: var(--r-full);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.plan--pendiente .plan__estado-texto { background: var(--papel-2); color: var(--tinta-suave); }
+.plan--si .plan__estado-texto { background: var(--musgo-papel); color: var(--musgo); }
+.plan--quiza .plan__estado-texto { background: var(--mostaza-papel); color: #8A6D0F; }
+.plan--no .plan__estado-texto { background: color-mix(in oklab, var(--terracota) 12%, var(--papel-2)); color: var(--terracota); }
+
+.plan__pista {
+  font-size: 10px;
+  color: var(--tinta-tenue);
+  font-style: italic;
+  margin-top: 6px;
+}
+
+/* ============================================================
+   IDEAS — moodboard por categoría
+   ============================================================ */
+.ideas-filtros {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px 0 14px;
+  margin: 0 -20px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+.ideas-filtros::-webkit-scrollbar { display: none; }
+.ideas-filtro {
+  flex-shrink: 0;
+  padding: 7px 13px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--r-full);
+  border: 1px solid transparent;
+  color: var(--tinta-suave);
+  background: var(--papel-2);
+  transition: all .15s ease;
+  white-space: nowrap;
+}
+.ideas-filtro.is-active {
+  background: var(--tinta);
+  color: var(--papel);
+}
+
+.ideas-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.idea {
+  padding: 14px 16px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  transition: all .15s ease;
+}
+.idea:active { transform: scale(.99); }
+.idea__cat {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.idea__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--tinta);
+  margin-bottom: 5px;
+  line-height: 1.3;
+}
+.idea__desc {
+  font-size: 13px;
+  color: var(--tinta-suave);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+.idea__pie {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.btn-mini {
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  background: transparent;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  transition: all .15s ease;
+}
+.btn-mini:hover { background: var(--papel-3); color: var(--tinta); }
+.btn-mini--empuje {
+  color: var(--ciruela);
+  border-color: color-mix(in oklab, var(--ciruela) 35%, var(--borde));
+  background: color-mix(in oklab, var(--ciruela) 6%, transparent);
+}
+.btn-mini--empuje:hover { background: color-mix(in oklab, var(--ciruela) 12%, transparent); }
+
+/* ============================================================
+   HITOS — línea de tiempo
+   ============================================================ */
+.timeline {
+  position: relative;
+  padding-left: 62px;
+  margin-top: 8px;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 28px;
+  width: 1px;
+  background: var(--borde);
+}
+.hito {
+  position: relative;
+  padding-bottom: 26px;
+}
+.hito:last-child { padding-bottom: 0; }
+.hito__anio {
+  position: absolute;
+  left: -62px;
+  top: -2px;
+  width: 52px;
+  text-align: right;
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: -0.03em;
+  color: var(--mostaza);
+  font-variant-numeric: tabular-nums;
+}
+.hito__punto {
+  position: absolute;
+  left: -40px;
+  top: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--papel);
+  border: 2px solid var(--mostaza);
+  z-index: 1;
+}
+.hito--cumplido .hito__punto {
+  background: var(--mostaza);
+}
+.hito__fecha-mini {
+  font-size: 11px;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.hito__titulo-wrap {
+  display: inline-block;
+  position: relative;
+}
+.hito__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  color: var(--tinta);
+  line-height: 1.3;
+  transition: color .25s ease;
+}
+.hito--cumplido .hito__titulo { color: var(--tinta-tenue); }
+.hito--cumplido .hito__titulo svg {
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: 50%;
+  width: calc(100% + 4px);
+  height: 10px;
+  pointer-events: none;
+  overflow: visible;
+}
+.hito__nota {
+  font-size: 12.5px;
+  color: var(--tinta-suave);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+.hito__pie {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* ============================================================
+   KIT — checklist visual
+   ============================================================ */
+.kit-progreso {
+  padding: 18px 20px;
+  background: var(--musgo-papel);
+  border: 1px solid color-mix(in oklab, var(--musgo) 25%, var(--borde));
+  border-radius: var(--r-lg);
+  margin-bottom: 20px;
+}
+.kit-progreso__cab {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.kit-progreso__num {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 32px;
+  letter-spacing: -0.04em;
+  color: var(--musgo);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.kit-progreso__num small {
+  font-size: 16px;
+  font-weight: 700;
+  opacity: .55;
+  letter-spacing: -0.02em;
+}
+.kit-progreso__txt {
+  font-size: 12px;
+  color: color-mix(in oklab, var(--musgo) 70%, var(--tinta));
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+.kit-progreso__barra {
+  height: 8px;
+  background: rgba(255,255,255,.55);
+  border-radius: var(--r-full);
+  overflow: hidden;
+}
+.kit-progreso__barra i {
+  display: block;
+  height: 100%;
+  background: var(--musgo);
+  border-radius: var(--r-full);
+  transition: width .4s cubic-bezier(.25,.9,.35,1);
+}
+
+.kit-grupo { margin-bottom: 18px; }
+.kit-grupo__cab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.kit-grupo__nombre {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--tinta);
+  letter-spacing: -0.01em;
+}
+.kit-grupo__linea {
+  flex: 1;
+  height: 1px;
+  background: var(--borde);
+}
+.kit-grupo__count {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tinta-tenue);
+  font-variant-numeric: tabular-nums;
+}
+
+.kit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.kit-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 12px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: all .15s ease;
+  min-height: 52px;
+  position: relative;
+}
+.kit-item:active { transform: scale(.97); }
+.kit-item.is-listo {
+  background: color-mix(in oklab, var(--musgo) 5%, var(--papel-2));
+  border-color: color-mix(in oklab, var(--musgo) 20%, var(--borde));
+}
+.kit-item__check {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1.5px solid var(--borde-fuerte);
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  transition: all .2s ease;
+}
+.kit-item__check svg {
+  width: 12px; height: 12px;
+  color: transparent;
+  transition: color .15s ease;
+}
+.kit-item.is-listo .kit-item__check {
+  background: var(--musgo);
+  border-color: var(--musgo);
+}
+.kit-item.is-listo .kit-item__check svg { color: var(--papel); }
+.kit-item__nombre {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tinta);
+  line-height: 1.35;
+  flex: 1;
+  min-width: 0;
+  transition: all .2s ease;
+}
+.kit-item.is-listo .kit-item__nombre {
+  color: var(--tinta-tenue);
+  text-decoration: line-through;
+  text-decoration-color: var(--borde-fuerte);
+  text-decoration-thickness: 1.5px;
+}
+.kit-item__autor {
+  position: absolute;
+  bottom: -6px;
+  right: 6px;
+  transform: scale(.85);
+  transform-origin: bottom right;
+}
+
+/* ============================================================
+   RECETAS — índice lateral
+   ============================================================ */
+.recetas-hero {
+  position: relative;
+  padding: 22px 20px;
+  border-radius: var(--r-lg);
+  background:
+    radial-gradient(circle at 80% 20%, rgba(217,164,33,.25) 0%, transparent 55%),
+    linear-gradient(160deg, #D9A421 0%, #C9613B 100%);
+  color: var(--papel);
+  margin-bottom: 18px;
+  overflow: hidden;
+  box-shadow: var(--sombra-2);
+}
+.recetas-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,.08) 1px, transparent 1.5px);
+  background-size: 18px 18px;
+  pointer-events: none;
+}
+.recetas-hero__eyebrow {
+  position: relative;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  opacity: .8;
+  margin-bottom: 6px;
+}
+.recetas-hero__titulo {
+  position: relative;
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  margin-bottom: 10px;
+}
+.recetas-hero__meta {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  font-size: 11.5px;
+  font-weight: 500;
+  opacity: .92;
+}
+.recetas-hero__meta span { display: inline-flex; align-items: center; gap: 4px; }
+
+.recetas-layout {
+  display: flex;
+  gap: 0;
+  align-items: flex-start;
+}
+.recetas-paginas {
+  flex: 1;
+  min-width: 0;
+  padding-right: 8px;
+}
+.recetas-indice {
+  width: 30px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 4px 0;
+  position: sticky;
+  top: 12px;
+  align-self: flex-start;
+}
+.indice-tab {
+  width: 26px;
+  height: 38px;
+  border-radius: 8px 0 0 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+  color: var(--tinta);
+  opacity: .55;
+  transition: all .2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+.indice-tab.is-activo {
+  opacity: 1;
+  width: 30px;
+  transform: rotate(180deg) translateX(-3px);
+  box-shadow: -4px 3px 12px rgba(0,0,0,.15);
+}
+
+.receta-grupo { margin-bottom: 22px; }
+.receta-grupo__cab {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+  border-bottom: 2px solid var(--cat-color, var(--terracota));
+}
+.receta-grupo__nombre {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--cat-color, var(--terracota));
+}
+.receta-grupo__count {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tinta-tenue);
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.recetas-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.receta-card {
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-left: 3px solid var(--cat-color, var(--terracota));
+  border-radius: var(--r-md);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.receta-card:active { transform: scale(.98); }
+.receta-card__foto {
+  aspect-ratio: 4 / 3;
+  background: var(--papel-2);
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+.receta-card__foto--pan {
+  background: linear-gradient(135deg, #E8C97E 0%, #C9613B 100%);
+}
+.receta-card__foto--sopa {
+  background: linear-gradient(135deg, #D9A421 0%, #A85C2E 100%);
+}
+.receta-card__foto--brownie {
+  background: linear-gradient(135deg, #7A3E5C 0%, #3F1F2D 100%);
+}
+.receta-card__foto--mermelada {
+  background: linear-gradient(135deg, #C9613B 0%, #7A3E5C 100%);
+}
+.receta-card__inicial {
+  font-family: var(--fuente-titulo);
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: rgba(255,255,255,.85);
+}
+.receta-card__cuerpo { padding: 10px 12px 12px; }
+.receta-card__titulo {
+  font-family: var(--fuente-titulo);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--tinta);
+  margin-bottom: 5px;
+}
+.receta-card__meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--tinta-suave);
+  align-items: center;
+}
+
+/* ============================================================
+   TABBAR
+   ============================================================ */
+.tabbar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 78px;
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  background: rgba(247, 241, 232, .94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--borde);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 50;
+}
+.tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--tinta-tenue);
+  transition: all .18s ease;
+  border-radius: var(--r-md);
+  padding: 4px;
+  opacity: .55;
+}
+.tabbar__item svg { width: 22px; height: 22px; transition: transform .18s ease; }
+.tabbar__label { font-size: 10px; font-weight: 600; letter-spacing: .02em; }
+.tabbar__item:active { transform: scale(.92); }
+.tabbar__item.is-active { color: var(--accent); opacity: 1; }
+.tabbar__item.is-active svg { transform: translateY(-1px); }
+.tabbar__item.is-active .tabbar__label { font-weight: 700; }
+
+.toast {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  padding: 10px 18px;
+  background: var(--tinta);
+  color: var(--papel);
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+  z-index: 100;
+  box-shadow: var(--sombra-2);
+  white-space: nowrap;
+}
+.toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Debug nav */
+.debug-nav {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--fuente-cuerpo);
+}
+.debug-nav__label {
+  font-size: 9px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+  font-weight: 700;
+}
+.debug-nav__btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--r-full);
+  backdrop-filter: blur(12px);
+  max-width: 260px;
+}
+.debug-nav__btns button {
+  padding: 6px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,.55);
+  border-radius: var(--r-full);
+  transition: all .15s ease;
+}
+.debug-nav__btns button:hover { color: rgba(255,255,255,.9); }
+.debug-nav__btns button.is-active {
+  background: rgba(255,255,255,.15);
+  color: #fff;
+}
+@media (max-width: 720px) { .debug-nav { display: none; } }
+</style>
+</head>
+
+<body>
+
+<nav class="debug-nav">
+  <span class="debug-nav__label">Sub-secciones · Vida</span>
+  <div class="debug-nav__btns" id="debugNav">
+    <button data-sub="planes" class="is-active">Planes</button>
+    <button data-sub="ideas">Ideas</button>
+    <button data-sub="hitos">Hitos</button>
+    <button data-sub="kit">Kit</button>
+    <button data-sub="recetas">Recetas</button>
+  </div>
+</nav>
+
+<div class="phone">
+  <main class="screen-area">
+    <section class="screen">
+
+      <header class="topbar">
+        <div class="topbar__row">
+          <div>
+            <p class="topbar__eyebrow" id="topbarEyebrow">Vida · Planes</p>
+            <h1 class="topbar__title" id="topbarTitle">Planes</h1>
+          </div>
+          <button class="topbar__btn" aria-label="Opciones">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="5" cy="12" r="1.6"/>
+              <circle cx="12" cy="12" r="1.6"/>
+              <circle cx="19" cy="12" r="1.6"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <nav class="subtabs" id="subtabs">
+        <button class="subtab is-active" data-sub="planes">Planes</button>
+        <button class="subtab" data-sub="ideas">Ideas</button>
+        <button class="subtab" data-sub="hitos">Hitos</button>
+        <button class="subtab" data-sub="kit">Kit</button>
+        <button class="subtab" data-sub="recetas">Recetas</button>
+      </nav>
+
+      <div class="screen__body" id="scrollArea">
+
+        <!-- ══════════════════════════════════════════════════════
+             PLANES
+             ══════════════════════════════════════════════════════ -->
+        <div class="subpanel is-active" data-panel="planes">
+
+          <p style="font-size: 13px; color: var(--tinta-suave); line-height: 1.55; margin-bottom: 18px;">
+            Toca una tarjeta para cambiar el estado. El borde de la izquierda te dice dónde está cada plan.
+          </p>
+
+          <article class="plan plan--si" data-plan>
+            <span class="plan__check">✓</span>
+            <div class="plan__cuerpo">
+              <h3 class="plan__titulo">Ir a las termas en invierno</h3>
+              <p class="plan__desc">Con frío, con once, con todo el día libre.</p>
+              <div class="plan__meta">
+                <span class="plan__estado-texto">Sí</span>
+                <span class="autor autor--ambos"><span class="autor__ini">L</span>Los dos</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="plan plan--quiza" data-plan>
+            <span class="plan__check">?</span>
+            <div class="plan__cuerpo">
+              <h3 class="plan__titulo">Ver el amanecer desde el cerro</h3>
+              <p class="plan__desc">Requiere salir a las 5 am. Hay que ver si vale la pena.</p>
+              <div class="plan__meta">
+                <span class="plan__estado-texto">Quizás</span>
+                <span class="autor autor--yayo"><span class="autor__ini">Y</span>Yayo</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="plan plan--pendiente" data-plan>
+            <span class="plan__check">·</span>
+            <div class="plan__cuerpo">
+              <h3 class="plan__titulo">Hacer pan juntos un domingo</h3>
+              <p class="plan__desc">Sin apuro, con mate, sin receta perfecta.</p>
+              <div class="plan__meta">
+                <span class="plan__estado-texto">Pendiente</span>
+                <span class="autor autor--luci"><span class="autor__ini">L</span>Luci</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="plan plan--no" data-plan>
+            <span class="plan__check">×</span>
+            <div class="plan__cuerpo">
+              <h3 class="plan__titulo">Ir a ver ballenas a Valdivia</h3>
+              <p class="plan__desc">Este año no. Pero queda anotado para otro.</p>
+              <div class="plan__meta">
+                <span class="plan__estado-texto">No</span>
+                <span class="autor autor--yayo"><span class="autor__ini">Y</span>Yayo</span>
+              </div>
+            </div>
+          </article>
+
+          <p class="plan__pista" style="text-align: center; margin: 20px 0 0;">
+            Tocaste uno — mira el cambio de estado.
+          </p>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════
+             IDEAS
+             ══════════════════════════════════════════════════════ -->
+        <div class="subpanel" data-panel="ideas">
+
+          <p style="font-size: 13px; color: var(--tinta-suave); line-height: 1.55; margin-bottom: 12px;">
+            Cosas que se nos ocurren y quedan anotadas. Sin fecha, sin estado. Cuando alguna tenga sentido, la pasamos a planes.
+          </p>
+
+          <div class="ideas-filtros">
+            <button class="ideas-filtro is-active">Todas</button>
+            <button class="ideas-filtro">Percusión</button>
+            <button class="ideas-filtro">Electrónica</button>
+            <button class="ideas-filtro">Naturaleza</button>
+            <button class="ideas-filtro">Viajes</button>
+            <button class="ideas-filtro">Tu trabajo</button>
+          </div>
+
+          <div class="ideas-grid">
+
+            <article class="idea">
+              <span class="idea__cat" style="background: #F8EDD0; color: #8A6D0F;">Percusión</span>
+              <h3 class="idea__titulo">Pad de percusión hecho a mano</h3>
+              <p class="idea__desc">Un pad con sensores piezo y una placa Arduino o ESP32 para tocar sonidos de tumbé desde cualquier superficie.</p>
+              <div class="idea__pie">
+                <span class="autor autor--yayo"><span class="autor__ini">Y</span>Yayo</span>
+                <button class="btn-mini btn-mini--empuje">Pasar a planes</button>
+                <button class="btn-mini">Editar</button>
+              </div>
+            </article>
+
+            <article class="idea">
+              <span class="idea__cat" style="background: #F8EDD0; color: #8A6D0F;">Percusión</span>
+              <h3 class="idea__titulo">Semibatucada al aire libre</h3>
+              <p class="idea__desc">Grabar un ritmo propio en plena montaña y montarlo con lo que capturemos de los pájaros.</p>
+              <div class="idea__pie">
+                <span class="autor autor--luci"><span class="autor__ini">L</span>Luci</span>
+                <button class="btn-mini btn-mini--empuje">Pasar a planes</button>
+                <button class="btn-mini">Editar</button>
+              </div>
+            </article>
+
+            <article class="idea">
+              <span class="idea__cat" style="background: #DFE6ED; color: #4A6785;">Electrónica</span>
+              <h3 class="idea__titulo">Grabadora de cantos de aves</h3>
+              <p class="idea__desc">Un dispositivo con micrófono que deje grabando al amanecer para identificar después qué pajaritos pasaron.</p>
+              <div class="idea__pie">
+                <span class="autor autor--yayo"><span class="autor__ini">Y</span>Yayo</span>
+                <button class="btn-mini btn-mini--empuje">Pasar a planes</button>
+                <button class="btn-mini">Editar</button>
+              </div>
+            </article>
+
+            <article class="idea">
+              <span class="idea__cat" style="background: #E4E9D8; color: #5A6B3E;">Naturaleza</span>
+              <h3 class="idea__titulo">Mapa de nuestras rutas</h3>
+              <p class="idea__desc">Cada salida queda como un punto en un mapa, con lo que vimos, escuchamos y comimos.</p>
+              <div class="idea__pie">
+                <span class="autor autor--ambos"><span class="autor__ini">L</span>Los dos</span>
+                <button class="btn-mini btn-mini--empuje">Pasar a planes</button>
+                <button class="btn-mini">Editar</button>
+              </div>
+            </article>
+
+            <article class="idea">
+              <span class="idea__cat" style="background: #EDDEE5; color: #7A3E5C;">Viajes</span>
+              <h3 class="idea__titulo">Mapa de viajes pendientes</h3>
+              <p class="idea__desc">Una lista de destinos con presupuesto estimado y fechas posibles, para que los viajes dejen de ser algún día.</p>
+              <div class="idea__pie">
+                <span class="autor autor--luci"><span class="autor__ini">L</span>Luci</span>
+                <button class="btn-mini btn-mini--empuje">Pasar a planes</button>
+                <button class="btn-mini">Editar</button>
+              </div>
+            </article>
+
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════
+             HITOS
+             ══════════════════════════════════════════════════════ -->
+        <div class="subpanel" data-panel="hitos">
+
+          <p style="font-size: 13px; color: var(--tinta-suave); line-height: 1.55; margin-bottom: 20px;">
+            Lo que ya pasó y lo que está por venir. Los cumplidos quedan tachados con cariño.
+          </p>
+
+          <div class="timeline">
+
+            <article class="hito hito--cumplido">
+              <div class="hito__anio">2024</div>
+              <div class="hito__punto"></div>
+              <p class="hito__fecha-mini">14 de septiembre</p>
+              <span class="hito__titulo-wrap">
+                <h3 class="hito__titulo">Aprendimos a hacer pan juntos
+                  <svg viewBox="0 0 200 10" preserveAspectRatio="none" aria-hidden="true">
+                    <path d="M2 6 Q 50 2, 100 5 T 198 4" fill="none" stroke="var(--borde-fuerte)" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </h3>
+              </span>
+              <p class="hito__nota">Salió duro el primero. El segundo ya se podía comer.</p>
+            </article>
+
+            <article class="hito hito--cumplido">
+              <div class="hito__anio">2024</div>
+              <div class="hito__punto"></div>
+              <p class="hito__fecha-mini">2 de noviembre</p>
+              <span class="hito__titulo-wrap">
+                <h3 class="hito__titulo">Primera salida a las termas
+                  <svg viewBox="0 0 200 10" preserveAspectRatio="none" aria-hidden="true">
+                    <path d="M2 6 Q 50 2, 100 5 T 198 4" fill="none" stroke="var(--borde-fuerte)" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </h3>
+              </span>
+              <p class="hito__nota">Nos quedamos hasta que cerraron.</p>
+            </article>
+
+            <article class="hito hito--cumplido">
+              <div class="hito__anio">2025</div>
+              <div class="hito__punto"></div>
+              <p class="hito__fecha-mini">8 de febrero</p>
+              <span class="hito__titulo-wrap">
+                <h3 class="hito__titulo">Terminamos el secuenciador
+                  <svg viewBox="0 0 200 10" preserveAspectRatio="none" aria-hidden="true">
+                    <path d="M2 6 Q 50 2, 100 5 T 198 4" fill="none" stroke="var(--borde-fuerte)" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </h3>
+              </span>
+              <p class="hito__nota">Entre los dos. Y quedó bueno.</p>
+            </article>
+
+            <article class="hito">
+              <div class="hito__anio">2025</div>
+              <div class="hito__punto"></div>
+              <p class="hito__fecha-mini">Pendiente</p>
+              <h3 class="hito__titulo">Ver ballenas en Valdivia</h3>
+              <p class="hito__nota">Cuando sea el momento y esté la plata.</p>
+              <div class="hito__pie">
+                <span class="autor autor--yayo"><span class="autor__ini">Y</span>Yayo</span>
+                <button class="btn-mini">Marcar cumplido</button>
+              </div>
+            </article>
+
+            <article class="hito">
+              <div class="hito__anio">2026</div>
+              <div class="hito__punto"></div>
+              <p class="hito__fecha-mini">Pendiente</p>
+              <h3 class="hito__titulo">Ir a la Patagonia</h3>
+              <p class="hito__nota">Un mes, dos mochilas, sin apuro.</p>
+              <div class="hito__pie">
+                <span class="autor autor--ambos"><span class="autor__ini">L</span>Los dos</span>
+                <button class="btn-mini">Marcar cumplido</button>
+              </div>
+            </article>
+
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════
+             KIT
+             ══════════════════════════════════════════════════════ -->
+        <div class="subpanel" data-panel="kit">
+
+          <div class="kit-progreso">
+            <div class="kit-progreso__cab">
+              <div class="kit-progreso__num">7<small> / 16</small></div>
+              <span class="kit-progreso__txt">listos para el viaje</span>
+            </div>
+            <div class="kit-progreso__barra"><i style="width: 44%"></i></div>
+          </div>
+
+          <div class="kit-grupo">
+            <div class="kit-grupo__cab">
+              <span class="kit-grupo__nombre">Dormir</span>
+              <span class="kit-grupo__linea"></span>
+              <span class="kit-grupo__count">2/3</span>
+            </div>
+            <div class="kit-grid">
+              <div class="kit-item is-listo" data-kit>
+                <span class="kit-item__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <span class="kit-item__nombre">Carpa 2p</span>
+                <span class="kit-item__autor autor autor--yayo"><span class="autor__ini">Y</span></span>
+              </div>
+              <div class="kit-item is-listo" data-kit>
+                <span class="kit-item__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <span class="kit-item__nombre">Sacos de dormir</span>
+                <span class="kit-item__autor autor autor--luci"><span class="autor__ini">L</span></span>
+              </div>
+              <div class="kit-item" data-kit>
+                <span class="kit-item__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <span class="kit-item__nombre">Aislantes</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="kit-grupo">
+            <div class="kit-grupo__cab">
+              <span class="kit-grupo__nombre">Cocina</span>
+              <span class="kit-grupo__linea"></span>
+              <span class="kit-grupo__count">2/3</span>
+            </div>
+            <div class="kit-grid">
+              <div class="kit-item is-listo" data-kit>
+                <span class="kit-item__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <span class="kit-item__nombre">Cocinilla</span>
+                <span class="kit-item__autor autor autor--yayo"><span class="autor__ini">Y</span></span>
+              </div>
+              <div class="kit-item is-listo" data-kit>
+                <span class="kit-item__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <span class="kit-item__nombre">Olla y sartén</span>
+                <span class="kit-item__autor autor autor--ambos"><span class="autor__ini">L</span></span>
+              </div>
+              <div class="kit-item" data-kit>
+                <span class="kit-item__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <span class="kit-item__nombre">Fósforos</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="kit-grupo">
+            <div class="kit-grupo__cab">
+              <span class="kit-grupo__nombre">Observación</span>
+              <span class="kit-grupo__linea"></span>
+              <span class="kit-grupo__count">1/2</span>
+            </div>
+            <div class="kit-grid">
+              <div class="kit-item is-listo" data-kit>
+                <span class="kit-item__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <span class="kit-item__nombre">Binoculares</span>
+                <span class="kit-item__autor autor autor--yayo"><span class="autor__ini">Y</span></span>
+              </div>
+              <div class="kit-item" data-kit>
+                <span class="kit-item__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <span class="kit-item__nombre">Guía de aves</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="kit-grupo">
+            <div class="kit-grupo__cab">
+              <span class="kit-grupo__nombre">Energía</span>
+              <span class="kit-grupo__linea"></span>
+              <span class="kit-grupo__count">2/3</span>
+            </div>
+            <div class="kit-grid">
+              <div class="kit-item is-listo" data-kit>
+                <span class="kit-item__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <span class="kit-item__nombre">Panel solar</span>
+                <span class="kit-item__autor autor autor--yayo"><span class="autor__ini">Y</span></span>
+              </div>
+              <div class="kit-item is-listo" data-kit>
+                <span class="kit-item__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <span class="kit-item__nombre">Powerbank</span>
+                <span class="kit-item__autor autor autor--luci"><span class="autor__ini">L</span></span>
+              </div>
+              <div class="kit-item" data-kit>
+                <span class="kit-item__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <span class="kit-item__nombre">Cables y adaptadores</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════
+             RECETAS
+             ══════════════════════════════════════════════════════ -->
+        <div class="subpanel" data-panel="recetas">
+
+          <article class="recetas-hero">
+            <p class="recetas-hero__eyebrow">Receta destacada</p>
+            <h2 class="recetas-hero__titulo">Pan amasado<br>de los domingos</h2>
+            <div class="recetas-hero__meta">
+              <span>⏱ 1h 30 min</span>
+              <span>· 8 panes</span>
+              <span>· Fácil</span>
+            </div>
+          </article>
+
+          <div class="recetas-layout">
+            <div class="recetas-paginas">
+
+              <div class="receta-grupo" style="--cat-color: #E8A17A;">
+                <div class="receta-grupo__cab">
+                  <span class="receta-grupo__nombre">Panadería</span>
+                  <span class="receta-grupo__count">2</span>
+                </div>
+                <div class="recetas-grid">
+                  <article class="receta-card" style="--cat-color: #E8A17A;">
+                    <div class="receta-card__foto receta-card__foto--pan">
+                      <span class="receta-card__inicial">P</span>
+                    </div>
+                    <div class="receta-card__cuerpo">
+                      <h3 class="receta-card__titulo">Pan amasado</h3>
+                      <div class="receta-card__meta">
+                        <span>1h 30</span>
+                      </div>
+                    </div>
+                  </article>
+                  <article class="receta-card" style="--cat-color: #E8A17A;">
+                    <div class="receta-card__foto receta-card__foto--sopa">
+                      <span class="receta-card__inicial">S</span>
+                    </div>
+                    <div class="receta-card__cuerpo">
+                      <h3 class="receta-card__titulo">Sopaipillas pasadas</h3>
+                      <div class="receta-card__meta">
+                        <span>40 min</span>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+              </div>
+
+              <div class="receta-grupo" style="--cat-color: #C9613B;">
+                <div class="receta-grupo__cab">
+                  <span class="receta-grupo__nombre">Salado</span>
+                  <span class="receta-grupo__count">1</span>
+                </div>
+                <div class="recetas-grid">
+                  <article class="receta-card" style="--cat-color: #C9613B;">
+                    <div class="receta-card__foto receta-card__foto--mermelada">
+                      <span class="receta-card__inicial">C</span>
+                    </div>
+                    <div class="receta-card__cuerpo">
+                      <h3 class="receta-card__titulo">Cazuela de campo</h3>
+                      <div class="receta-card__meta">
+                        <span>1h 20</span>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+              </div>
+
+              <div class="receta-grupo" style="--cat-color: #7A3E5C;">
+                <div class="receta-grupo__cab">
+                  <span class="receta-grupo__nombre">Dulce</span>
+                  <span class="receta-grupo__count">2</span>
+                </div>
+                <div class="recetas-grid">
+                  <article class="receta-card" style="--cat-color: #7A3E5C;">
+                    <div class="receta-card__foto receta-card__foto--brownie">
+                      <span class="receta-card__inicial">B</span>
+                    </div>
+                    <div class="receta-card__cuerpo">
+                      <h3 class="receta-card__titulo">Brownies de Luci</h3>
+                      <div class="receta-card__meta">
+                        <span>45 min</span>
+                      </div>
+                    </div>
+                  </article>
+                  <article class="receta-card" style="--cat-color: #7A3E5C;">
+                    <div class="receta-card__foto receta-card__foto--mermelada">
+                      <span class="receta-card__inicial">M</span>
+                    </div>
+                    <div class="receta-card__cuerpo">
+                      <h3 class="receta-card__titulo">Mermelada de mora</h3>
+                      <div class="receta-card__meta">
+                        <span>1h</span>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+              </div>
+
+            </div>
+
+            <nav class="recetas-indice" aria-label="Categorías">
+              <button class="indice-tab is-activo" style="background: #E8A17A;">Pan</button>
+              <button class="indice-tab" style="background: #C9613B;">Sal</button>
+              <button class="indice-tab" style="background: #7A3E5C;">Dul</button>
+            </nav>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- FAB contextual -->
+      <button class="fab" id="fab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+      </button>
+
+    </section>
+  </main>
+
+  <div class="toast" id="toast">Próximamente</div>
+
+  <nav class="tabbar">
+    <button class="tabbar__item" data-tab="nido">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+      </svg>
+      <span class="tabbar__label">Nido</span>
+    </button>
+    <button class="tabbar__item is-active" data-tab="vida">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/>
+        <path d="M4 17a3 3 0 0 1 3-3h11"/>
+      </svg>
+      <span class="tabbar__label">Vida</span>
+    </button>
+    <button class="tabbar__item" data-tab="afuera">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 20h18L14 8l-3 5-2-3-6 10z"/>
+      </svg>
+      <span class="tabbar__label">Afuera</span>
+    </button>
+    <button class="tabbar__item" data-tab="juegos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+           stroke-linejoin="round">
+        <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/>
+      </svg>
+      <span class="tabbar__label">Juegos</span>
+    </button>
+    <button class="tabbar__item" data-tab="mas">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="5" cy="12" r="1.6"/>
+        <circle cx="12" cy="12" r="1.6"/>
+        <circle cx="19" cy="12" r="1.6"/>
+      </svg>
+      <span class="tabbar__label">Más</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const ACENTOS = {
+    planes:   { color: '#4A6785', papel: '#DFE6ED', titulo: 'Planes' },
+    ideas:    { color: '#7A3E5C', papel: '#EDDEE5', titulo: 'Ideas' },
+    hitos:    { color: '#D9A421', papel: '#F8EDD0', titulo: 'Hitos' },
+    kit:      { color: '#5A6B3E', papel: '#E4E9D8', titulo: 'Kit' },
+    recetas:  { color: '#C9613B', papel: '#F7E3D5', titulo: 'Recetas' },
+  };
+
+  const subpanels = document.querySelectorAll('.subpanel');
+  const subtabs = document.querySelectorAll('.subtab');
+  const debugBtns = document.querySelectorAll('#debugNav button');
+  const eyebrow = document.getElementById('topbarEyebrow');
+  const title = document.getElementById('topbarTitle');
+  const scrollArea = document.getElementById('scrollArea');
+  const fab = document.getElementById('fab');
+
+  function mostrar(sub) {
+    subpanels.forEach((p) => p.classList.toggle('is-active', p.dataset.panel === sub));
+    subtabs.forEach((t) => t.classList.toggle('is-active', t.dataset.sub === sub));
+    debugBtns.forEach((b) => b.classList.toggle('is-active', b.dataset.sub === sub));
+
+    const a = ACENTOS[sub];
+    document.documentElement.style.setProperty('--accent', a.color);
+    document.documentElement.style.setProperty('--accent-papel', a.papel);
+    eyebrow.textContent = 'Vida · ' + a.titulo;
+    title.textContent = a.titulo;
+
+    scrollArea.scrollTop = 0;
+
+    // El FAB cambia de texto según sección (visual)
+    fab.style.background = a.color;
+  }
+
+  subtabs.forEach((t) => t.addEventListener('click', () => mostrar(t.dataset.sub)));
+  debugBtns.forEach((b) => b.addEventListener('click', () => mostrar(b.dataset.sub)));
+
+  /* Planes: tap cicla estado */
+  const ESTADOS_PLAN = ['pendiente', 'si', 'quiza', 'no'];
+  const CHECK_GLIFO = { pendiente: '·', si: '✓', quiza: '?', no: '×' };
+  document.querySelectorAll('[data-plan]').forEach((plan) => {
+    plan.addEventListener('click', () => {
+      const actual = ESTADOS_PLAN.find((e) => plan.classList.contains('plan--' + e));
+      const idx = (ESTADOS_PLAN.indexOf(actual) + 1) % ESTADOS_PLAN.length;
+      const nuevo = ESTADOS_PLAN[idx];
+
+      plan.classList.remove('plan--' + actual);
+      plan.classList.add('plan--' + nuevo);
+      plan.querySelector('.plan__check').textContent = CHECK_GLIFO[nuevo];
+
+      const textos = { pendiente: 'Pendiente', si: 'Sí', quiza: 'Quizás', no: 'No' };
+      plan.querySelector('.plan__estado-texto').textContent = textos[nuevo];
+
+      plan.style.transition = 'none';
+      plan.offsetWidth;
+      plan.style.transition = '';
+    });
+  });
+
+  /* Kit: toggle listo */
+  document.querySelectorAll('[data-kit]').forEach((item) => {
+    item.addEventListener('click', () => {
+      item.classList.toggle('is-listo');
+    });
+  });
+
+  /* Filtros de ideas */
+  document.querySelectorAll('.ideas-filtro').forEach((f) => {
+    f.addEventListener('click', () => {
+      document.querySelectorAll('.ideas-filtro').forEach((x) => x.classList.remove('is-active'));
+      f.classList.add('is-active');
+    });
+  });
+
+  /* Índice de recetas */
+  document.querySelectorAll('.indice-tab').forEach((t) => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.indice-tab').forEach((x) => x.classList.remove('is-activo'));
+      t.classList.add('is-activo');
+    });
+  });
+
+  /* Tabbar */
+  const toast = document.getElementById('toast');
+  let toastTimer;
+  function mostrarToast(texto) {
+    toast.textContent = texto;
+    toast.classList.add('is-visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 1600);
+  }
+
+  document.querySelectorAll('.tabbar__item').forEach((item) => {
+    item.addEventListener('click', () => {
+      const t = item.dataset.tab;
+      if (t === 'vida') return;
+      if (t === 'nido') { mostrarToast('Volver al Nido'); return; }
+      mostrarToast('Próximamente');
+    });
+  });
+
+  /* FAB */
+  fab.addEventListener('click', () => mostrarToast('Próximamente'));
+})();
+</script>
+
+</body>
+</html>

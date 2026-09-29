@@ -1,11 +1,22 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/repositorios/apuestas.js
-   Versión: 1.0.0
+   Versión: 1.1.0
    Propósito: acceso a ahorasi_apuestas. Cada apuesta tiene texto,
               quien (apostador), contra (el otro), estado
-              (pendiente, resuelta) y ganador opcional (yayo,
-              luci, empate).
+              (pendiente, resuelta) y ganador opcional (userId
+              de quien ganó, o la palabra "empate").
+              v1.1.0: fix en resolver(). Antes validaba el ganador
+                      contra una lista hardcodeada ['yayo', 'luci',
+                      'empate'], pero el resto del repositorio
+                      guarda los userIds reales de Appwrite
+                      (Elyayo, ChicaLuci). Cualquier intento de
+                      resolver una apuesta fallaba con "Ganador
+                      inválido". Ahora se cargan los contendientes
+                      reales de la fila y se valida contra ellos,
+                      más "empate". Se elimina la constante
+                      GANADORES_VALIDOS, que ya no tiene uso. Sin
+                      cambios en las firmas públicas.
               v1.0.0: versión inicial.
    ================================================================ */
 
@@ -27,7 +38,6 @@ import {
 const log = crearLogger('repo:apuestas');
 const TABLA = 'ahorasi_apuestas';
 const ESTADOS = ['pendiente', 'resuelta'];
-const GANADORES_VALIDOS = ['yayo', 'luci', 'empate'];
 
 function normalizar(fila) {
   if (!fila) return null;
@@ -107,12 +117,30 @@ export async function crear(datos, opciones = {}) {
 
 export async function resolver(id, ganador, opciones = {}) {
   if (!id) return Resultado.fallo('Falta el id');
-  if (!GANADORES_VALIDOS.includes(ganador)) {
-    return Resultado.fallo(`Ganador inválido: ${ganador}`);
-  }
+  if (!ganador) return Resultado.fallo('Falta el ganador');
 
   const ctx = obtenerContexto();
   if (!ctx.exito) return ctx;
+
+  // Cargar la fila para saber quiénes son los contendientes reales.
+  // Validamos contra esos userIds (más "empate"), no contra una
+  // lista hardcodeada.
+  let fila;
+  try {
+    fila = await obtenerTablesDB().getRow({
+      databaseId: obtenerDatabaseId(),
+      tableId: TABLA,
+      rowId: id,
+    });
+  } catch (e) {
+    log.error('resolver (cargar):', e.message);
+    return Resultado.fallo(`Error al cargar la apuesta: ${e.message}`);
+  }
+
+  const validos = [fila.quien, fila.contra, 'empate'];
+  if (!validos.includes(ganador)) {
+    return Resultado.fallo(`Ganador inválido: ${ganador}`);
+  }
 
   const data = { estado: 'resuelta', ganador };
 

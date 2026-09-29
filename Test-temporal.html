@@ -3,330 +3,281 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Test temporal — Cámara</title>
+<title>Ahora Sí — Test chico</title>
 <style>
   :root {
-    --bg: #0C2F26; --bg2: #123F34; --paper: #EEF2E8;
-    --gold: #E3BC55; --sky: #8DB7D8; --dim: #A9C2B6; --ink: #0A1F1A;
-    --verde: #4ade80; --rojo: #f87171;
+    --papel: #F7F1E8;
+    --papel-2: #EFE7DA;
+    --papel-3: #FCF8F0;
+    --borde: #E2D7C5;
+    --tinta: #1F1B16;
+    --tinta-suave: #6B6155;
+    --terracota: #C9613B;
+    --musgo: #5A6B3E;
+    --rojo: #A03737;
+    --ok: #4A7C4A;
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0; background: var(--bg); color: var(--paper);
-    font: 400 15px/1.6 system-ui, -apple-system, sans-serif;
-    padding: 20px 16px 60px; -webkit-font-smoothing: antialiased;
+    margin: 0;
+    background: var(--papel);
+    color: var(--tinta);
+    font: 400 15px/1.6 system-ui, sans-serif;
+    padding: 20px;
   }
-  main { max-width: 760px; margin: 0 auto; }
-  h1 { font-size: 22px; margin: 0 0 4px; color: var(--gold); }
-  h2 { font-size: 15px; margin: 26px 0 8px; color: var(--gold); }
-  .lead { color: var(--dim); margin: 0 0 20px; font-size: 14px; }
-
-  button {
-    padding: 12px 20px; border: 0; border-radius: 10px;
-    background: var(--gold); color: var(--ink);
-    font: inherit; font-weight: 600; cursor: pointer;
+  main { max-width: 620px; margin: 0 auto; }
+  h1 { color: var(--terracota); font-size: 22px; margin: 0 0 4px; }
+  .lead { color: var(--tinta-suave); font-size: 14px; margin: 0 0 20px; }
+  #login {
+    padding: 20px;
+    background: var(--papel-2);
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  #botones-usuario { display: flex; gap: 10px; }
+  .btn-usuario {
+    padding: 10px 20px;
+    border: 1.5px solid var(--terracota);
+    background: transparent;
+    color: var(--terracota);
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .btn-usuario[aria-pressed="true"] { background: var(--terracota); color: var(--papel); }
+  input {
+    padding: 11px 14px;
+    font: inherit;
+    border-radius: 10px;
+    border: 1.5px solid var(--borde);
+    background: var(--papel-3);
+    width: 100%;
+  }
+  button.accion {
+    padding: 12px 18px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--terracota);
+    color: var(--papel);
+    font-weight: 600;
+    cursor: pointer;
     font-size: 15px;
   }
-  button:disabled { opacity: .5; cursor: wait; }
-
-  .info {
-    padding: 12px 14px; margin: 6px 0; border-radius: 8px;
-    background: var(--bg2); font-family: ui-monospace, monospace;
-    font-size: 13px; line-height: 1.5;
-    border-left: 3px solid var(--sky);
+  #estado { min-height: 1.4em; font-size: 13px; color: var(--tinta-suave); margin: 4px 0 0; }
+  .caso {
+    padding: 8px 12px;
+    margin: 4px 0;
+    border-radius: 6px;
+    background: var(--papel-2);
+    border-left: 3px solid var(--borde);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
   }
-  .info.ok { border-left-color: var(--verde); }
-  .info.err { border-left-color: var(--rojo); }
-  .info strong { color: var(--gold); }
-
-  #video-zona {
-    margin-top: 20px; padding: 16px; background: var(--bg2);
-    border-radius: 10px; display: none;
+  .caso.ok { border-left-color: var(--ok); }
+  .caso.fallo { border-left-color: var(--rojo); }
+  .caso .simbolo { font-weight: 700; flex-shrink: 0; }
+  .caso.ok .simbolo { color: var(--ok); }
+  .caso.fallo .simbolo { color: var(--rojo); }
+  .detalle { color: var(--rojo); font-size: 12px; }
+  #resumen {
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: var(--papel-2);
+    border-radius: 10px;
+    font-weight: 600;
+    border-left: 4px solid var(--terracota);
   }
-  #video-zona.visible { display: block; }
-  video {
-    width: 100%; max-width: 480px; border-radius: 8px;
-    background: #000; display: block; margin: 0 auto;
-  }
-
-  #captura-zona { margin-top: 12px; text-align: center; }
-  #captura-img {
-    max-width: 100%; border-radius: 8px; margin-top: 12px;
-    display: none;
-  }
+  #resumen.ok { border-left-color: var(--ok); }
+  #resumen.fallo { border-left-color: var(--rojo); }
 </style>
 </head>
 <body>
 <main>
-  <h1>Test temporal — Cámara</h1>
-  <p class="lead">Diagnóstico paso a paso de por qué <code>getUserMedia</code> funciona o falla en este dispositivo. Presiona "Ejecutar diagnóstico" para empezar.</p>
+  <h1>Test chico</h1>
+  <p class="lead">Verifica que el entorno carga y que login funciona. Si esto pasa, el problema es solo del test grande.</p>
 
-  <button id="btn-ejecutar" type="button">Ejecutar diagnóstico</button>
-  <button id="btn-detener" type="button" disabled>Detener cámara</button>
-
-  <div id="resultados"></div>
-
-  <div id="video-zona">
-    <h2>Video en vivo</h2>
-    <video id="video" autoplay playsinline muted></video>
-    <div id="captura-zona">
-      <button id="btn-capturar" type="button">Capturar frame</button>
-      <img id="captura-img" alt="">
+  <section id="login">
+    <div id="botones-usuario">
+      <button type="button" class="btn-usuario" data-email="luciviteri@elisekai.com">Luci</button>
+      <button type="button" class="btn-usuario" data-email="yayoqs@elisekai.com">Yayo</button>
     </div>
-  </div>
+    <input type="password" id="password" placeholder="contraseña" autocomplete="current-password">
+    <button type="button" class="accion" id="btn-entrar">Iniciar sesión y correr</button>
+    <p id="estado"></p>
+  </section>
+
+  <section id="tests" hidden>
+    <div id="resultados"></div>
+    <div id="resumen"></div>
+  </section>
 </main>
 
+<script src="./externos/appwrite.min.js"></script>
+
 <script type="module">
-/* ================================================================
-   Ahora Sí — TEST TEMPORAL CÁMARA
-   Archivo: test-camara.html
-   Versión: 1.0.0
-   Propósito: diagnosticar paso a paso por qué getUserMedia
-              funciona o falla. Prueba contexto seguro, soporte
-              del navegador, permisos, enumeración de dispositivos
-              y varias configuraciones de constraints. Muestra el
-              error exacto en cada paso.
-   ================================================================ */
+import { CONFIG, validarConfig } from './js/config/config.js';
+import { iniciarSesion, cargarSesion, obtenerUsuarioActual } from './js/datos/sesion.js';
+import { Resultado } from './js/dominio/resultado.js';
+import { establecer, obtener, reiniciar } from './js/nucleo/almacen.js';
+import { generarId, escaparHtml } from './js/nucleo/utils.js';
 
-const resultados = document.getElementById('resultados');
-const videoZona = document.getElementById('video-zona');
-const video = document.getElementById('video');
-const capturaImg = document.getElementById('captura-img');
-const btnEjecutar = document.getElementById('btn-ejecutar');
-const btnDetener = document.getElementById('btn-detener');
-const btnCapturar = document.getElementById('btn-capturar');
+const cont = document.getElementById('resultados');
+const resumen = document.getElementById('resumen');
+const estadoLogin = document.getElementById('estado');
 
-let streamActivo = null;
+let pasaron = 0;
+let fallaron = 0;
 
-function limpiarResultados() {
-  resultados.replaceChildren();
+function actualizarResumen() {
+  resumen.textContent = `${pasaron} pasaron, ${fallaron} fallaron`;
+  resumen.className = fallaron === 0 && pasaron > 0 ? 'ok' : 'fallo';
 }
 
-function linea(etiqueta, valor, clase = '') {
+function caso(nombre, fn) {
   const div = document.createElement('div');
-  div.className = 'info ' + clase;
-  div.innerHTML = `<strong>${etiqueta}:</strong> ${valor}`;
-  resultados.append(div);
-  div.scrollIntoView({ block: 'nearest' });
-  console.log(etiqueta, valor);
-}
-
-function json(obj) {
-  return JSON.stringify(obj, null, 2).replace(/\n/g, '<br>').replace(/ /g, '&nbsp;');
-}
-
-async function paso1_Contexto() {
-  linea('1.1 Protocolo', location.protocol);
-  linea('1.2 Host', location.hostname);
-  linea('1.3 URL completa', location.href);
-
-  const seguro =
-    location.protocol === 'https:' ||
-    location.hostname === 'localhost' ||
-    location.hostname === '127.0.0.1' ||
-    location.hostname === '[::1]';
-  linea(
-    '1.4 Contexto seguro',
-    seguro ? 'SÍ (cumple requisito de getUserMedia)' : 'NO — getUserMedia va a fallar aquí',
-    seguro ? 'ok' : 'err'
-  );
-  return seguro;
-}
-
-async function paso2_SoporteApi() {
-  const tieneMediaDevices = !!(navigator.mediaDevices);
-  linea(
-    '2.1 navigator.mediaDevices',
-    tieneMediaDevices ? 'disponible' : 'NO disponible',
-    tieneMediaDevices ? 'ok' : 'err'
-  );
-
-  const tieneGetUserMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
-  linea(
-    '2.2 getUserMedia',
-    tieneGetUserMedia ? 'disponible' : 'NO disponible',
-    tieneGetUserMedia ? 'ok' : 'err'
-  );
-
-  const tieneEnumerate = !!(navigator.mediaDevices && navigator.mediaDevices.enumerateDevices);
-  linea(
-    '2.3 enumerateDevices',
-    tieneEnumerate ? 'disponible' : 'NO disponible',
-    tieneEnumerate ? 'ok' : 'err'
-  );
-
-  return tieneGetUserMedia;
-}
-
-async function paso3_Permisos() {
-  if (!navigator.permissions || !navigator.permissions.query) {
-    linea('3.1 Permissions API', 'no soportada en este navegador (no es bloqueante)', '');
-    return;
-  }
+  div.className = 'caso';
+  cont.append(div);
   try {
-    const p = await navigator.permissions.query({ name: 'camera' });
-    linea('3.1 Estado del permiso de cámara', p.state);
+    fn();
+    div.classList.add('ok');
+    div.innerHTML = `<span class="simbolo">✓</span><span>${nombre}</span>`;
+    pasaron++;
   } catch (e) {
-    linea('3.1 Permissions.query(camera)', 'no soportado: ' + e.message, '');
+    div.classList.add('fallo');
+    div.innerHTML = `<span class="simbolo">✗</span><span>${nombre}<div class="detalle">${e.message || e}</div></span>`;
+    fallaron++;
   }
+  actualizarResumen();
 }
 
-async function paso4_EnumerarDispositivos() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
-    linea('4.1 enumerateDevices', 'no disponible', 'err');
-    return;
-  }
+function exigir(cond, msg) {
+  if (!cond) throw new Error(msg);
+}
+
+let emailSeleccionado = '';
+
+document.querySelectorAll('.btn-usuario').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.btn-usuario').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+    btn.setAttribute('aria-pressed', 'true');
+    emailSeleccionado = btn.dataset.email;
+    document.getElementById('password').focus();
+  });
+});
+
+async function correr() {
+  pasaron = 0;
+  fallaron = 0;
+  cont.replaceChildren();
+
+  caso('window.Appwrite existe', () => {
+    exigir(window.Appwrite, 'no existe');
+  });
+
+  caso('window.Appwrite.Client existe', () => {
+    exigir(typeof window.Appwrite.Client === 'function', 'no es función');
+  });
+
+  caso('window.Appwrite.TablesDB existe', () => {
+    exigir(typeof window.Appwrite.TablesDB === 'function', 'no es función');
+  });
+
+  caso('config válida', () => {
+    validarConfig();
+  });
+
+  caso('config tiene usuarios', () => {
+    exigir(CONFIG.usuarios.yayo, 'falta yayo');
+    exigir(CONFIG.usuarios.luci, 'falta luci');
+  });
+
+  caso('Resultado.ok', () => {
+    const r = Resultado.ok({ x: 1 });
+    exigir(r.exito && r.datos.x === 1, 'no funciona');
+  });
+
+  caso('Resultado.fallo', () => {
+    const r = Resultado.fallo('boom');
+    exigir(!r.exito && r.error === 'boom', 'no funciona');
+  });
+
+  caso('generarId con prefijo', () => {
+    const id = generarId('prueba');
+    exigir(id.startsWith('prueba_'), 'sin prefijo');
+  });
+
+  caso('almacén básico', () => {
+    reiniciar();
+    establecer('testClave', 42);
+    exigir(obtener('testClave') === 42, 'no guardó');
+    reiniciar();
+  });
+
+  caso('escaparHtml', () => {
+    // Uso <\/script> para que el parser de HTML no corte el bloque.
+    const s = escaparHtml('<\/script>');
+    exigir(!s.includes('<\/script>'), 'no escapó');
+  });
+
+  caso('usuario disponible tras login', () => {
+    const u = obtenerUsuarioActual();
+    exigir(u && u.$id, 'sin usuario');
+  });
+
+  actualizarResumen();
+}
+
+async function entrarYCorrer() {
+  estadoLogin.textContent = 'Iniciando sesión…';
+  estadoLogin.style.color = '';
   try {
-    const lista = await navigator.mediaDevices.enumerateDevices();
-    const videos = lista.filter((d) => d.kind === 'videoinput');
-    linea('4.1 Dispositivos totales', String(lista.length));
-    linea('4.2 Cámaras (videoinput)', String(videos.length), videos.length > 0 ? 'ok' : 'err');
-    videos.forEach((d, i) => {
-      linea(
-        `   Cámara ${i + 1}`,
-        `id=${d.deviceId || '(vacío)'} label="${d.label || '(sin etiqueta, requiere permiso)'}"`
-      );
-    });
-    if (videos.length === 0) {
-      linea(
-        '4.3 Aviso',
-        'No se detectaron cámaras. En móvil esto puede pasar si el navegador no ha concedido permiso aún. Se concede al primer getUserMedia exitoso.',
-        'err'
-      );
-    }
-  } catch (e) {
-    linea('4.x enumerateDevices falló', e.message, 'err');
-  }
-}
-
-async function intentar(constraints, etiqueta) {
-  try {
-    const s = await navigator.mediaDevices.getUserMedia(constraints);
-    linea(etiqueta, 'FUNCIONÓ. Stream adquirido.', 'ok');
-    return s;
-  } catch (e) {
-    linea(etiqueta, `FALLÓ. name=${e.name} message=${e.message}`, 'err');
-    return null;
-  }
-}
-
-async function paso5_GetUserMedia() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    linea('5.x', 'getUserMedia no disponible, se salta este paso', 'err');
-    return null;
-  }
-
-  // Intento 1: cámara trasera
-  let stream = await intentar(
-    { video: { facingMode: { ideal: 'environment' } }, audio: false },
-    '5.1 facingMode environment (ideal)'
-  );
-  if (stream) return stream;
-
-  // Intento 2: sin especificar facingMode
-  stream = await intentar({ video: true, audio: false }, '5.2 video: true (default)');
-  if (stream) return stream;
-
-  // Intento 3: constraints mínimos
-  stream = await intentar({ video: {}, audio: false }, '5.3 video: {} (constraints vacíos)');
-  if (stream) return stream;
-
-  return null;
-}
-
-async function ejecutar() {
-  limpiarResultados();
-  btnEjecutar.disabled = true;
-  detenerStream();
-
-  linea('Inicio', new Date().toLocaleString('es-CL'));
-
-  const seguro = await paso1_Contexto();
-  if (!seguro) {
-    linea(
-      'Aviso',
-      'Estás en un contexto no seguro (HTTP con IP). getUserMedia no funcionará. Prueba en localhost, en HTTPS, o en el dominio real ahorasi.elisekai.com.',
-      'err'
-    );
-  }
-
-  const apiOk = await paso2_SoporteApi();
-  if (!apiOk) {
-    linea('Corte', 'Sin soporte de getUserMedia. No se puede continuar.', 'err');
-    btnEjecutar.disabled = false;
-    return;
-  }
-
-  await paso3_Permisos();
-  await paso4_EnumerarDispositivos();
-
-  const stream = await paso5_GetUserMedia();
-
-  if (stream) {
-    streamActivo = stream;
-    video.srcObject = stream;
-    videoZona.classList.add('visible');
-    btnDetener.disabled = false;
-    const track = stream.getVideoTracks()[0];
-    const settings = track.getSettings ? track.getSettings() : {};
-    linea('6.1 Track de video activo', json(settings));
-    try {
-      video.play().catch((e) => linea('6.2 video.play()', e.message, 'err'));
-    } catch (e) {
-      linea('6.2 video.play()', e.message, 'err');
-    }
-  } else {
-    linea(
-      'Resultado',
-      'Todos los intentos de getUserMedia fallaron. Mira los errores 5.1, 5.2, 5.3 para la causa exacta.',
-      'err'
-    );
-  }
-
-  btnEjecutar.disabled = false;
-}
-
-function detenerStream() {
-  if (streamActivo) {
-    streamActivo.getTracks().forEach((t) => t.stop());
-    streamActivo = null;
-  }
-  video.srcObject = null;
-  videoZona.classList.remove('visible');
-  btnDetener.disabled = true;
-  capturaImg.style.display = 'none';
-}
-
-function capturar() {
-  if (!streamActivo) {
-    linea('Captura', 'No hay stream activo', 'err');
-    return;
-  }
-  const ancho = video.videoWidth;
-  const alto = video.videoHeight;
-  if (!ancho || !alto) {
-    linea('Captura', 'videoWidth o videoHeight en cero. Espera un momento y vuelve a intentar.', 'err');
-    return;
-  }
-  const canvas = document.createElement('canvas');
-  canvas.width = ancho;
-  canvas.height = alto;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0, ancho, alto);
-  canvas.toBlob((blob) => {
-    if (!blob) {
-      linea('Captura', 'toBlob devolvió null', 'err');
+    const password = document.getElementById('password').value;
+    if (!emailSeleccionado) {
+      estadoLogin.textContent = 'Primero elige un usuario.';
+      estadoLogin.style.color = '#A03737';
       return;
     }
-    capturaImg.src = URL.createObjectURL(blob);
-    capturaImg.style.display = 'block';
-    linea('Captura', `OK. ${ancho}x${alto} px, ${Math.round(blob.size / 1024)} KB`, 'ok');
-  }, 'image/jpeg', 0.92);
+    if (!password) {
+      estadoLogin.textContent = 'Escribe la contraseña.';
+      estadoLogin.style.color = '#A03737';
+      return;
+    }
+    await iniciarSesion(emailSeleccionado, password);
+    estadoLogin.textContent = '';
+    document.getElementById('login').hidden = true;
+    document.getElementById('tests').hidden = false;
+    await correr();
+  } catch (e) {
+    estadoLogin.textContent = 'Error: ' + e.message;
+    estadoLogin.style.color = '#A03737';
+  }
 }
 
-btnEjecutar.addEventListener('click', ejecutar);
-btnDetener.addEventListener('click', detenerStream);
-btnCapturar.addEventListener('click', capturar);
+document.getElementById('btn-entrar').addEventListener('click', entrarYCorrer);
+document.getElementById('password').addEventListener('keydown', (ev) => {
+  if (ev.key === 'Enter') entrarYCorrer();
+});
+
+/* ---------- Detección de sesión activa ---------- */
+
+(async () => {
+  try {
+    const usuario = await cargarSesion();
+    if (usuario) {
+      // Ya hay sesión. Saltamos el login y corremos directo.
+      document.getElementById('login').hidden = true;
+      document.getElementById('tests').hidden = false;
+      await correr();
+    }
+    // Si no hay usuario, se queda mostrando el login.
+  } catch (e) {
+    // Silencioso: si falla, se muestra el login normal.
+  }
+})();
 </script>
 </body>
 </html>

@@ -1,0 +1,1909 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ahora Sí — Prototipo</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root {
+  --papel: #F7F1E8;
+  --papel-2: #EFE7DA;
+  --papel-3: #FBF6EC;
+  --borde: #E2D7C5;
+  --borde-fuerte: #D2C4AC;
+  --tinta: #1F1B16;
+  --tinta-suave: #6B6155;
+  --tinta-tenue: #A89B87;
+
+  --terracota: #C9613B;
+  --mostaza: #D9A421;
+  --musgo: #5A6B3E;
+  --azul-piedra: #4A6785;
+  --ciruela: #7A3E5C;
+
+  --luci: #D89A9A;
+  --yayo: #B8893C;
+  --ambos: #7A8B6B;
+
+  --noche: #14100C;
+  --noche-2: #241C14;
+  --noche-3: #3A2E22;
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 20px;
+  --r-full: 999px;
+
+  --sombra-1: 0 1px 2px rgba(31,27,22,.06);
+  --sombra-2: 0 8px 24px rgba(31,27,22,.10);
+  --sombra-flotante: 0 12px 32px rgba(31,27,22,.18);
+
+  --fs-display: 48px;
+  --fs-h1: 30px;
+  --fs-h2: 22px;
+  --fs-h3: 17px;
+  --fs-cuerpo: 15px;
+  --fs-carta: 18px;
+  --fs-small: 13px;
+  --fs-tiny: 11px;
+
+  --accion-min: 44px;
+}
+
+/* ============================================================
+   RESET
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+h1,h2,h3,h4,p,ul,ol,li,figure { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { background: none; border: none; cursor: pointer; }
+img { display: block; max-width: 100%; }
+
+/* ============================================================
+   BASE
+   ============================================================ */
+body {
+  font-family: 'Figtree', system-ui, sans-serif;
+  font-size: var(--fs-cuerpo);
+  line-height: 1.5;
+  color: var(--tinta);
+  background: radial-gradient(ellipse at top, #2C2620 0%, #15110D 100%);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================
+   NAV DEL PROTOTIPO (fuera del teléfono)
+   ============================================================ */
+.proto-nav {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: 'Figtree', sans-serif;
+}
+.proto-nav__label {
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+  font-weight: 600;
+}
+.proto-nav__links {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--r-full);
+  backdrop-filter: blur(12px);
+}
+.proto-nav__links button {
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,.5);
+  border-radius: var(--r-full);
+  transition: all .2s ease;
+}
+.proto-nav__links button:hover { color: rgba(255,255,255,.85); }
+.proto-nav__links button.is-active {
+  background: rgba(255,255,255,.14);
+  color: #fff;
+}
+
+/* ============================================================
+   TELÉFONO
+   ============================================================ */
+.phone {
+  width: 390px;
+  height: 844px;
+  max-height: calc(100vh - 48px);
+  background: var(--papel);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 0 0 10px #0E0B08,
+    0 0 0 12px #2A2318,
+    0 30px 80px rgba(0,0,0,.55);
+}
+
+@media (max-width: 520px) {
+  body { padding: 0; display: block; }
+  .proto-nav { top: 10px; left: 10px; }
+  .proto-nav__links button { padding: 6px 10px; font-size: 11px; }
+  .phone {
+    width: 100%;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* ============================================================
+   SCREEN (contenedor de pantallas)
+   ============================================================ */
+.screen-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--papel);
+}
+.screen {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  background: var(--papel);
+  --accent: var(--terracota);
+}
+.screen.is-active { display: flex; }
+
+/* ============================================================
+   TOPBAR
+   ============================================================ */
+.topbar {
+  flex-shrink: 0;
+  padding: 14px 20px 12px;
+  background: var(--papel);
+  position: relative;
+  z-index: 10;
+}
+.topbar__row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.topbar__eyebrow {
+  font-size: var(--fs-tiny);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.topbar__title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: var(--fs-h1);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--tinta);
+}
+.topbar__title--accent { color: var(--accent); }
+.topbar__btn {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  color: var(--tinta-suave);
+  transition: background .15s ease;
+}
+.topbar__btn:hover { background: var(--papel-2); }
+.topbar__btn svg { width: 20px; height: 20px; }
+
+/* Barra superior tipo "tabs" para sub-secciones */
+.subtabs {
+  display: flex;
+  gap: 6px;
+  padding: 0 20px 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--papel);
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--borde);
+}
+.subtabs::-webkit-scrollbar { display: none; }
+.subtab {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--tinta-suave);
+  border-radius: var(--r-full);
+  transition: all .15s ease;
+  white-space: nowrap;
+}
+.subtab:hover { background: var(--papel-2); color: var(--tinta); }
+.subtab.is-active {
+  background: var(--tinta);
+  color: var(--papel);
+}
+
+/* ============================================================
+   CUERPO DE PANTALLA
+   ============================================================ */
+.screen__body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px 20px 120px;
+  -webkit-overflow-scrolling: touch;
+}
+.screen__body::-webkit-scrollbar { width: 0; }
+
+/* ============================================================
+   TABBAR
+   ============================================================ */
+.tabbar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 78px;
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  background: rgba(247, 241, 232, .94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--borde);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 50;
+}
+.tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--tinta-tenue);
+  transition: color .18s ease, transform .18s ease;
+  border-radius: var(--r-md);
+  padding: 4px;
+}
+.tabbar__item svg {
+  width: 22px;
+  height: 22px;
+  transition: transform .18s ease;
+}
+.tabbar__label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+.tabbar__item:active { transform: scale(.92); }
+.tabbar__item.is-active { color: var(--tinta); }
+.tabbar__item.is-active svg { transform: translateY(-1px); }
+.tabbar__item.is-active .tabbar__label { font-weight: 700; }
+
+/* ============================================================
+   FAB (botón flotante)
+   ============================================================ */
+.fab {
+  position: absolute;
+  bottom: 92px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-full);
+  background: var(--accent, var(--terracota));
+  color: var(--papel);
+  display: grid;
+  place-items: center;
+  box-shadow: var(--sombra-flotante);
+  z-index: 40;
+  transition: transform .15s ease, opacity .2s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+.fab.is-visible { opacity: 1; pointer-events: auto; }
+.fab:active { transform: scale(.9); }
+.fab svg { width: 24px; height: 24px; }
+
+/* ============================================================
+   COMPONENTES — Botones
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: var(--r-md);
+  font-weight: 600;
+  font-size: var(--fs-small);
+  transition: all .15s ease;
+}
+.btn:active { transform: scale(.97); }
+
+.btn--primario {
+  background: var(--accent, var(--terracota));
+  color: var(--papel);
+}
+.btn--primario:hover { filter: brightness(1.05); }
+
+.btn--secundario {
+  background: var(--papel-2);
+  color: var(--tinta);
+  border: 1px solid var(--borde);
+}
+.btn--secundario:hover { background: var(--papel-3); }
+
+.btn--fantasma {
+  background: transparent;
+  color: var(--tinta-suave);
+  padding: 0 12px;
+  min-height: 36px;
+}
+.btn--fantasma:hover { background: var(--papel-2); color: var(--tinta); }
+
+.btn--full { width: 100%; }
+
+/* ============================================================
+   COMPONENTES — Chips
+   ============================================================ */
+.chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px 0;
+}
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0;
+  padding: 7px 13px;
+  font-size: var(--fs-tiny);
+  font-weight: 600;
+  letter-spacing: .02em;
+  color: var(--tinta-suave);
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-full);
+  transition: all .15s ease;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+}
+.chip:hover { background: var(--papel-3); }
+.chip.is-active {
+  background: var(--tinta);
+  color: var(--papel);
+  border-color: var(--tinta);
+}
+.chip--destacado {
+  background: color-mix(in oklab, var(--accent) 14%, var(--papel));
+  border-color: color-mix(in oklab, var(--accent) 30%, var(--borde));
+  color: var(--accent);
+}
+
+/* ============================================================
+   COMPONENTES — Badge / distintivo de autor
+   ============================================================ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: var(--r-full);
+  font-size: var(--fs-tiny);
+  font-weight: 600;
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+.badge--luci { background: color-mix(in oklab, var(--luci) 25%, var(--papel)); color: #8A5757; }
+.badge--yayo { background: color-mix(in oklab, var(--yayo) 22%, var(--papel)); color: #6B4F1F; }
+.badge--ambos { background: color-mix(in oklab, var(--ambos) 22%, var(--papel)); color: #4A5C3B; }
+.badge__dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor;
+  opacity: .7;
+}
+
+/* ============================================================
+   COMPONENTES — Tarjetas
+   ============================================================ */
+.card {
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-lg);
+  padding: 16px;
+  box-shadow: var(--sombra-1);
+}
+
+/* ============================================================
+   PANTALLA: FOGÓN / CARTA
+   ============================================================ */
+[data-screen="carta"] { --accent: var(--terracota); }
+
+.carta-hoja {
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-lg);
+  padding: 28px 22px;
+  box-shadow: var(--sombra-1);
+  position: relative;
+  overflow: hidden;
+}
+.carta-hoja::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent 0, transparent 30px, rgba(31,27,22,.02) 30px, rgba(31,27,22,.02) 31px);
+  pointer-events: none;
+  opacity: .4;
+}
+
+.carta__fecha {
+  font-size: var(--fs-tiny);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.carta__fecha::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--borde);
+}
+
+.carta__parrafo {
+  margin-bottom: 24px;
+}
+.carta__parrafo:last-child { margin-bottom: 0; }
+.carta__titulo-interno {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 16px;
+  color: var(--terracota);
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+.carta__texto {
+  font-family: 'Fraunces', serif;
+  font-size: var(--fs-carta);
+  line-height: 1.65;
+  color: var(--tinta);
+  letter-spacing: -0.005em;
+}
+
+.carta__separador {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 28px 0;
+  color: var(--tinta-tenue);
+  font-size: 12px;
+  letter-spacing: .4em;
+}
+
+.carta__firma {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 600;
+  font-size: 26px;
+  color: var(--tinta);
+  margin-top: 28px;
+  text-align: right;
+  letter-spacing: -0.02em;
+}
+.carta__firma-rol {
+  display: block;
+  font-family: 'Figtree', sans-serif;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 11px;
+  color: var(--tinta-tenue);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* Compromisos */
+.compromisos__titulo {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: var(--fs-h3);
+  color: var(--tinta);
+  margin: 32px 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.compromisos__titulo::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--borde);
+}
+.compromisos__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+.compromiso {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  background: var(--papel-2);
+  border-radius: var(--r-md);
+  border: 1px solid var(--borde);
+}
+.compromiso__check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--borde-fuerte);
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: grid;
+  place-items: center;
+}
+.compromiso__check svg {
+  width: 11px; height: 11px;
+  color: var(--tinta-tenue);
+  opacity: .5;
+}
+.compromiso__cuerpo { flex: 1; }
+.compromiso__titulo {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--tinta);
+  margin-bottom: 2px;
+}
+.compromiso__desc {
+  font-size: 13px;
+  color: var(--tinta-suave);
+  line-height: 1.45;
+}
+
+/* Tarjeta de respuesta */
+.respuesta-cta {
+  margin-top: 32px;
+  padding: 22px 20px;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--terracota) 8%, var(--papel-2)) 0%, var(--papel-2) 100%);
+  border: 1px solid color-mix(in oklab, var(--terracota) 25%, var(--borde));
+  border-radius: var(--r-lg);
+}
+.respuesta-cta__eyebrow {
+  font-size: var(--fs-tiny);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--terracota);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.respuesta-cta__titulo {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--tinta);
+  margin-bottom: 16px;
+}
+.respuesta-opciones {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.respuesta-opcion {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 14px 16px;
+  background: var(--papel-3);
+  border: 1.5px solid var(--borde);
+  border-radius: var(--r-md);
+  text-align: left;
+  transition: all .15s ease;
+  min-height: 56px;
+}
+.respuesta-opcion:hover {
+  border-color: color-mix(in oklab, var(--terracota) 40%, var(--borde));
+  background: var(--papel);
+}
+.respuesta-opcion:active { transform: scale(.98); }
+.respuesta-opcion__t {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--tinta);
+}
+.respuesta-opcion__s {
+  font-size: 12px;
+  color: var(--tinta-suave);
+}
+
+/* ============================================================
+   PANTALLA: FAUNA (Afuera)
+   ============================================================ */
+[data-screen="fauna"] { --accent: var(--musgo); }
+
+.registro {
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--sombra-1);
+  margin-bottom: 14px;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.registro:active { transform: scale(.995); }
+
+.registro__foto {
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(135deg, #C7BE9F 0%, #8FA076 100%);
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.registro__foto--vacia {
+  background: linear-gradient(135deg, var(--papel-2) 0%, color-mix(in oklab, var(--musgo) 20%, var(--papel-2)) 100%);
+}
+.registro__foto svg {
+  width: 56px; height: 56px;
+  color: rgba(255,255,255,.35);
+}
+.registro__foto--vacia svg {
+  color: color-mix(in oklab, var(--musgo) 50%, var(--tinta-tenue));
+  opacity: .5;
+}
+.registro__foto-nombre {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 40px 16px 14px;
+  background: linear-gradient(180deg, transparent 0%, rgba(20,16,12,.75) 100%);
+  color: #fff;
+}
+.registro__nombre-propio {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 15px;
+  opacity: .92;
+  letter-spacing: -0.005em;
+  display: block;
+  margin-bottom: 1px;
+}
+.registro__especie {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.registro__cuerpo { padding: 14px 16px 16px; }
+.registro__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.registro__ubicacion {
+  font-size: 13px;
+  color: var(--tinta-suave);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.registro__ubicacion::before {
+  content: '·';
+  color: var(--tinta-tenue);
+}
+.registro__ubicacion:first-child::before { display: none; }
+.registro__notas {
+  font-size: 14px;
+  color: var(--tinta-suave);
+  line-height: 1.5;
+  margin-top: 8px;
+  font-style: italic;
+}
+.registro__acciones {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--borde);
+}
+
+/* Chip "pertenece a" */
+.chip-pertenece {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--r-full);
+  background: color-mix(in oklab, var(--musgo) 14%, var(--papel-2));
+  color: color-mix(in oklab, var(--musgo) 80%, var(--tinta));
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+
+/* ============================================================
+   PANTALLA: RECETAS (Vida)
+   ============================================================ */
+[data-screen="recetas"] { --accent: var(--azul-piedra); }
+
+.receta-hero {
+  position: relative;
+  aspect-ratio: 5 / 4;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: linear-gradient(160deg, #D9A421 0%, #C9613B 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 20px;
+  color: var(--papel);
+  box-shadow: var(--sombra-2);
+  margin-bottom: 20px;
+}
+.receta-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.18) 0%, transparent 55%);
+}
+.receta-hero__etiqueta {
+  position: relative;
+  font-size: var(--fs-tiny);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  font-weight: 700;
+  opacity: .85;
+  margin-bottom: 6px;
+}
+.receta-hero__titulo {
+  position: relative;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  margin-bottom: 10px;
+}
+.receta-hero__meta {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  font-size: 12px;
+  font-weight: 500;
+  opacity: .92;
+}
+.receta-hero__meta span { display: flex; align-items: center; gap: 5px; }
+
+.recetas-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.receta-card {
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  transition: transform .15s ease;
+}
+.receta-card:active { transform: scale(.97); }
+.receta-card__foto {
+  aspect-ratio: 1 / 1;
+  background: linear-gradient(135deg, #D9A421 0%, #C97B3B 100%);
+  position: relative;
+}
+.receta-card:nth-child(2) .receta-card__foto { background: linear-gradient(135deg, #8FA076 0%, #5A6B3E 100%); }
+.receta-card:nth-child(3) .receta-card__foto { background: linear-gradient(135deg, #D89A9A 0%, #C9613B 100%); }
+.receta-card:nth-child(4) .receta-card__foto { background: linear-gradient(135deg, #C4AEEB 0%, #7A3E5C 100%); }
+.receta-card__cuerpo { padding: 10px 12px 12px; }
+.receta-card__titulo {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--tinta);
+  margin-bottom: 6px;
+}
+.receta-card__meta {
+  font-size: 11px;
+  color: var(--tinta-suave);
+  display: flex;
+  gap: 8px;
+}
+
+/* ============================================================
+   PANTALLA: SERIES (Juegos)
+   ============================================================ */
+[data-screen="series"] { --accent: var(--ciruela); }
+
+.series-progreso {
+  padding: 14px 16px;
+  background: var(--papel-2);
+  border-radius: var(--r-md);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.series-progreso__num {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  color: var(--ciruela);
+}
+.series-progreso__txt {
+  font-size: 12px;
+  color: var(--tinta-suave);
+  font-weight: 500;
+}
+.series-progreso__barra {
+  width: 80px;
+  height: 6px;
+  background: var(--papel);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.series-progreso__barra i {
+  display: block;
+  height: 100%;
+  background: var(--ciruela);
+  border-radius: 3px;
+  transition: width .3s ease;
+}
+
+.fila-lista {
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  transition: all .15s ease;
+}
+.fila-lista:active { background: var(--papel-2); }
+.fila-lista__handle {
+  color: var(--tinta-tenue);
+  cursor: grab;
+  padding: 4px 0;
+  font-size: 16px;
+  line-height: 1;
+}
+.fila-lista__puntaje {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: -0.04em;
+  color: var(--ciruela);
+  min-width: 36px;
+  text-align: center;
+  line-height: 1;
+}
+.fila-lista__puntaje--vacio {
+  color: var(--tinta-tenue);
+  font-weight: 500;
+  font-size: 18px;
+}
+.fila-lista__cuerpo { flex: 1; min-width: 0; }
+.fila-lista__titulo {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--tinta);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fila-lista__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--tinta-suave);
+}
+.fila-lista__acciones {
+  display: flex;
+  gap: 4px;
+}
+.btn-mini {
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  min-height: 28px;
+  transition: all .15s ease;
+}
+.btn-mini:active { transform: scale(.94); }
+.btn-mini--ok {
+  background: color-mix(in oklab, var(--musgo) 15%, var(--papel-2));
+  color: color-mix(in oklab, var(--musgo) 80%, var(--tinta));
+  border-color: color-mix(in oklab, var(--musgo) 30%, var(--borde));
+}
+.btn-mini--cap {
+  background: color-mix(in oklab, var(--ciruela) 12%, var(--papel-2));
+  color: color-mix(in oklab, var(--ciruela) 85%, var(--tinta));
+  border-color: color-mix(in oklab, var(--ciruela) 30%, var(--borde));
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+}
+
+/* ============================================================
+   PANTALLA: PERCUSIÓN (Juegos · modo noche)
+   ============================================================ */
+[data-screen="percusion"] {
+  --accent: var(--mostaza);
+  background: var(--noche);
+  --papel: var(--noche);
+  --papel-2: var(--noche-2);
+  --papel-3: var(--noche-3);
+  --tinta: #F2E6D0;
+  --tinta-suave: #B8A888;
+  --tinta-tenue: #6E5F48;
+  --borde: rgba(242,230,208,.10);
+  --borde-fuerte: rgba(242,230,208,.20);
+}
+[data-screen="percusion"] .screen__body { color: var(--tinta); }
+[data-screen="percusion"] .topbar { background: var(--noche); }
+[data-screen="percusion"] .topbar__eyebrow { color: var(--tinta-tenue); }
+[data-screen="percusion"] .topbar__title { color: var(--tinta); }
+[data-screen="percusion"] .subtabs { background: var(--noche); border-color: rgba(242,230,208,.08); }
+[data-screen="percusion"] .subtab { color: var(--tinta-suave); }
+[data-screen="percusion"] .subtab:hover { background: var(--noche-2); color: var(--tinta); }
+[data-screen="percusion"] .subtab.is-active { background: var(--mostaza); color: var(--noche); }
+
+.perc-modo {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  background: var(--noche-2);
+  border-radius: var(--r-full);
+  margin-bottom: 20px;
+}
+.perc-modo__btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  color: var(--tinta-suave);
+  transition: all .2s ease;
+}
+.perc-modo__btn.is-active {
+  background: var(--mostaza);
+  color: var(--noche);
+}
+
+.perc-grilla {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.perc-voz {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.perc-voz__label {
+  width: 74px;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  letter-spacing: .02em;
+}
+.perc-voz__label b {
+  display: block;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--tinta);
+  margin-bottom: 2px;
+}
+.perc-pasos {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+}
+.perc-celda {
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  background: var(--noche-3);
+  border: 1px solid rgba(242,230,208,.06);
+  transition: all .15s ease;
+  position: relative;
+}
+.perc-celda--marca {
+  background: rgba(242,230,208,.06);
+}
+.perc-celda--activa {
+  background: var(--mostaza);
+  border-color: var(--mostaza);
+}
+.perc-celda--actual {
+  box-shadow: 0 0 0 2px rgba(217,164,33,.55), 0 0 20px rgba(217,164,33,.4);
+}
+.perc-celda:active { transform: scale(.9); }
+
+.perc-controles {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: var(--noche-2);
+  border: 1px solid rgba(242,230,208,.08);
+  border-radius: var(--r-lg);
+  margin-bottom: 16px;
+}
+.perc-play {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-full);
+  background: var(--mostaza);
+  color: var(--noche);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  box-shadow: 0 8px 20px rgba(217,164,33,.35);
+  transition: transform .15s ease;
+}
+.perc-play:active { transform: scale(.9); }
+.perc-play svg { width: 22px; height: 22px; }
+.perc-slider {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.perc-slider__label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+}
+.perc-slider__fila {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.perc-slider__input {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: var(--noche-3);
+  border-radius: 2px;
+  outline: none;
+}
+.perc-slider__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--mostaza);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,.4);
+}
+.perc-slider__input::-moz-range-thumb {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--mostaza); border: none; cursor: pointer;
+}
+.perc-slider__valor {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--tinta);
+  min-width: 40px;
+  text-align: right;
+  letter-spacing: -0.02em;
+}
+
+.perc-acciones {
+  display: flex;
+  gap: 8px;
+}
+.perc-acciones .btn {
+  flex: 1;
+  min-height: 40px;
+  font-size: 12px;
+  background: var(--noche-2);
+  color: var(--tinta-suave);
+  border: 1px solid rgba(242,230,208,.10);
+}
+.perc-acciones .btn:hover { background: var(--noche-3); color: var(--tinta); }
+.perc-acciones .btn--principal {
+  background: var(--mostaza);
+  color: var(--noche);
+  border-color: var(--mostaza);
+}
+
+/* ============================================================
+   ANIMACIONES
+   ============================================================ */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.screen.is-active .screen__body > * {
+  animation: fade-up .35s ease backwards;
+}
+.screen.is-active .screen__body > *:nth-child(1) { animation-delay: .02s; }
+.screen.is-active .screen__body > *:nth-child(2) { animation-delay: .06s; }
+.screen.is-active .screen__body > *:nth-child(3) { animation-delay: .10s; }
+.screen.is-active .screen__body > *:nth-child(4) { animation-delay: .14s; }
+.screen.is-active .screen__body > *:nth-child(5) { animation-delay: .18s; }
+</style>
+</head>
+
+<body>
+
+<!-- NAV DEL PROTOTIPO -->
+<nav class="proto-nav">
+  <span class="proto-nav__label">Prototipo · 390 × 844</span>
+  <div class="proto-nav__links">
+    <button data-go="carta" class="is-active">Fogón</button>
+    <button data-go="fauna">Fauna</button>
+    <button data-go="recetas">Recetas</button>
+    <button data-go="series">Series</button>
+    <button data-go="percusion">Percusión</button>
+  </div>
+</nav>
+
+
+<div class="phone">
+  <main class="screen-area">
+
+    <!-- ============================================================
+         PANTALLA 1 — FOGÓN / CARTA
+         ============================================================ -->
+    <section class="screen is-active" data-screen="carta">
+      <header class="topbar">
+        <div class="topbar__row">
+          <div>
+            <p class="topbar__eyebrow">De Yayo · para Luci</p>
+            <h1 class="topbar__title topbar__title--accent">Fogón</h1>
+          </div>
+          <button class="topbar__btn" aria-label="Opciones">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <nav class="subtabs">
+        <button class="subtab is-active">Carta</button>
+        <button class="subtab">Compromisos</button>
+        <button class="subtab">Anexos</button>
+      </nav>
+
+      <div class="screen__body">
+
+        <article class="carta-hoja">
+          <div class="carta__fecha">Hace 4 días</div>
+
+          <div class="carta__parrafo">
+            <div class="carta__titulo-interno">Idas y vueltas</div>
+            <p class="carta__texto">Sé que lo nuestro ha tenido idas y vueltas, y no te voy a decir que no. Lo que sí sé es que te tengo mucho cariño y que contigo quiero hacer las cosas bien.</p>
+          </div>
+
+          <div class="carta__parrafo">
+            <div class="carta__titulo-interno">Sin presión</div>
+            <p class="carta__texto">Esta página no es una presión ni una pregunta con fecha límite. Es mi forma de mostrarte, con lo que sé hacer, que lo pienso en serio.</p>
+          </div>
+
+          <div class="carta__parrafo">
+            <div class="carta__titulo-interno">Como eres</div>
+            <p class="carta__texto">Me gusta cómo eres: libre, curiosa, con las manos siempre metidas en algo, sea un tambor, un circuito o una máquina de barbero. No quiero que cambies nada de eso.</p>
+          </div>
+
+          <div class="carta__parrafo">
+            <div class="carta__titulo-interno">Sin apuro</div>
+            <p class="carta__texto">Tómate el tiempo que necesites. Lo que hay aquí sigue en pie igual.</p>
+          </div>
+
+          <div class="carta__separador">· · ·</div>
+
+          <div class="carta__firma">
+            Yayo
+            <span class="carta__firma-rol">Firmado</span>
+          </div>
+        </article>
+
+        <h2 class="compromisos__titulo">Sus compromisos</h2>
+        <ul class="compromisos__lista">
+          <li class="compromiso">
+            <span class="compromiso__check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+            </span>
+            <div class="compromiso__cuerpo">
+              <p class="compromiso__titulo">Decirte las cosas de frente</p>
+              <p class="compromiso__desc">Incluso las incómodas, y a tiempo.</p>
+            </div>
+          </li>
+          <li class="compromiso">
+            <span class="compromiso__check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+            </span>
+            <div class="compromiso__cuerpo">
+              <p class="compromiso__titulo">Respetar tu libertad</p>
+              <p class="compromiso__desc">Tus viajes, tu música, tu trabajo y tus espacios a solas.</p>
+            </div>
+          </li>
+          <li class="compromiso">
+            <span class="compromiso__check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+            </span>
+            <div class="compromiso__cuerpo">
+              <p class="compromiso__titulo">Cumplir lo que propongo</p>
+              <p class="compromiso__desc">Si no puedo, aviso con tiempo y propongo otra fecha.</p>
+            </div>
+          </li>
+          <li class="compromiso">
+            <span class="compromiso__check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+            </span>
+            <div class="compromiso__cuerpo">
+              <p class="compromiso__titulo">Constancia, no impulsos</p>
+              <p class="compromiso__desc">Que esto se note en los días normales, no solo en los buenos.</p>
+            </div>
+          </li>
+        </ul>
+
+        <aside class="respuesta-cta">
+          <p class="respuesta-cta__eyebrow">Cuando quieras</p>
+          <p class="respuesta-cta__titulo">¿Cómo te sientes ahora?</p>
+          <div class="respuesta-opciones">
+            <button class="respuesta-opcion">
+              <span class="respuesta-opcion__t">Quiero ir paso a paso</span>
+              <span class="respuesta-opcion__s">Sin etiquetas. Un plan a la vez.</span>
+            </button>
+            <button class="respuesta-opcion">
+              <span class="respuesta-opcion__t">Quiero que hablemos</span>
+              <span class="respuesta-opcion__s">Con calma, cuando podamos.</span>
+            </button>
+            <button class="respuesta-opcion">
+              <span class="respuesta-opcion__t">Necesito más tiempo</span>
+              <span class="respuesta-opcion__s">Y está bien.</span>
+            </button>
+          </div>
+        </aside>
+
+      </div>
+    </section>
+
+
+    <!-- ============================================================
+         PANTALLA 2 — FAUNA
+         ============================================================ -->
+    <section class="screen" data-screen="fauna">
+      <header class="topbar">
+        <div class="topbar__row">
+          <div>
+            <p class="topbar__eyebrow">Afuera</p>
+            <h1 class="topbar__title topbar__title--accent">Fauna</h1>
+          </div>
+          <button class="topbar__btn" aria-label="Opciones">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <nav class="subtabs">
+        <button class="subtab">Mapa</button>
+        <button class="subtab is-active">Fauna</button>
+        <button class="subtab">Flora</button>
+      </nav>
+
+      <div class="screen__body">
+
+        <!-- Registro con foto -->
+        <article class="registro">
+          <div class="registro__foto">
+            <div class="registro__foto-nombre">
+              <span class="registro__nombre-propio">Milo</span>
+              <span class="registro__especie">Perro quiltro</span>
+            </div>
+          </div>
+          <div class="registro__cuerpo">
+            <div class="registro__meta">
+              <span class="badge badge--luci"><span class="badge__dot"></span>Luci</span>
+              <span class="chip-pertenece">Doméstico</span>
+            </div>
+            <div class="registro__meta" style="margin-bottom: 0;">
+              <span class="registro__ubicacion">Casa de la abuela, Chillán</span>
+              <span class="registro__ubicacion">12 mar 2025</span>
+            </div>
+            <p class="registro__notas">Nos siguió todo el camino de vuelta. Duerme en el porche.</p>
+            <div class="registro__acciones">
+              <button class="btn-mini">Editar</button>
+              <button class="btn-mini">Eliminar</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Registro sin foto -->
+        <article class="registro">
+          <div class="registro__foto registro__foto--vacia">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 20h18L14 8l-3 5-2-3-6 10z"/>
+            </svg>
+            <div class="registro__foto-nombre">
+              <span class="registro__nombre-propio" style="opacity: .7;">&nbsp;</span>
+              <span class="registro__especie">Chincol</span>
+            </div>
+          </div>
+          <div class="registro__cuerpo">
+            <div class="registro__meta">
+              <span class="badge badge--yayo"><span class="badge__dot"></span>Yayo</span>
+              <span class="chip-pertenece">Silvestre</span>
+            </div>
+            <div class="registro__meta" style="margin-bottom: 0;">
+              <span class="registro__ubicacion">Sendero a las Termas</span>
+              <span class="registro__ubicacion">10 mar 2025</span>
+            </div>
+            <p class="registro__notas">Cantaba al amanecer. Se quedó quieto como diez segundos antes de irse.</p>
+            <div class="registro__acciones">
+              <button class="btn-mini">Editar</button>
+              <button class="btn-mini">Eliminar</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Registro compartido -->
+        <article class="registro">
+          <div class="registro__foto" style="background: linear-gradient(135deg, #8FA076 0%, #5A6B3E 100%);">
+            <div class="registro__foto-nombre">
+              <span class="registro__nombre-propio">&nbsp;</span>
+              <span class="registro__especie">Caballo overo</span>
+            </div>
+          </div>
+          <div class="registro__cuerpo">
+            <div class="registro__meta">
+              <span class="badge badge--ambos"><span class="badge__dot"></span>Los dos</span>
+              <span class="chip-pertenece">De un vecino</span>
+            </div>
+            <div class="registro__meta" style="margin-bottom: 0;">
+              <span class="registro__ubicacion">Camino a Pinto</span>
+              <span class="registro__ubicacion">3 mar 2025</span>
+            </div>
+            <div class="registro__acciones">
+              <button class="btn-mini">Editar</button>
+              <button class="btn-mini">Eliminar</button>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+
+    <!-- ============================================================
+         PANTALLA 3 — RECETAS
+         ============================================================ -->
+    <section class="screen" data-screen="recetas">
+      <header class="topbar">
+        <div class="topbar__row">
+          <div>
+            <p class="topbar__eyebrow">Vida</p>
+            <h1 class="topbar__title topbar__title--accent">Recetas</h1>
+          </div>
+          <button class="topbar__btn" aria-label="Opciones">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <nav class="subtabs">
+        <button class="subtab">Planes</button>
+        <button class="subtab">Ideas</button>
+        <button class="subtab">Hitos</button>
+        <button class="subtab">Kit</button>
+        <button class="subtab is-active">Recetas</button>
+      </nav>
+
+      <div class="screen__body">
+
+        <!-- Receta destacada -->
+        <article class="receta-hero">
+          <p class="receta-hero__etiqueta">Cocina de los dos</p>
+          <h2 class="receta-hero__titulo">Pan amasado<br>de los domingos</h2>
+          <div class="receta-hero__meta">
+            <span>· 1 h 30 min</span>
+            <span>· 8 panes</span>
+            <span>· Fácil</span>
+          </div>
+        </article>
+
+        <!-- Chips de categoría -->
+        <div class="chips" style="margin-bottom: 16px;">
+          <button class="chip is-active">Todas</button>
+          <button class="chip">Panadería</button>
+          <button class="chip">Salado</button>
+          <button class="chip">Dulce</button>
+          <button class="chip">Bebidas</button>
+        </div>
+
+        <!-- Grid de recetas -->
+        <div class="recetas-grid">
+          <article class="receta-card">
+            <div class="receta-card__foto"></div>
+            <div class="receta-card__cuerpo">
+              <h3 class="receta-card__titulo">Sopaipillas pasadas</h3>
+              <div class="receta-card__meta">
+                <span>40 min</span>
+                <span>·</span>
+                <span>4 pers.</span>
+              </div>
+            </div>
+          </article>
+          <article class="receta-card">
+            <div class="receta-card__foto"></div>
+            <div class="receta-card__cuerpo">
+              <h3 class="receta-card__titulo">Cazuela de campo</h3>
+              <div class="receta-card__meta">
+                <span>1 h 20</span>
+                <span>·</span>
+                <span>6 pers.</span>
+              </div>
+            </div>
+          </article>
+          <article class="receta-card">
+            <div class="receta-card__foto"></div>
+            <div class="receta-card__cuerpo">
+              <h3 class="receta-card__titulo">Brownies de Luci</h3>
+              <div class="receta-card__meta">
+                <span>45 min</span>
+                <span>·</span>
+                <span>12</span>
+              </div>
+            </div>
+          </article>
+          <article class="receta-card">
+            <div class="receta-card__foto"></div>
+            <div class="receta-card__cuerpo">
+              <h3 class="receta-card__titulo">Mermelada de mora</h3>
+              <div class="receta-card__meta">
+                <span>1 h</span>
+                <span>·</span>
+                <span>3 frascos</span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ============================================================
+         PANTALLA 4 — SERIES
+         ============================================================ -->
+    <section class="screen" data-screen="series">
+      <header class="topbar">
+        <div class="topbar__row">
+          <div>
+            <p class="topbar__eyebrow">Juegos</p>
+            <h1 class="topbar__title topbar__title--accent">Series</h1>
+          </div>
+          <button class="topbar__btn" aria-label="Opciones">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <nav class="subtabs">
+        <button class="subtab is-active">Series</button>
+        <button class="subtab">Retos</button>
+        <button class="subtab">Penitencias</button>
+        <button class="subtab">Preguntas</button>
+        <button class="subtab">Apuestas</button>
+        <button class="subtab">Chistes</button>
+        <button class="subtab">Percusión</button>
+      </nav>
+
+      <div class="screen__body">
+
+        <!-- Progreso -->
+        <div class="series-progreso">
+          <div>
+            <div class="series-progreso__num">12 / 28</div>
+            <div class="series-progreso__txt">vistas hasta ahora</div>
+          </div>
+          <div class="series-progreso__barra"><i style="width: 43%"></i></div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="chips" style="margin-bottom: 16px;">
+          <button class="chip is-active">Todas</button>
+          <button class="chip">Viendo</button>
+          <button class="chip">Pendientes</button>
+          <button class="chip">Series</button>
+          <button class="chip">Películas</button>
+        </div>
+
+        <!-- Ranking compacto -->
+        <article class="fila-lista">
+          <span class="fila-lista__handle">⠿</span>
+          <span class="fila-lista__puntaje">10</span>
+          <div class="fila-lista__cuerpo">
+            <div class="fila-lista__titulo">Severance</div>
+            <div class="fila-lista__meta">
+              <span class="badge badge--luci"><span class="badge__dot"></span>Luci</span>
+              <span>Apple TV</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="fila-lista">
+          <span class="fila-lista__handle">⠿</span>
+          <span class="fila-lista__puntaje">9</span>
+          <div class="fila-lista__cuerpo">
+            <div class="fila-lista__titulo">The Bear</div>
+            <div class="fila-lista__meta">
+              <span class="badge badge--yayo"><span class="badge__dot"></span>Yayo</span>
+              <span>Disney+</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="fila-lista">
+          <span class="fila-lista__handle">⠿</span>
+          <span class="fila-lista__puntaje">—</span>
+          <div class="fila-lista__cuerpo">
+            <div class="fila-lista__titulo">Shogun</div>
+            <div class="fila-lista__meta">
+              <span class="badge badge--ambos"><span class="badge__dot"></span>Los dos</span>
+              <span>Viendo · T1 E4</span>
+            </div>
+          </div>
+          <div class="fila-lista__acciones">
+            <button class="btn-mini btn-mini--cap">+1</button>
+          </div>
+        </article>
+
+        <article class="fila-lista">
+          <span class="fila-lista__handle">⠿</span>
+          <span class="fila-lista__puntaje">8</span>
+          <div class="fila-lista__cuerpo">
+            <div class="fila-lista__titulo">Past Lives</div>
+            <div class="fila-lista__meta">
+              <span class="badge badge--luci"><span class="badge__dot"></span>Luci</span>
+              <span>Película</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="fila-lista">
+          <span class="fila-lista__handle">⠿</span>
+          <span class="fila-lista__puntaje">—</span>
+          <div class="fila-lista__cuerpo">
+            <div class="fila-lista__titulo">La Casa de los Espíritus</div>
+            <div class="fila-lista__meta">
+              <span class="badge badge--yayo"><span class="badge__dot"></span>Yayo</span>
+              <span>Pendiente</span>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+
+    <!-- ============================================================
+         PANTALLA 5 — PERCUSIÓN (modo noche)
+         ============================================================ -->
+    <section class="screen" data-screen="percusion">
+      <header class="topbar">
+        <div class="topbar__row">
+          <div>
+            <p class="topbar__eyebrow">Juegos</p>
+            <h1 class="topbar__title topbar__title--accent">Percusión</h1>
+          </div>
+          <button class="topbar__btn" aria-label="Opciones">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="screen__body">
+
+        <div class="perc-modo">
+          <button class="perc-modo__btn is-active">Simple</button>
+          <button class="perc-modo__btn">Extendido</button>
+        </div>
+
+        <!-- Grilla simple 4×8 -->
+        <div class="perc-grilla">
+
+          <div class="perc-voz">
+            <div class="perc-voz__label"><b>Bombo</b>Gordo</div>
+            <div class="perc-pasos">
+              <button class="perc-celda perc-celda--marca perc-celda--activa"></button>
+              <button class="perc-celda"></button>
+              <button class="perc-celda perc-celda--activa"></button>
+              <button class="perc-celda"></button>
+              <button class="perc-celda perc-celda--marca"></button>
+              <button class="perc-celda"></button>
+              <button class="perc-celda perc-celda--activa"></button>
+              <button class="perc-celda"></button>
+            </div>
+          </div>
+
+          <div class="perc-voz">
+            <div class="perc-voz__label"><b>Caja</b>Seca</div>
+            <div class="perc-pasos">
+              <button class="perc-celda perc-celda--marca"></button>
+              <button class="perc-celda"></button>
+              <button class="perc-celda perc-celda--activa"></button>
+              <button class="perc-celda"></button>
+              <button class="perc-celda perc-celda--marca"></button>
+              <button class="perc-celda"></button>
+              <button class="perc-celda perc-celda--activa"></button>
+              <button class="perc-celda"></button>
+            </div>
+          </div>
+
+          <div class="perc-voz">
+            <div class="perc-voz__label"><b>HH</b>Cerrado</div>
+            <div class="perc-pasos">
+              <button class="perc-celda perc-celda--marca perc-celda--activa"></button>
+              <button class="perc-celda perc-celda--activa"></button>
+              <button class="perc-celda perc-celda--activa"></button>
+              <button class="perc-celda perc-celda--activa"></button>
+              <button class="perc-celda perc-celda--marca perc-celda--activa"></button>
+              <button class="perc-celda perc-celda--activa"></button>
+              <button class="perc-celda perc-celda--activa"></button>
+              <button class="perc-celda perc-celda--activa"></button>
+            </div>
+          </div>
+
+          <div class="perc-voz">
+            <div class="perc-voz__label"><b>Clap</b>&nbsp;</div>
+            <div class="perc-pasos">
+              <button class="perc-celda perc-celda--marca"></button>
+              <button class="perc-celda"></button>
+              <button class="perc-celda"></button>
+              <button class="perc-celda"></button>
+              <button class="perc-celda perc-celda--marca perc-celda--activa"></button>
+              <button class="perc-celda"></button>
+              <button class="perc-celda"></button>
+              <button class="perc-celda"></button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Controles -->
+        <div class="perc-controles">
+          <button class="perc-play" aria-label="Reproducir">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+          <div class="perc-slider">
+            <span class="perc-slider__label">Tempo</span>
+            <div class="perc-slider__fila">
+              <input class="perc-slider__input" type="range" min="60" max="160" value="90">
+              <span class="perc-slider__valor">90</span>
+            </div>
+            <span class="perc-slider__label" style="margin-top: 6px;">Swing</span>
+            <div class="perc-slider__fila">
+              <input class="perc-slider__input" type="range" min="0" max="50" value="8">
+              <span class="perc-slider__valor">8%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="perc-acciones">
+          <button class="btn">Reset</button>
+          <button class="btn">Limpiar</button>
+          <button class="btn btn--principal">Guardar</button>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+
+  <!-- FAB (aparece solo en pantallas que lo usan) -->
+  <button class="fab" id="fab">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+
+
+  <!-- TABBAR -->
+  <nav class="tabbar">
+    <button class="tabbar__item is-active" data-tab="fogon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+      </svg>
+      <span class="tabbar__label">Fogón</span>
+    </button>
+    <button class="tabbar__item" data-tab="vida">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/>
+        <path d="M4 17a3 3 0 0 1 3-3h11"/>
+      </svg>
+      <span class="tabbar__label">Vida</span>
+    </button>
+    <button class="tabbar__item" data-tab="afuera">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 20h18L14 8l-3 5-2-3-6 10z"/>
+      </svg>
+      <span class="tabbar__label">Afuera</span>
+    </button>
+    <button class="tabbar__item" data-tab="juegos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+        <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/>
+      </svg>
+      <span class="tabbar__label">Juegos</span>
+    </button>
+    <button class="tabbar__item" data-tab="mas">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="5" cy="12" r="1.6"/>
+        <circle cx="12" cy="12" r="1.6"/>
+        <circle cx="19" cy="12" r="1.6"/>
+      </svg>
+      <span class="tabbar__label">Más</span>
+    </button>
+  </nav>
+</div>
+
+
+<script>
+(function () {
+  'use strict';
+
+  const screens = document.querySelectorAll('.screen');
+  const protoButtons = document.querySelectorAll('.proto-nav__links button');
+  const fab = document.getElementById('fab');
+
+  // Qué pantallas muestran el FAB
+  const pantallasConFab = new Set(['fauna', 'recetas', 'series']);
+
+  function mostrar(nombre) {
+    screens.forEach((s) => {
+      s.classList.toggle('is-active', s.dataset.screen === nombre);
+    });
+    protoButtons.forEach((b) => {
+      b.classList.toggle('is-active', b.dataset.go === nombre);
+    });
+    fab.classList.toggle('is-visible', pantallasConFab.has(nombre));
+  }
+
+  // Nav del prototipo
+  protoButtons.forEach((b) => {
+    b.addEventListener('click', () => mostrar(b.dataset.go));
+  });
+
+  // Simular que los tabs principales también cambian de pantalla
+  // (en el prototipo los mapeamos a las pantallas existentes)
+  const mapaTabs = {
+    fogon: 'carta',
+    vida: 'recetas',
+    afuera: 'fauna',
+    juegos: 'series',
+    mas: null, // no definido aún
+  };
+  document.querySelectorAll('.tabbar__item').forEach((item) => {
+    item.addEventListener('click', () => {
+      const destino = mapaTabs[item.dataset.tab];
+      if (!destino) return;
+      document.querySelectorAll('.tabbar__item').forEach((i) => i.classList.remove('is-active'));
+      item.classList.add('is-active');
+      mostrar(destino);
+    });
+  });
+
+  // Simular interacción de celdas de percusión
+  document.querySelectorAll('.perc-celda').forEach((celda) => {
+    celda.addEventListener('click', () => {
+      if (celda.classList.contains('perc-celda--activa')) {
+        celda.classList.remove('perc-celda--activa');
+      } else {
+        celda.classList.add('perc-celda--activa');
+      }
+    });
+  });
+
+  // Toggle modo percusión
+  document.querySelectorAll('.perc-modo__btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.perc-modo__btn').forEach((b) => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+    });
+  });
+
+  // Chips: toggle
+  document.querySelectorAll('.chips').forEach((grupo) => {
+    grupo.querySelectorAll('.chip').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        grupo.querySelectorAll('.chip').forEach((c) => c.classList.remove('is-active'));
+        chip.classList.add('is-active');
+      });
+    });
+  });
+
+  // Subtabs: toggle
+  document.querySelectorAll('.subtabs').forEach((grupo) => {
+    grupo.querySelectorAll('.subtab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        grupo.querySelectorAll('.subtab').forEach((t) => t.classList.remove('is-active'));
+        tab.classList.add('is-active');
+      });
+    });
+  });
+
+  // Play de percusión: solo pulso visual
+  const playBtn = document.querySelector('.perc-play');
+  if (playBtn) {
+    let tocando = false;
+    playBtn.addEventListener('click', () => {
+      tocando = !tocando;
+      playBtn.innerHTML = tocando
+        ? '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

@@ -1,11 +1,8 @@
 # EVENTOS.md — Catálogo de eventos de Ahora Sí
 
-**Versión:** 1.0.0
-**Fecha:** 25 de septiembre de 2026
-**Propósito:** Catálogo canónico de eventos del sistema. Todo
-evento que un módulo emite debe estar acá. Todo evento que una
-vista consume debe estar acá. Si un evento no aparece en este
-documento, no existe.
+**Versión:** 2.0.0
+**Fecha:** 28 de septiembre de 2026
+**Propósito:** Catálogo canónico de eventos del sistema. Todo evento que un módulo emite debe estar acá. Todo evento que una vista consume debe estar acá. Si un evento no aparece en este documento, no existe.
 **Mantenedor:** Kiu.
 
 ---
@@ -13,13 +10,10 @@ documento, no existe.
 ## 1. Convenciones
 
 - **Nombre del evento:** `modulo:accion`. Ejemplo: `planes:creado`.
-- **Payload:** objeto plano con los datos del evento. Nunca
-  `undefined` ni `null`.
+- **Payload:** objeto plano con los datos del evento. Nunca `undefined` ni `null`.
 - **Emisor:** módulo que llama a `emitir()`.
 - **Consumidores:** módulos que llaman a `al()`.
-- **Ciclo de vida:** cada suscripción devuelve una función para
-  desuscribir. Se guarda en el registro del módulo y se ejecuta
-  en `limpiar()`.
+- **Ciclo de vida:** cada suscripción devuelve una función para desuscribir. Se guarda en el registro del módulo y se ejecuta en `limpiar()`.
 
 ---
 
@@ -34,16 +28,15 @@ Emitidos por los módulos del directorio `js/nucleo/`.
 | `almacen:<clave>` | `almacen.js` | `{ valor, anterior }` | Cualquier módulo suscrito al cambio de una clave específica |
 | `almacen:reiniciado` | `almacen.js` | *(sin payload)* | Módulos que necesitan saber cuándo se limpia el estado |
 
-Ejemplos de `<clave>`: `usuarioActual`, `espacio`, `planes`, `kit`,
-`hitos`, `carta`, `respuestas`, `fauna`, `flora`, `ritmos`,
-`perfiles`, `perfil`, `cargando`, `error`.
+Ejemplos de `<clave>`: `usuarioActual`, `espacio`, `planes`, `kit`, `hitos`, `carta`, `respuestas`, `fauna`, `flora`, `ritmos`, `perfil`, `cargando`, `error`.
 
-### 2.2 Arranque de sesión
+**Consumidores activos notables:**
 
-El módulo `js/arranque/sesion-inicial.js` v1.2.0 **no emite
-eventos**. Devuelve un objeto con `exito`, `usuario`, `perfil`,
-`espacio`, `motivo` y `detalle`. El shell consume ese retorno
-directamente. No requiere suscripción.
+- `almacen:perfil` → `app.js` (actualiza el nombre visible en el header).
+
+### 2.2 Arranque
+
+Los módulos de arranque (`sesion-inicial.js`, `espacio-inicial.js`, `carta-inicial.js`, `ideas-iniciales.js`) **no emiten eventos**. Devuelven objetos con `exito`, `usuario`, `perfil`, `espacio`, `motivo` y `detalle`. El shell consume el retorno directamente.
 
 ---
 
@@ -73,8 +66,7 @@ Emitidos por `js/datos/realtime.js`.
 
 ### 4.2 Eventos por tabla
 
-Para cada tabla suscrita, `realtime.js` emite también dos eventos
-específicos:
+Para cada tabla suscrita, `realtime.js` emite también un evento específico por acción:
 
 | Evento | Emisor | Payload | Consumidores |
 |--------|--------|---------|--------------|
@@ -82,26 +74,37 @@ específicos:
 | `realtime:<clave>:actualizar` | `realtime.js` | `fila` (objeto) | Vistas de esa tabla |
 | `realtime:<clave>:eliminar` | `realtime.js` | `fila` (objeto) | Vistas de esa tabla |
 
-`<clave>` puede ser: `planes`, `kit`, `hitos`, `carta`, `respuestas`,
-`fauna`, `flora`, `ritmos`.
+### 4.3 Tablas suscritas
 
-**Consumidores por tabla:**
+`<clave>` puede ser cualquiera de las siguientes:
 
-- `planes`: `js/vistas/planes.js`
-- `kit`: `js/vistas/kit.js`
-- `hitos`: `js/vistas/hitos.js`
-- `carta`: `js/vistas/carta.js`
-- `respuestas`: `js/vistas/respuesta.js` (solo `crear`)
-- `fauna`: `js/vistas/fauna.js`
-- `flora`: `js/vistas/flora.js`
-- `ritmos`: `js/vistas/percusion.js` (solo `crear` y `eliminar`)
+| Clave | Tabla Appwrite | Vista consumidora |
+|-------|----------------|-------------------|
+| `planes` | `ahorasi_planes` | `js/vistas/planes.js`, `js/vistas/ideas.js` |
+| `kit` | `ahorasi_kit` | `js/vistas/kit.js` |
+| `hitos` | `ahorasi_hitos` | `js/vistas/hitos.js` |
+| `carta` | `ahorasi_carta` | `js/vistas/carta.js` |
+| `respuestas` | `ahorasi_respuestas` | `js/vistas/respuesta.js` (solo `crear`) |
+| `fauna` | `ahorasi_fauna` | `js/vistas/fauna.js` |
+| `flora` | `ahorasi_flora` | `js/vistas/flora.js` |
+| `ritmos` | `ahorasi_ritmos` | `js/vistas/percusion.js` (solo `crear` y `eliminar`) |
+| `fotos` | `ahorasi_fotos` | `js/vistas/fauna.js`, `js/vistas/flora.js` |
+| `lugares` | `ahorasi_lugares` | `js/vistas/mapa.js` |
+| `series` | `ahorasi_series` | `js/vistas/series.js` |
+| `retos` | `ahorasi_retos` | `js/vistas/juegos.js` |
+| `penitencias` | `ahorasi_penitencias` | `js/vistas/juegos.js` |
+| `preguntas` | `ahorasi_preguntas` | `js/vistas/juegos.js` |
+| `apuestas` | `ahorasi_apuestas` | `js/vistas/juegos.js` |
+| `chistes` | `ahorasi_chistes` | `js/vistas/juegos.js` |
+| `recetas` | `ahorasi_recetas` | `js/vistas/recetas.js` |
+
+**Nota:** la vista de Juegos se suscribe a las cinco tablas (retos, penitencias, preguntas, apuestas, chistes) y refresca según el tab activo.
 
 ---
 
 ## 5. Eventos de repositorios
 
-Emitidos por `js/datos/repositorios/*.js`. Se emiten después de
-que la operación de escritura en Appwrite fue exitosa.
+Emitidos por `js/datos/repositorios/*.js`. Se emiten **después** de que la operación de escritura en Appwrite fue exitosa.
 
 ### 5.1 Planes
 
@@ -132,7 +135,10 @@ que la operación de escritura en Appwrite fue exitosa.
 | Evento | Emisor | Payload | Consumidores |
 |--------|--------|---------|--------------|
 | `carta:creado` | `carta.js` | `pieza` (objeto normalizado) | Vistas, tests |
+| `carta:actualizado` | `carta.js` | `pieza` (objeto normalizado) | Vistas, tests |
 | `carta:eliminado` | `carta.js` | `{ id }` | Vistas, tests |
+
+**Tipos de carta:** `base`, `anexo`, `compromiso`, `compromiso_compartido`, `firma`.
 
 ### 5.5 Respuestas
 
@@ -145,6 +151,7 @@ que la operación de escritura en Appwrite fue exitosa.
 | Evento | Emisor | Payload | Consumidores |
 |--------|--------|---------|--------------|
 | `fauna:creado` | `fauna.js` | `registro` (objeto normalizado) | Vistas, tests |
+| `fauna:actualizado` | `fauna.js` | `registro` (objeto normalizado) | Vistas, tests |
 | `fauna:eliminado` | `fauna.js` | `{ id }` | Vistas, tests |
 
 ### 5.7 Flora
@@ -152,6 +159,7 @@ que la operación de escritura en Appwrite fue exitosa.
 | Evento | Emisor | Payload | Consumidores |
 |--------|--------|---------|--------------|
 | `flora:creado` | `flora.js` | `registro` (objeto normalizado) | Vistas, tests |
+| `flora:actualizado` | `flora.js` | `registro` (objeto normalizado) | Vistas, tests |
 | `flora:eliminado` | `flora.js` | `{ id }` | Vistas, tests |
 
 ### 5.8 Ritmos
@@ -160,6 +168,8 @@ que la operación de escritura en Appwrite fue exitosa.
 |--------|--------|---------|--------------|
 | `ritmos:creado` | `ritmos.js` | `ritmo` (objeto normalizado) | Vistas, tests |
 | `ritmos:eliminado` | `ritmos.js` | `{ id }` | Vistas, tests |
+
+**Nota:** el repo de ritmos no expone `actualizar()`. Solo crear y eliminar.
 
 ### 5.9 Perfiles
 
@@ -176,15 +186,91 @@ que la operación de escritura en Appwrite fue exitosa.
 | `espacios:creado` | `espacios.js` | `espacio` (objeto normalizado) | Arranque, tests |
 | `espacios:eliminado` | `espacios.js` | `{ id }` | Arranque, tests |
 
+### 5.11 Fotos
+
+| Evento | Emisor | Payload | Consumidores |
+|--------|--------|---------|--------------|
+| `fotos:creada` | `fotos.js` | `foto` (objeto normalizado) | Vistas de fauna, flora |
+| `fotos:eliminada` | `fotos.js` | `{ id, fileId }` | Vistas de fauna, flora |
+
+**Nota:** no existe `fotos:actualizada`. Una foto se borra y se sube de nuevo.
+
+### 5.12 Lugares
+
+| Evento | Emisor | Payload | Consumidores |
+|--------|--------|---------|--------------|
+| `lugares:creado` | `lugares.js` | `lugar` (objeto normalizado) | Vistas, tests |
+| `lugares:actualizado` | `lugares.js` | `lugar` (objeto normalizado) | Vistas, tests |
+| `lugares:eliminado` | `lugares.js` | `{ id }` | Vistas, tests |
+
+### 5.13 Series
+
+| Evento | Emisor | Payload | Consumidores |
+|--------|--------|---------|--------------|
+| `series:creado` | `series.js` | `serie` (objeto normalizado) | Vistas, tests |
+| `series:actualizado` | `series.js` | `serie` (objeto normalizado) | Vistas, tests |
+| `series:eliminado` | `series.js` | `{ id }` | Vistas, tests |
+| `series:reordenado` | `series.js` | `{ ids: [...] }` | Vistas, tests |
+
+**Nota:** `series:reordenado` se emite una sola vez al final de una operación de reordenamiento por drag&drop, no una vez por fila.
+
+### 5.14 Retos
+
+| Evento | Emisor | Payload | Consumidores |
+|--------|--------|---------|--------------|
+| `retos:creado` | `retos.js` | `reto` (objeto normalizado) | Vistas, tests |
+| `retos:actualizado` | `retos.js` | `reto` (objeto normalizado) | Vistas, tests |
+| `retos:eliminado` | `retos.js` | `{ id }` | Vistas, tests |
+
+### 5.15 Penitencias
+
+| Evento | Emisor | Payload | Consumidores |
+|--------|--------|---------|--------------|
+| `penitencias:creado` | `penitencias.js` | `penitencia` (objeto normalizado) | Vistas, tests |
+| `penitencias:actualizado` | `penitencias.js` | `penitencia` (objeto normalizado) | Vistas, tests |
+| `penitencias:eliminado` | `penitencias.js` | `{ id }` | Vistas, tests |
+
+### 5.16 Preguntas
+
+| Evento | Emisor | Payload | Consumidores |
+|--------|--------|---------|--------------|
+| `preguntas:creado` | `preguntas.js` | `pregunta` (objeto normalizado) | Vistas, tests |
+| `preguntas:eliminado` | `preguntas.js` | `{ id }` | Vistas, tests |
+
+**Nota:** las preguntas no se editan, solo se crean y se eliminan.
+
+### 5.17 Apuestas
+
+| Evento | Emisor | Payload | Consumidores |
+|--------|--------|---------|--------------|
+| `apuestas:creado` | `apuestas.js` | `apuesta` (objeto normalizado) | Vistas, tests |
+| `apuestas:actualizado` | `apuestas.js` | `apuesta` (objeto normalizado) | Vistas, tests |
+| `apuestas:eliminado` | `apuestas.js` | `{ id }` | Vistas, tests |
+
+**Nota:** `actualizado` se emite también al resolver una apuesta.
+
+### 5.18 Chistes
+
+| Evento | Emisor | Payload | Consumidores |
+|--------|--------|---------|--------------|
+| `chistes:creado` | `chistes.js` | `chiste` (objeto normalizado) | Vistas, tests |
+| `chistes:eliminado` | `chistes.js` | `{ id }` | Vistas, tests |
+
+### 5.19 Recetas
+
+| Evento | Emisor | Payload | Consumidores |
+|--------|--------|---------|--------------|
+| `recetas:creado` | `recetas.js` | `receta` (objeto normalizado) | Vistas, tests |
+| `recetas:actualizado` | `recetas.js` | `receta` (objeto normalizado) | Vistas, tests |
+| `recetas:eliminado` | `recetas.js` | `{ id }` | Vistas, tests |
+
 ---
 
 ## 6. Formato del payload normalizado
 
-Cada repositorio normaliza la fila de Appwrite antes de emitirla.
-Los objetos llevan `id` (sin `$`), y los timestamps van como
-`creadoEn` y `actualizadoEn`.
+Cada repositorio normaliza la fila de Appwrite antes de emitirla. Los objetos llevan `id` (sin `$`), y los timestamps van como `creadoEn` y `actualizadoEn` cuando corresponde.
 
-Ejemplo del payload de `planes:creado`:
+### 6.1 Ejemplo: `planes:creado`
 
     {
       id: 'plan_xxxxx',
@@ -193,9 +279,59 @@ Ejemplo del payload de `planes:creado`:
       descripcion: '',
       cuando: '',
       estado: 'pendiente',
+      esIdea: false,
+      categoria: '',
       creadoPor: 'Elyayo',
       creadoEn: '2026-09-25T...',
       actualizadoEn: '2026-09-25T...'
+    }
+
+### 6.2 Ejemplo: `carta:creado` (tipo `base`)
+
+    {
+      id: 'carta_xxxxx',
+      espacioId: 'esp_xxxxx',
+      tipo: 'base',
+      titulo: 'Idas y vueltas',
+      contenido: 'Sé que lo nuestro ha tenido...',
+      autor: 'Elyayo',
+      orden: 0,
+      creadoEn: '2026-09-25T...'
+    }
+
+### 6.3 Ejemplo: `fotos:creada`
+
+    {
+      id: 'fotos_xxxxx',
+      fileId: 'foto_xxxxx',
+      tabla: 'ahorasi_fauna',
+      filaId: 'fauna_xxxxx',
+      espacioId: 'esp_xxxxx',
+      subidoPor: 'Elyayo',
+      creadoEn: '2026-09-25T...'
+    }
+
+### 6.4 Ejemplo: `series:reordenado`
+
+    {
+      ids: ['serie_a', 'serie_b', 'serie_c']
+    }
+
+El orden va de arriba hacia abajo.
+
+### 6.5 Ejemplo: `recetas:creado`
+
+    {
+      id: 'receta_xxxxx',
+      espacioId: 'esp_xxxxx',
+      titulo: 'Pan amasado',
+      categoria: 'Desayuno',
+      ingredientes: [ { tipo: 'simple', texto: '1 kg de harina' }, ... ],
+      pasos: [ 'Disolver la levadura...', ... ],
+      nota: 'El secreto es no amasar de más.',
+      fotos: ['https://...'],
+      creadoPor: 'Elyayo',
+      creadoEn: '2026-09-25T...'
     }
 
 ---
@@ -211,8 +347,15 @@ Ejemplo del payload de `planes:creado`:
     // Al limpiar la vista:
     desuscribir();
 
-Las vistas guardan las funciones de desuscribir en un array y las
-ejecutan todas en `limpiar()`.
+Las vistas guardan las funciones de desuscribir en un array y las ejecutan todas en `limpiar()`.
+
+**Ejemplo completo con el patrón de vistas:**
+
+    registro.desuscribir = [
+      al('realtime:planes:crear', refrescar),
+      al('realtime:planes:actualizar', refrescar),
+      al('realtime:planes:eliminar', refrescar),
+    ];
 
 ---
 
@@ -222,12 +365,11 @@ ejecutan todas en `limpiar()`.
 
     emitir('planes:creado', plan);
 
-Reglas:
+**Reglas:**
 
-1. El nombre debe seguir `modulo:accion`.
-2. El payload debe ser un objeto. Nunca `undefined`.
-3. Se emite **después** de que la operación de escritura fue
-   exitosa. Nunca antes.
+1. El nombre sigue `modulo:accion`.
+2. El payload es un objeto. Nunca `undefined`.
+3. Se emite **después** de que la operación de escritura fue exitosa. Nunca antes.
 4. Se documenta acá antes de agregarlo al código.
 
 ---
@@ -236,16 +378,13 @@ Reglas:
 
 Estos eventos fueron considerados y descartados explícitamente:
 
-- **`arranque:listo`, `arranque:sin-sesion`, `arranque:error`.**
-  El arranque usa un retorno directo en `sesion-inicial.js`. No
-  emite eventos. Si en el futuro se necesita notificar al shell
-  de forma asíncrona, se evalúa reintroducirlos.
-
-- **`productos:*`, `comandas:*`, `mesas:*`, `turno:*`.**
-  Son eventos de un POS. Ahora Sí no es un POS y no tiene esos
-  conceptos.
+- **`arranque:listo`, `arranque:sin-sesion`, `arranque:error`.** El arranque usa un retorno directo en `sesion-inicial.js`. No emite eventos. Si en el futuro se necesita notificar al shell de forma asíncrona, se evalúa reintroducirlos.
+- **`productos:*`, `comandas:*`, `mesas:*`, `turno:*`.** Son eventos de un POS. Ahora Sí no es un POS y no tiene esos conceptos.
+- **`fotos:actualizada`.** Una foto no se edita. Se borra y se sube de nuevo.
+- **`preguntas:actualizado`.** Las preguntas no se editan. Se crean y se eliminan.
+- **`ritmos:actualizado`.** Los ritmos guardados no se editan desde la UI.
 
 ---
 
 *Documento mantenido por Kiu.*
-*Versión 1.0.0 — 25 de septiembre de 2026*
+*Versión 2.0.0 — 28 de septiembre de 2026*

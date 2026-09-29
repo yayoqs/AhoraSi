@@ -1,35 +1,41 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/carta.js
-   Versión: 2.2.0
-   Propósito: vista de la carta. Cada usuario tiene su propia
-              carta (manifiesto, compromisos personales y firma).
-              La vista principal muestra la carta del otro más los
-              compromisos compartidos y los anexos. El botón "Ver
-              mi carta" lleva a la propia, donde se puede editar
-              con fijado por sección.
-              v2.2.0: la sección raíz lleva id="vista-carta" para
-                      el encapsulado de CSS. Sin cambios en la
-                      lógica ni en las firmas públicas.
-              v2.1.0: edición inline de anexos, CRUD completo de
-                      compromisos compartidos.
+   Versión: 4.0.1
+   Propósito: vista de la carta fusionada con Respuesta. Cada
+              usuario tiene su propia carta (manifiesto,
+              compromisos personales y firma). La vista principal
+              muestra la carta del otro más los compromisos
+              compartidos, los anexos y el bloque de respuesta.
+              El botón "Ver mi carta" lleva a la propia.
+              v4.0.1: el CTA "Ver mi carta" se mueve arriba del
+                      bloque de respuesta. Antes iba al final, tras
+                      las opciones. Ahora el flujo es: leer la
+                      carta → decidir si escribir la propia →
+                      responder. Sin cambios funcionales.
+              v4.0.0: fusión con Respuesta. La vista Carta ahora
+                      carga también el repositorio de respuestas
+                      y pinta el bloque "Tu respuesta" al final
+                      del scroll, antes del CTA "Ver mi carta".
+              v3.0.0: rediseño al nuevo lenguaje visual.
+              v2.2.0: id="vista-carta" para CSS.
+              v2.1.0: edición inline de anexos, CRUD de compartidos.
               v2.0.1: envuelve todo en .vista--carta.
-              v2.0.0: reescritura completa, carta por usuario.
-              v1.3.1: usa mostrarConfirmacion().
+              v2.0.0: carta por usuario.
+              v1.3.1: mostrarConfirmacion().
               v1.3.0: activar() pinta primero.
-              v1.2.0: distintivoAutor, clase .vista--carta.
-              v1.1.0: escucha eventos de Realtime.
+              v1.1.0: Realtime.
               v1.0.0: versión inicial.
    ================================================================ */
 
 import * as repoCarta from '../datos/repositorios/carta.js';
+import * as repoRespuestas from '../datos/repositorios/respuestas.js';
 import { CONFIG } from '../config/config.js';
 import { al } from '../nucleo/bus-eventos.js';
 import { mostrarConfirmacion } from '../nucleo/dialogos.js';
-import { distintivoAutor } from '../nucleo/autores.js';
 import { crearLogger } from '../nucleo/logger.js';
 import { obtener } from '../nucleo/almacen.js';
-import { h, limpiarContenedor } from '../nucleo/utils.js';
+import { h, limpiarContenedor, formatearFecha } from '../nucleo/utils.js';
 
 const log = crearLogger('vista:carta');
 
@@ -45,12 +51,23 @@ const TEXTO_GUIA = {
   firma: 'Luci',
 };
 
+const ELECCIONES = [
+  { id: 'paso_a_paso', etiqueta: 'Quiero ir paso a paso', ayuda: 'Sin etiquetas. Un plan a la vez.' },
+  { id: 'hablar', etiqueta: 'Quiero que hablemos', ayuda: 'Con calma, cuando podamos.' },
+  { id: 'tiempo', etiqueta: 'Necesito más tiempo', ayuda: 'Y está bien.' },
+];
+
+const SVG_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>';
+const SVG_FIJAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>';
+const SVG_FLECHA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+
 const registro = {
   contenedor: null,
   raiz: null,
   abortador: null,
   desuscribir: [],
-  todas: [],
+  todasCarta: [],
+  todasRespuestas: [],
   pantalla: 'otro',
   modo: 'vista',
   seccionesFijadas: new Set(),
@@ -58,41 +75,59 @@ const registro = {
   toastMostrado: false,
   toastElemento: null,
   editandoAnexo: null,
-  editandoCompromisoCompartido: null,
+  editandoCompartido: null,
+  respuestaSeleccionada: null,
+  respuestaNota: '',
+  respuestaEnviando: false,
+  barraProgresoEl: null,
+  manejarScrollRef: null,
 };
 
-function usuarioActual() {
+/* ---------- Helpers -------------------------------------------- */
+
+function usuarioActualId() {
   const u = obtener('usuarioActual');
   return u?.$id || u?.id || null;
 }
 
 function esLuci() {
-  return usuarioActual() === CONFIG.usuarios.luci;
+  return usuarioActualId() === CONFIG.usuarios.luci;
 }
 
 function userIdOtro() {
-  const yo = usuarioActual();
+  const yo = usuarioActualId();
   if (yo === CONFIG.usuarios.yayo) return CONFIG.usuarios.luci;
   if (yo === CONFIG.usuarios.luci) return CONFIG.usuarios.yayo;
   return null;
 }
 
+function nombreDe(userId) {
+  if (userId === CONFIG.usuarios.yayo) return 'Yayo';
+  if (userId === CONFIG.usuarios.luci) return 'Luci';
+  return 'Desconocido';
+}
+
 function nombreOtro() {
-  return userIdOtro() === CONFIG.usuarios.yayo ? 'Yayo' : 'Luci';
+  return nombreDe(userIdOtro());
 }
 
 function nombrePropio() {
-  return usuarioActual() === CONFIG.usuarios.yayo ? 'Yayo' : 'Luci';
+  return nombreDe(usuarioActualId());
+}
+
+function etiquetaEleccion(id) {
+  const e = ELECCIONES.find((x) => x.id === id);
+  return e ? e.etiqueta : id;
 }
 
 function piezasDe(userId, tipo) {
-  return registro.todas
+  return registro.todasCarta
     .filter((p) => p.autor === userId && p.tipo === tipo)
     .sort((a, b) => (a.orden || 0) - (b.orden || 0));
 }
 
 function firmaDe(userId) {
-  return registro.todas.find((p) => p.autor === userId && p.tipo === 'firma') || null;
+  return registro.todasCarta.find((p) => p.autor === userId && p.tipo === 'firma') || null;
 }
 
 function cartaDe(userId) {
@@ -104,13 +139,13 @@ function cartaDe(userId) {
 }
 
 function compartidos() {
-  return registro.todas
+  return registro.todasCarta
     .filter((p) => p.tipo === 'compromiso_compartido')
     .sort((a, b) => (a.orden || 0) - (b.orden || 0));
 }
 
 function anexos() {
-  return registro.todas
+  return registro.todasCarta
     .filter((p) => p.tipo === 'anexo')
     .sort((a, b) => (a.orden || 0) - (b.orden || 0));
 }
@@ -120,21 +155,32 @@ function cartaVacia(userId) {
   return c.manifiesto.length === 0 && c.compromisos.length === 0 && !c.firma;
 }
 
-const NS_SVG = 'http://www.w3.org/2000/svg';
-
-function svgCheck() {
-  const s = document.createElementNS(NS_SVG, 'svg');
-  s.setAttribute('viewBox', '0 0 24 24');
-  s.setAttribute('fill', 'none');
-  s.setAttribute('stroke', 'currentColor');
-  s.setAttribute('stroke-width', '2.4');
-  s.setAttribute('stroke-linecap', 'round');
-  s.setAttribute('stroke-linejoin', 'round');
-  const p = document.createElementNS(NS_SVG, 'path');
-  p.setAttribute('d', 'M4 12.5l5 5L20 6.5');
-  s.append(p);
-  return s;
+function fechaRelativa(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const diffMs = Date.now() - d.getTime();
+  const dias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (dias < 1) return 'Hoy';
+  if (dias === 1) return 'Ayer';
+  if (dias < 7) return `Hace ${dias} días`;
+  if (dias < 30) return `Hace ${Math.floor(dias / 7)} semanas`;
+  return `Hace ${Math.floor(dias / 30)} meses`;
 }
+
+function distintivoAutorLocal(userId) {
+  const nombre = nombreDe(userId);
+  const inicial = nombre.charAt(0).toUpperCase();
+  const clase = userId === CONFIG.usuarios.yayo ? 'autor--yayo'
+    : userId === CONFIG.usuarios.luci ? 'autor--luci'
+    : 'autor--desconocido';
+  return h('span', { class: `autor ${clase}`, 'aria-label': `Por ${nombre}` },
+    h('span', { class: 'autor__inicial', 'aria-hidden': 'true' }, inicial),
+    h('span', {}, nombre)
+  );
+}
+
+/* ---------- Mensajes ------------------------------------------- */
 
 function pintarMensaje(tipo, texto) {
   const raiz = registro.raiz;
@@ -145,57 +191,175 @@ function pintarMensaje(tipo, texto) {
   setTimeout(() => p.remove(), 5000);
 }
 
+/* ---------- Barra de progreso de lectura (D7) ------------------ */
+
+function montarBarraProgreso() {
+  const header = document.querySelector('.shell__header');
+  if (!header) return;
+
+  quitarBarraProgreso();
+
+  const barra = h('div', { class: 'progreso-lectura', 'aria-hidden': 'true' },
+    h('i', {})
+  );
+  header.append(barra);
+  registro.barraProgresoEl = barra;
+
+  const actualizar = () => {
+    const i = barra.querySelector('i');
+    if (!i) return;
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = max > 0 ? Math.min(100, (window.scrollY / max) * 100) : 0;
+    i.style.width = pct.toFixed(2) + '%';
+  };
+  registro.manejarScrollRef = actualizar;
+
+  window.addEventListener('scroll', actualizar, { passive: true });
+  window.addEventListener('resize', actualizar);
+  actualizar();
+}
+
+function quitarBarraProgreso() {
+  if (registro.manejarScrollRef) {
+    window.removeEventListener('scroll', registro.manejarScrollRef);
+    window.removeEventListener('resize', registro.manejarScrollRef);
+    registro.manejarScrollRef = null;
+  }
+  if (registro.barraProgresoEl && registro.barraProgresoEl.parentNode) {
+    registro.barraProgresoEl.remove();
+  }
+  registro.barraProgresoEl = null;
+}
+
+/* ---------- Bloques reusables --------------------------------- */
+
 function pintarManifiesto(items) {
-  const cont = h('div', { class: 'manifiesto' });
+  const cont = h('div', {});
   if (items.length === 0) {
     cont.append(h('p', { class: 'vista__vacio' }, 'Sin párrafos.'));
     return cont;
   }
   for (const p of items) {
-    cont.append(h('article', {},
-      p.titulo ? h('h3', {}, p.titulo) : null,
-      h('p', {}, p.contenido)
+    cont.append(h('div', { class: 'carta__parrafo' },
+      p.titulo ? h('div', { class: 'carta__titulo-interno' }, p.titulo) : null,
+      h('p', { class: 'carta__texto' }, p.contenido)
     ));
   }
   return cont;
 }
 
-function pintarCompromisos(items, compartido = false) {
-  const ul = h('ul', { class: 'compromisos' });
+function pintarSeparador() {
+  return h('div', { class: 'carta__separador', 'aria-hidden': 'true' },
+    h('span', {}, '·'),
+    h('span', {}, '·'),
+    h('span', {}, '·')
+  );
+}
+
+function pintarCompromisosDelOtro(items) {
+  const ul = h('ul', { class: 'compromisos__lista' });
   if (items.length === 0) {
     return h('p', { class: 'vista__vacio' }, 'Sin compromisos.');
   }
   for (const c of items) {
-    ul.append(h('li', { class: 'compromiso' + (compartido ? ' compromiso--compartido' : '') },
-      h('div', { class: 'compromiso__check' }, svgCheck()),
-      h('div', {},
+    const li = h('li', { class: 'compromiso' });
+    const check = h('span', { class: 'compromiso__check' });
+    check.innerHTML = SVG_CHECK;
+    li.append(
+      check,
+      h('div', { class: 'compromiso__cuerpo' },
         h('p', { class: 'compromiso__titulo' }, c.titulo),
         h('p', { class: 'compromiso__desc' }, c.contenido)
       )
-    ));
+    );
+    ul.append(li);
   }
   return ul;
 }
 
-/* ---------- Anexos: lista con edición inline ------------------- */
+function pintarListaCompartidos(items) {
+  const ul = h('ul', { class: 'compartidos__lista' });
+  for (const c of items) {
+    if (registro.editandoCompartido === c.id) {
+      ul.append(pintarCompartidoEnEdicion(c));
+    } else {
+      const li = h('li', { class: 'compartido', 'data-id': c.id });
+      const check = h('span', { class: 'compartido__check' });
+      check.innerHTML = SVG_CHECK;
+      li.append(
+        check,
+        h('div', { class: 'compartido__cuerpo' },
+          h('p', { class: 'compartido__titulo' }, c.titulo),
+          h('p', { class: 'compartido__desc' }, c.contenido),
+          h('div', { class: 'compartido__meta' },
+            distintivoAutorLocal(c.autor),
+            h('button', {
+              type: 'button', class: 'btn-mini',
+              'data-accion': 'editar-compartido', 'data-id': c.id,
+            }, 'Editar'),
+            h('button', {
+              type: 'button', class: 'btn-mini btn-mini--peligro',
+              'data-accion': 'eliminar-compartido', 'data-id': c.id,
+            }, 'Eliminar')
+          )
+        )
+      );
+      ul.append(li);
+    }
+  }
+  return ul;
+}
+
+function pintarCompartidoEnEdicion(c) {
+  const inputT = h('input', { value: c.titulo || '', placeholder: 'Título', maxlength: 200 });
+  const textarea = h('textarea', { placeholder: 'Descripción' }, c.contenido || '');
+  return h('li', { class: 'campo-editable', 'data-id': c.id },
+    inputT,
+    textarea,
+    h('div', { class: 'form-inline__fila' },
+      h('button', {
+        type: 'button', class: 'btn btn--secundario',
+        onclick: () => {
+          registro.editandoCompartido = null;
+          pintar();
+        },
+      }, 'Cancelar'),
+      h('button', {
+        type: 'button', class: 'btn btn--primario',
+        onclick: () => guardarCompartido(c.id, inputT.value, textarea.value),
+      }, 'Guardar')
+    )
+  );
+}
+
+async function guardarCompartido(id, titulo, contenido) {
+  const r = await repoCarta.actualizar(id, { titulo, contenido });
+  if (r.exito) {
+    registro.editandoCompartido = null;
+    await refrescar();
+    pintar();
+  } else {
+    pintarMensaje('error', r.error);
+  }
+}
 
 function pintarListaAnexos(items) {
-  const ul = h('ul', { class: 'anexos' });
+  const ul = h('ul', { class: 'anexos__lista' });
   for (const a of items) {
     if (registro.editandoAnexo === a.id) {
       ul.append(pintarAnexoEnEdicion(a));
     } else {
       ul.append(h('li', { class: 'anexo', 'data-id': a.id },
-        h('h3', {}, a.titulo),
-        h('p', {}, a.contenido),
-        h('div', { class: 'anexo__meta' }, distintivoAutor(a.autor)),
-        h('div', { class: 'anexo__acciones' },
+        h('p', { class: 'anexo__titulo' }, a.titulo),
+        h('p', { class: 'anexo__contenido' }, a.contenido),
+        h('div', { class: 'anexo__meta' },
+          distintivoAutorLocal(a.autor),
           h('button', {
             type: 'button', class: 'btn-mini',
             'data-accion': 'editar-anexo', 'data-id': a.id,
           }, 'Editar'),
           h('button', {
-            type: 'button', class: 'btn-mini',
+            type: 'button', class: 'btn-mini btn-mini--peligro',
             'data-accion': 'eliminar-anexo', 'data-id': a.id,
           }, 'Eliminar')
         )
@@ -208,21 +372,21 @@ function pintarListaAnexos(items) {
 function pintarAnexoEnEdicion(a) {
   const inputT = h('input', { value: a.titulo || '', placeholder: 'Título', maxlength: 200 });
   const textarea = h('textarea', { placeholder: 'Contenido' }, a.contenido || '');
-  return h('li', { class: 'pieza-edit', style: 'list-style:none;' },
+  return h('li', { class: 'campo-editable', 'data-id': a.id },
     inputT,
     textarea,
-    h('div', { class: 'pieza-edit__botones' },
+    h('div', { class: 'form-inline__fila' },
       h('button', {
-        type: 'button', class: 'btn-primario',
-        onclick: () => guardarAnexo(a.id, inputT.value, textarea.value),
-      }, 'Guardar'),
-      h('button', {
-        type: 'button', class: 'btn-secundario',
+        type: 'button', class: 'btn btn--secundario',
         onclick: () => {
           registro.editandoAnexo = null;
           pintar();
         },
-      }, 'Cancelar')
+      }, 'Cancelar'),
+      h('button', {
+        type: 'button', class: 'btn btn--primario',
+        onclick: () => guardarAnexo(a.id, inputT.value, textarea.value),
+      }, 'Guardar')
     )
   );
 }
@@ -238,67 +402,144 @@ async function guardarAnexo(id, titulo, contenido) {
   }
 }
 
-/* ---------- Compromisos compartidos: lista con edición --------- */
+/* ---------- CTA "Ver mi carta" --------------------------------- */
 
-function pintarListaCompartidos(items) {
-  const ul = h('ul', { class: 'compromisos' });
-  for (const c of items) {
-    if (registro.editandoCompromisoCompartido === c.id) {
-      ul.append(pintarCompartidoEnEdicion(c));
-    } else {
-      ul.append(h('li', { class: 'compromiso compromiso--compartido', 'data-id': c.id },
-        h('div', { class: 'compromiso__check' }, svgCheck()),
-        h('div', {},
-          h('p', { class: 'compromiso__titulo' }, c.titulo),
-          h('p', { class: 'compromiso__desc' }, c.contenido),
-          h('div', { class: 'compromiso__meta' },
-            distintivoAutor(c.autor),
-            h('button', {
-              type: 'button', class: 'btn-mini',
-              'data-accion': 'editar-compartido', 'data-id': c.id,
-            }, 'Editar'),
-            h('button', {
-              type: 'button', class: 'btn-mini',
-              'data-accion': 'eliminar-compartido', 'data-id': c.id,
-            }, 'Eliminar')
-          )
-        )
-      ));
-    }
-  }
-  return ul;
-}
-
-function pintarCompartidoEnEdicion(c) {
-  const inputT = h('input', { value: c.titulo || '', placeholder: 'Título', maxlength: 200 });
-  const textarea = h('textarea', { placeholder: 'Descripción' }, c.contenido || '');
-  return h('li', { class: 'pieza-edit', style: 'list-style:none;' },
-    inputT,
-    textarea,
-    h('div', { class: 'pieza-edit__botones' },
-      h('button', {
-        type: 'button', class: 'btn-primario',
-        onclick: () => guardarCompartido(c.id, inputT.value, textarea.value),
-      }, 'Guardar'),
-      h('button', {
-        type: 'button', class: 'btn-secundario',
-        onclick: () => {
-          registro.editandoCompromisoCompartido = null;
-          pintar();
-        },
-      }, 'Cancelar')
-    )
+function pintarCtaVerMiCarta() {
+  return h('aside', { class: 'cta-carta' },
+    h('p', { class: 'cta-carta__eyebrow' }, 'Tu turno'),
+    h('p', { class: 'cta-carta__titulo' }, '¿Quieres escribirle algo a ' + nombreOtro() + '?'),
+    h('p', { class: 'cta-carta__sub' }, 'Puedes dejar tu propia carta, tus compromisos y una firma.'),
+    h('button', {
+      type: 'button',
+      class: 'btn btn--primario btn--full',
+      'data-accion': 'ir-mia',
+    }, 'Ver mi carta', h('span', { html: SVG_FLECHA }))
   );
 }
 
-async function guardarCompartido(id, titulo, contenido) {
-  const r = await repoCarta.actualizar(id, { titulo, contenido });
+/* ---------- Bloque de respuesta -------------------------------- */
+
+function ultimaRespuestaPropia() {
+  const yo = usuarioActualId();
+  return registro.todasRespuestas.find((r) => r.enviadoPor === yo) || null;
+}
+
+function pintarBloqueRespuesta() {
+  const propia = ultimaRespuestaPropia();
+  const bloque = h('section', { class: 'respuesta-cta', id: 'bloqueRespuesta' });
+
+  bloque.append(
+    h('p', { class: 'respuesta-cta__eyebrow' }, 'Cuando quieras'),
+    h('p', { class: 'respuesta-cta__titulo' }, propia ? 'Tu respuesta' : '¿Cómo te sientes ahora?')
+  );
+
+  if (propia) {
+    const check = h('span', { class: 'ya-respondiste__icono' });
+    check.innerHTML = SVG_CHECK;
+
+    bloque.append(
+      h('div', { class: 'ya-respondiste' },
+        check,
+        h('div', { class: 'ya-respondiste__cuerpo' },
+          h('p', { class: 'ya-respondiste__titulo' }, `Ya le dijiste a ${nombreOtro()}`),
+          h('p', { class: 'ya-respondiste__sub' },
+            'Elegiste: ',
+            h('strong', {}, etiquetaEleccion(propia.eleccion)),
+            `. Puedes cambiar tu respuesta cuando quieras.`
+          )
+        )
+      ),
+      h('button', {
+        type: 'button', class: 'btn btn--secundario btn--full',
+        'data-accion': 'cambiar-respuesta',
+      }, 'Cambiar mi respuesta')
+    );
+  } else {
+    const opciones = h('div', { class: 'respuesta-opciones' });
+    for (const e of ELECCIONES) {
+      opciones.append(h('button', {
+        type: 'button',
+        class: 'respuesta-opcion',
+        'data-accion': 'elegir-respuesta',
+        'data-id': e.id,
+        'aria-pressed': String(registro.respuestaSeleccionada === e.id),
+      },
+        h('span', { class: 'respuesta-opcion__t' }, e.etiqueta),
+        h('span', { class: 'respuesta-opcion__s' }, e.ayuda)
+      ));
+    }
+
+    const textarea = h('textarea', {
+      class: 'respuesta-nota',
+      'data-accion': 'nota-respuesta',
+      placeholder: 'Si quieres agregar algo… (opcional)',
+      maxlength: 500,
+    });
+    textarea.value = registro.respuestaNota;
+
+    const btnEnviar = h('button', {
+      type: 'button',
+      class: 'respuesta-boton-enviar',
+      'data-accion': 'enviar-respuesta',
+    }, registro.respuestaEnviando ? 'Enviando…' : 'Enviar respuesta');
+    if (!registro.respuestaSeleccionada || registro.respuestaEnviando) {
+      btnEnviar.disabled = true;
+    }
+
+    bloque.append(opciones, textarea, btnEnviar);
+  }
+
+  if (registro.todasRespuestas.length > 0) {
+    const hist = h('div', { class: 'historial' },
+      h('p', { class: 'historial__titulo' }, 'Lo que ya se dijo')
+    );
+    const lista = h('div', { class: 'historial__lista' });
+
+    for (const r of registro.todasRespuestas) {
+      const item = h('div', { class: 'historial__item' },
+        h('div', { class: 'historial__cab' },
+          distintivoAutorLocal(r.enviadoPor),
+          h('span', { class: 'historial__eleccion' }, etiquetaEleccion(r.eleccion)),
+          h('span', { class: 'historial__fecha' }, formatearFecha(r.enviadoEn))
+        )
+      );
+      if (r.nota) {
+        item.append(h('p', { class: 'historial__nota' }, `"${r.nota}"`));
+      }
+      lista.append(item);
+    }
+    hist.append(lista);
+    bloque.append(hist);
+  } else {
+    bloque.append(
+      h('p', { class: 'historial__vacio' }, 'Sin respuestas todavía.')
+    );
+  }
+
+  return bloque;
+}
+
+async function enviarRespuesta() {
+  if (!registro.respuestaSeleccionada || registro.respuestaEnviando) return;
+  registro.respuestaEnviando = true;
+  pintar();
+
+  const r = await repoRespuestas.crear({
+    eleccion: registro.respuestaSeleccionada,
+    nota: registro.respuestaNota,
+  });
+
+  registro.respuestaEnviando = false;
+
   if (r.exito) {
-    registro.editandoCompromisoCompartido = null;
-    await refrescar();
+    registro.respuestaSeleccionada = null;
+    registro.respuestaNota = '';
+    await refrescarRespuestas();
     pintar();
+    pintarMensaje('ok', 'Respuesta enviada.');
   } else {
     pintarMensaje('error', r.error);
+    pintar();
   }
 }
 
@@ -307,283 +548,307 @@ async function guardarCompartido(id, titulo, contenido) {
 function pintarVistaOtro(cont) {
   const otro = userIdOtro();
   const carta = cartaDe(otro);
+  const comp = compartidos();
+  const anx = anexos();
 
-  cont.append(
-    h('h1', {}, 'Carta'),
-    h('p', { class: 'vista__lead' }, 'Lo que ' + nombreOtro() + ' dejó para ti.')
-  );
+  // Hoja de carta.
+  if (!cartaVacia(otro)) {
+    const hoja = h('article', { class: 'carta-hoja' });
 
-  if (cartaVacia(otro)) {
-    cont.append(
-      h('div', { class: 'vacio-caja' },
-        h('p', {}, nombreOtro() + ' todavía no dejó su carta.')
-      )
-    );
-  } else {
-    cont.append(pintarManifiesto(carta.manifiesto));
+    const fechaBase = carta.manifiesto[0]?.creadoEn;
+    hoja.append(h('div', { class: 'carta__fecha' },
+      'De ' + nombreOtro() + ' · ' + (fechaBase ? fechaRelativa(fechaBase) : 'hoy')));
 
-    if (carta.compromisos.length > 0) {
-      cont.append(h('h2', { class: 'vista__subtitulo' }, 'Sus compromisos'));
-      cont.append(pintarCompromisos(carta.compromisos));
+    if (carta.manifiesto.length > 0) {
+      hoja.append(pintarManifiesto(carta.manifiesto));
     }
 
     if (carta.firma && carta.firma.contenido) {
-      cont.append(h('div', { class: 'firma' },
-        h('div', { class: 'firma__texto' }, carta.firma.contenido)
+      hoja.append(pintarSeparador());
+      hoja.append(h('div', { class: 'carta__firma' },
+        h('span', { class: 'carta__firma-texto' }, carta.firma.contenido),
+        h('span', { class: 'carta__firma-rol' }, 'Firmado')
       ));
     }
+
+    cont.append(hoja);
+  } else {
+    cont.append(h('div', { class: 'vacio-caja' },
+      h('div', { class: 'vacio-caja__emoji' }, '💌'),
+      h('h2', { class: 'vacio-caja__titulo' }, nombreOtro() + ' todavía no dejó su carta'),
+      h('p', { class: 'vacio-caja__sub' }, 'Cuando la escriba, va a aparecer acá.')
+    ));
   }
 
-  cont.append(h('h2', { class: 'vista__subtitulo' }, 'Compromisos compartidos'));
-  const comp = compartidos();
-  if (comp.length === 0) {
-    cont.append(h('p', { class: 'vista__vacio' }, 'Sin compromisos compartidos todavía.'));
-  } else {
-    cont.append(pintarListaCompartidos(comp));
+  // Compromisos del otro.
+  if (carta.compromisos.length > 0) {
+    cont.append(h('section', { class: 'seccion' },
+      h('div', { class: 'seccion__cab' },
+        h('h2', { class: 'seccion__titulo' }, 'Sus compromisos'),
+        h('span', { class: 'seccion__contador' }, String(carta.compromisos.length))
+      ),
+      pintarCompromisosDelOtro(carta.compromisos)
+    ));
   }
-  cont.append(
-    h('form', { class: 'vista__form', 'data-accion': 'crear-compartido' },
+
+  // Compromisos compartidos.
+  cont.append(h('section', { class: 'seccion' },
+    h('div', { class: 'seccion__cab' },
+      h('h2', { class: 'seccion__titulo' }, 'Compromisos compartidos'),
+      h('span', { class: 'seccion__contador' }, String(comp.length))
+    ),
+    comp.length > 0
+      ? pintarListaCompartidos(comp)
+      : h('p', { class: 'vista__vacio' }, 'Sin compromisos compartidos todavía.'),
+    h('form', { class: 'form-inline', 'data-accion': 'crear-compartido' },
       h('input', { name: 'titulo', placeholder: 'Título del compromiso', required: true, maxlength: 200 }),
       h('textarea', { name: 'contenido', placeholder: 'Descripción', required: true, rows: 2, maxlength: 500 }),
-      h('button', { type: 'submit' }, 'Agregar compromiso compartido')
+      h('div', { class: 'form-inline__fila' },
+        h('button', { type: 'submit', class: 'btn btn--primario' }, 'Agregar compromiso')
+      )
     )
-  );
+  ));
 
-  cont.append(h('h2', { class: 'vista__subtitulo' }, 'Anexos'));
-  const anx = anexos();
-  if (anx.length > 0) {
-    cont.append(pintarListaAnexos(anx));
-  } else {
-    cont.append(h('p', { class: 'vista__vacio' }, 'Aún sin anexos.'));
-  }
-  cont.append(
-    h('form', { class: 'vista__form', 'data-accion': 'crear-anexo' },
+  // Anexos.
+  cont.append(h('section', { class: 'seccion' },
+    h('div', { class: 'seccion__cab' },
+      h('h2', { class: 'seccion__titulo' }, 'Anexos'),
+      h('span', { class: 'seccion__contador' }, String(anx.length))
+    ),
+    anx.length > 0
+      ? pintarListaAnexos(anx)
+      : h('p', { class: 'vista__vacio' }, 'Aún sin anexos.'),
+    h('form', { class: 'form-inline', 'data-accion': 'crear-anexo' },
       h('input', { name: 'titulo', placeholder: 'Título del anexo', required: true, maxlength: 200 }),
-      h('textarea', { name: 'contenido', placeholder: 'Contenido', required: true, rows: 4 }),
-      h('button', { type: 'submit' }, 'Agregar anexo')
+      h('textarea', { name: 'contenido', placeholder: 'Contenido', required: true, rows: 3 }),
+      h('div', { class: 'form-inline__fila' },
+        h('button', { type: 'submit', class: 'btn btn--primario' }, 'Agregar anexo')
+      )
     )
-  );
+  ));
+
+  // CTA "Ver mi carta" — va antes del bloque de respuesta.
+  cont.append(pintarCtaVerMiCarta());
+
+  // Bloque de respuesta.
+  cont.append(pintarBloqueRespuesta());
 }
 
 function pintarVistaMia(cont) {
-  const propia = cartaDe(usuarioActual());
+  const propia = cartaDe(usuarioActualId());
 
-  if (registro.modo === 'vista' && cartaVacia(usuarioActual())) {
-    cont.append(
-      h('h1', {}, 'Tu carta'),
-      h('p', { class: 'vista__lead' }, 'Todavía no has escrito nada. Cuando quieras, empieza.'),
-      h('div', { class: 'vacio-caja' },
-        h('p', {}, 'Puedes escribir desde cero, o cargar un texto de guía y editarlo a tu gusto.'),
-        h('div', { class: 'vacio-caja__botones' },
-          h('button', { type: 'button', class: 'btn-primario', 'data-accion': 'empezar-vacio' }, 'Escribir desde cero'),
-          esLuci()
-            ? h('button', { type: 'button', class: 'btn-secundario', 'data-accion': 'cargar-guia' }, 'Ver mensaje de prueba')
-            : null
-        )
+  if (registro.modo === 'vista' && cartaVacia(usuarioActualId())) {
+    cont.append(h('div', { class: 'vacio-caja' },
+      h('div', { class: 'vacio-caja__emoji' }, '✍️'),
+      h('h2', { class: 'vacio-caja__titulo' }, 'Tu carta está en blanco'),
+      h('p', { class: 'vacio-caja__sub' }, 'Puedes escribir desde cero, o cargar un texto de guía y editarlo a tu gusto.'),
+      h('div', { class: 'vacio-caja__botones' },
+        h('button', {
+          type: 'button', class: 'btn btn--primario btn--full',
+          'data-accion': 'empezar-vacio',
+        }, 'Escribir desde cero'),
+        esLuci() ? h('button', {
+          type: 'button', class: 'btn btn--secundario btn--full',
+          'data-accion': 'cargar-guia',
+        }, 'Ver mensaje de prueba') : null
       )
-    );
+    ));
     return;
   }
 
-  cont.append(
-    h('h1', {}, 'Tu carta'),
-    h('p', { class: 'vista__lead' }, 'Lo que quieres decirle a ' + nombreOtro() + '.')
-  );
-
   const datos = registro.modo === 'edicion' ? registro.borrador : propia;
 
-  cont.append(h('h2', { class: 'vista__subtitulo' }, 'Manifiesto'));
   if (registro.modo === 'edicion') {
-    cont.append(pintarManifiestoEditable(datos.manifiesto));
-  } else {
-    cont.append(pintarManifiesto(datos.manifiesto));
-  }
-  if (registro.modo === 'edicion' && !registro.seccionesFijadas.has('manifiesto')) {
-    cont.append(divisorFijar('manifiesto', 'Fijar manifiesto'));
+    cont.append(h('div', { class: 'banner-edicion' },
+      h('span', { class: 'banner-edicion__punto' }),
+      h('span', { class: 'banner-edicion__texto' },
+        'Editando tu carta — fija cada sección cuando la tengas lista')
+    ));
+
+    cont.append(pintarSeccionEditableManifiesto(datos.manifiesto));
+    if (!registro.seccionesFijadas.has('manifiesto')) {
+      cont.append(divisorFijar('manifiesto', 'Fijar manifiesto'));
+    }
+
+    cont.append(pintarSeccionEditableCompromisos(datos.compromisos));
+    if (!registro.seccionesFijadas.has('compromisos')) {
+      cont.append(divisorFijar('compromisos', 'Fijar compromisos'));
+    }
+
+    cont.append(pintarSeccionEditableFirma(datos.firma));
+    if (!registro.seccionesFijadas.has('firma')) {
+      cont.append(divisorFijar('firma', 'Fijar firma'));
+    }
+
+    cont.append(h('div', { class: 'barra-edicion' },
+      h('button', {
+        type: 'button', class: 'btn btn--secundario',
+        'data-accion': 'cancelar-edicion',
+      }, 'Cancelar'),
+      h('button', {
+        type: 'button', class: 'btn btn--primario',
+        'data-accion': 'fijar-todo',
+      }, 'Fijar todo')
+    ));
+    return;
   }
 
-  cont.append(h('h2', { class: 'vista__subtitulo' }, 'Compromisos'));
-  if (registro.modo === 'edicion') {
-    cont.append(pintarCompromisosEditables(datos.compromisos));
-  } else {
-    cont.append(pintarCompromisos(datos.compromisos));
-  }
-  if (registro.modo === 'edicion' && !registro.seccionesFijadas.has('compromisos')) {
-    cont.append(divisorFijar('compromisos', 'Fijar compromisos'));
+  const hoja = h('article', { class: 'carta-hoja' });
+
+  const fechaBase = propia.manifiesto[0]?.creadoEn;
+  hoja.append(h('div', { class: 'carta__fecha' },
+    'Tu carta · ' + (fechaBase ? fechaRelativa(fechaBase) : 'hoy')));
+
+  if (propia.manifiesto.length > 0) {
+    hoja.append(pintarManifiesto(propia.manifiesto));
   }
 
-  cont.append(h('h2', { class: 'vista__subtitulo' }, 'Firma'));
-  if (registro.modo === 'edicion') {
-    cont.append(pintarFirmaEditable(datos.firma));
-  } else if (datos.firma && datos.firma.contenido) {
-    cont.append(
-      h('div', { class: 'firma' },
-        h('div', { class: 'firma__texto' }, datos.firma.contenido)
-      )
-    );
-  } else {
-    cont.append(h('p', { class: 'vista__vacio' }, 'Sin firma.'));
+  if (propia.firma && propia.firma.contenido) {
+    hoja.append(pintarSeparador());
+    hoja.append(h('div', { class: 'carta__firma' },
+      h('span', { class: 'carta__firma-texto' }, propia.firma.contenido),
+      h('span', { class: 'carta__firma-rol' }, 'Firmado')
+    ));
   }
-  if (registro.modo === 'edicion' && !registro.seccionesFijadas.has('firma')) {
-    cont.append(divisorFijar('firma', 'Fijar firma'));
+
+  cont.append(hoja);
+
+  if (propia.compromisos.length > 0) {
+    cont.append(h('section', { class: 'seccion' },
+      h('div', { class: 'seccion__cab' },
+        h('h2', { class: 'seccion__titulo' }, 'Mis compromisos'),
+        h('span', { class: 'seccion__contador' }, String(propia.compromisos.length))
+      ),
+      pintarCompromisosDelOtro(propia.compromisos)
+    ));
   }
+
+  cont.append(h('div', { style: 'margin-top: 28px; display: flex; flex-direction: column; gap: 8px;' },
+    h('button', {
+      type: 'button', class: 'btn btn--primario btn--full',
+      'data-accion': 'editar-mi-carta',
+    }, 'Editar mi carta'),
+    h('button', {
+      type: 'button', class: 'btn btn--secundario btn--full',
+      'data-accion': 'volver-al-otro',
+    }, 'Volver a la carta de ' + nombreOtro())
+  ));
 }
 
-/* ---------- Editables de la carta propia ----------------------- */
+/* ---------- Secciones editables -------------------------------- */
 
-function pintarManifiestoEditable(items) {
-  const cont = h('div', { class: 'manifiesto' });
+function pintarSeccionEditableManifiesto(items) {
+  const seccion = h('section', { class: 'seccion', style: 'margin-top: 0;' });
+  seccion.append(h('div', { class: 'seccion__cab' },
+    h('h2', { class: 'seccion__titulo' }, 'Manifiesto')
+  ));
+
   items.forEach((p, idx) => {
-    const inputT = h('input', { value: p.titulo || '', placeholder: 'Título (opcional)', maxlength: 200 });
-    const textarea = h('textarea', { placeholder: 'Contenido' }, p.contenido || '');
+    const inputT = h('input', { type: 'text', value: p.titulo || '', placeholder: 'Título (opcional)', maxlength: 200 });
+    const textarea = h('textarea', { placeholder: 'Escribe aquí lo que quieras decirle. No hay prisa, no hay formato correcto.' }, p.contenido || '');
     inputT.addEventListener('input', () => { p.titulo = inputT.value; });
     textarea.addEventListener('input', () => { p.contenido = textarea.value; });
-    cont.append(h('div', { class: 'pieza-edit' },
-      inputT,
-      textarea,
-      h('div', { class: 'pieza-edit__botones' },
-        h('button', {
-          type: 'button', class: 'btn-mini',
-          onclick: () => {
-            registro.borrador.manifiesto.splice(idx, 1);
-            pintar();
-          },
-        }, 'Eliminar')
-      )
+
+    seccion.append(h('div', { class: 'fila-editable' },
+      h('div', { class: 'fila-editable__cuerpo' },
+        h('div', { class: 'campo-editable' }, inputT),
+        h('div', { class: 'campo-editable', style: 'margin-bottom: 0;' }, textarea)
+      ),
+      h('button', {
+        type: 'button', class: 'btn-quitar', 'aria-label': 'Eliminar',
+        onclick: () => {
+          registro.borrador.manifiesto.splice(idx, 1);
+          pintar();
+        },
+      }, '×')
     ));
   });
-  cont.append(h('button', {
-    type: 'button', class: 'btn-secundario',
+
+  seccion.append(h('button', {
+    type: 'button', class: 'btn-agregar',
     onclick: () => {
       registro.borrador.manifiesto.push({ id: null, titulo: '', contenido: '' });
       pintar();
     },
   }, '+ Agregar párrafo'));
-  return cont;
+
+  return seccion;
 }
 
-function pintarCompromisosEditables(items) {
-  const ul = h('ul', { class: 'compromisos' });
+function pintarSeccionEditableCompromisos(items) {
+  const seccion = h('section', { class: 'seccion' });
+  seccion.append(h('div', { class: 'seccion__cab' },
+    h('h2', { class: 'seccion__titulo' }, 'Mis compromisos')
+  ));
+
   items.forEach((c, idx) => {
-    const inputT = h('input', { value: c.titulo || '', placeholder: 'Título', maxlength: 200 });
+    const inputT = h('input', { type: 'text', value: c.titulo || '', placeholder: 'Título', maxlength: 200 });
     const textarea = h('textarea', { placeholder: 'Descripción' }, c.contenido || '');
     inputT.addEventListener('input', () => { c.titulo = inputT.value; });
     textarea.addEventListener('input', () => { c.contenido = textarea.value; });
-    ul.append(h('li', { class: 'pieza-edit', style: 'list-style:none;' },
-      inputT,
-      textarea,
-      h('div', { class: 'pieza-edit__botones' },
-        h('button', {
-          type: 'button', class: 'btn-mini',
-          onclick: () => {
-            registro.borrador.compromisos.splice(idx, 1);
-            pintar();
-          },
-        }, 'Eliminar')
-      )
+
+    seccion.append(h('div', { class: 'fila-editable' },
+      h('div', { class: 'fila-editable__cuerpo' },
+        h('div', { class: 'campo-editable' }, inputT),
+        h('div', { class: 'campo-editable', style: 'margin-bottom: 0;' }, textarea)
+      ),
+      h('button', {
+        type: 'button', class: 'btn-quitar', 'aria-label': 'Eliminar',
+        onclick: () => {
+          registro.borrador.compromisos.splice(idx, 1);
+          pintar();
+        },
+      }, '×')
     ));
   });
-  ul.append(h('li', { style: 'list-style:none;' },
-    h('button', {
-      type: 'button', class: 'btn-secundario',
-      onclick: () => {
-        registro.borrador.compromisos.push({ id: null, titulo: '', contenido: '' });
-        pintar();
-      },
-    }, '+ Agregar compromiso')
-  ));
-  return ul;
+
+  seccion.append(h('button', {
+    type: 'button', class: 'btn-agregar',
+    onclick: () => {
+      registro.borrador.compromisos.push({ id: null, titulo: '', contenido: '' });
+      pintar();
+    },
+  }, '+ Agregar compromiso'));
+
+  return seccion;
 }
 
-function pintarFirmaEditable(firma) {
+function pintarSeccionEditableFirma(firma) {
+  const seccion = h('section', { class: 'seccion' });
+  seccion.append(h('div', { class: 'seccion__cab' },
+    h('h2', { class: 'seccion__titulo' }, 'Firma')
+  ));
+
   const valor = firma?.contenido || '';
-  const input = h('input', { value: valor, placeholder: 'Firma', maxlength: 100 });
+  const input = h('input', {
+    type: 'text',
+    value: valor,
+    placeholder: 'Firma',
+    maxlength: 100,
+    style: 'font-family: var(--fuente-carta); font-style: italic; font-size: 20px;',
+  });
   input.addEventListener('input', () => {
     if (!registro.borrador.firma) registro.borrador.firma = { id: null, contenido: '' };
     registro.borrador.firma.contenido = input.value;
   });
-  return h('div', { class: 'pieza-edit' }, input);
+
+  seccion.append(h('div', { class: 'campo-editable' }, input));
+  return seccion;
 }
 
 function divisorFijar(seccion, etiqueta) {
   return h('div', { class: 'fijar-seccion' },
-    h('button', { type: 'button', onclick: () => fijarSeccion(seccion) }, etiqueta)
+    h('button', {
+      type: 'button', class: 'btn-fijar',
+      onclick: () => fijarSeccion(seccion),
+    }, h('span', { html: SVG_FIJAR }), etiqueta)
   );
 }
 
-/* ---------- Barra superior -------------------------------------- */
-
-function pintarBarra(cont) {
-  const barra = h('div', { class: 'vista__barra' });
-
-  if (registro.pantalla === 'otro') {
-    barra.append(
-      h('button', {
-        type: 'button', class: 'btn-secundario',
-        onclick: () => {
-          registro.pantalla = 'mio';
-          registro.modo = 'vista';
-          registro.borrador = null;
-          registro.seccionesFijadas = new Set();
-          registro.editandoAnexo = null;
-          registro.editandoCompromisoCompartido = null;
-          pintar();
-        },
-      }, 'Ver mi carta')
-    );
-  } else {
-    barra.append(
-      h('button', {
-        type: 'button', class: 'btn-secundario',
-        onclick: async () => {
-          if (registro.modo === 'edicion') {
-            const ok = await mostrarConfirmacion(
-              'Salir de la edición',
-              '¿Descartar los cambios sin fijar?',
-              { textoConfirmar: 'Descartar' }
-            );
-            if (!ok) return;
-            registro.borrador = null;
-            registro.modo = 'vista';
-            registro.seccionesFijadas = new Set();
-          }
-          registro.pantalla = 'otro';
-          pintar();
-        },
-      }, 'Volver a la carta de ' + nombreOtro())
-    );
-
-    const vacia = cartaVacia(usuarioActual());
-
-    if (registro.modo === 'vista' && !vacia) {
-      barra.append(
-        h('button', {
-          type: 'button', class: 'btn-primario',
-          onclick: entrarEdicion,
-        }, 'Editar')
-      );
-    } else if (registro.modo === 'edicion') {
-      barra.append(
-        h('span', { class: 'vista__aviso-modo' }, 'Editando'),
-        h('button', {
-          type: 'button', class: 'btn-secundario',
-          onclick: cancelarEdicion,
-        }, 'Cancelar'),
-        h('button', {
-          type: 'button', class: 'btn-primario',
-          onclick: fijarTodo,
-        }, 'Fijar todo')
-      );
-    }
-  }
-
-  cont.append(barra);
-}
-
-/* ---------- Flujo de edición de la carta ----------------------- */
+/* ---------- Flujo de edición ----------------------------------- */
 
 function entrarEdicion() {
-  const propia = cartaDe(usuarioActual());
+  const propia = cartaDe(usuarioActualId());
   registro.borrador = {
     manifiesto: propia.manifiesto.map((p) => ({ id: p.id, titulo: p.titulo, contenido: p.contenido })),
     compromisos: propia.compromisos.map((c) => ({ id: c.id, titulo: c.titulo, contenido: c.contenido })),
@@ -656,7 +921,7 @@ async function aplicarCompromisos() {
 }
 
 async function aplicarBloque(tipo, itemsBorrador) {
-  const yo = usuarioActual();
+  const yo = usuarioActualId();
   const actuales = piezasDe(yo, tipo);
 
   const idsBorrador = new Set(itemsBorrador.map((i) => i.id).filter(Boolean));
@@ -709,7 +974,7 @@ async function aplicarBloque(tipo, itemsBorrador) {
 async function aplicarFirma() {
   const f = registro.borrador.firma;
   if (!f) return true;
-  const yo = usuarioActual();
+  const yo = usuarioActualId();
   const actual = firmaDe(yo);
   const contenido = (f.contenido || '').trim();
 
@@ -763,13 +1028,14 @@ function mostrarToastBienvenida() {
   if (!esLuci()) return;
   if (registro.pantalla !== 'otro') return;
   if (registro.toastMostrado) return;
-  if (!cartaVacia(usuarioActual())) return;
+  if (!cartaVacia(usuarioActualId())) return;
   if (cartaVacia(userIdOtro())) return;
 
   registro.toastMostrado = true;
 
   const toast = h('div', { class: 'carta-toast' },
-    h('div', { class: 'carta-toast__texto' }, nombreOtro() + ' te dejó una carta. ¿Quieres dejarle un mensaje?'),
+    h('div', { class: 'carta-toast__texto' },
+      nombreOtro() + ' te dejó una carta. ¿Quieres dejarle un mensaje?'),
     h('button', {
       type: 'button', class: 'carta-toast__boton',
       onclick: () => {
@@ -809,6 +1075,7 @@ async function manejarSubmit(ev) {
   ev.preventDefault();
   const form = ev.target;
   const accion = form.dataset.accion;
+  if (!accion) return;
   const fd = new FormData(form);
 
   if (accion === 'crear-anexo') {
@@ -843,14 +1110,38 @@ async function manejarSubmit(ev) {
 }
 
 async function manejarClick(ev) {
-  const boton = ev.target.closest('button[data-accion]');
-  if (!boton) return;
-  const accion = boton.dataset.accion;
-  const id = boton.dataset.id;
+  const btn = ev.target.closest('button[data-accion]');
+  if (!btn) return;
+  const accion = btn.dataset.accion;
+  const id = btn.dataset.id;
 
-  if (accion === 'editar-anexo') {
+  if (accion === 'ir-mia') {
+    registro.pantalla = 'mio';
+    registro.modo = 'vista';
+    registro.borrador = null;
+    registro.seccionesFijadas = new Set();
+    registro.editandoAnexo = null;
+    registro.editandoCompartido = null;
+    pintar();
+  } else if (accion === 'volver-al-otro') {
+    registro.pantalla = 'otro';
+    registro.modo = 'vista';
+    registro.borrador = null;
+    registro.seccionesFijadas = new Set();
+    pintar();
+  } else if (accion === 'editar-mi-carta') {
+    entrarEdicion();
+  } else if (accion === 'cancelar-edicion') {
+    cancelarEdicion();
+  } else if (accion === 'fijar-todo') {
+    fijarTodo();
+  } else if (accion === 'empezar-vacio') {
+    empezarVacio();
+  } else if (accion === 'cargar-guia') {
+    cargarTextoGuia();
+  } else if (accion === 'editar-anexo') {
     registro.editandoAnexo = id;
-    registro.editandoCompromisoCompartido = null;
+    registro.editandoCompartido = null;
     pintar();
   } else if (accion === 'eliminar-anexo') {
     const ok = await mostrarConfirmacion(
@@ -863,7 +1154,7 @@ async function manejarClick(ev) {
     if (r.exito) { await refrescar(); pintar(); }
     else pintarMensaje('error', r.error);
   } else if (accion === 'editar-compartido') {
-    registro.editandoCompromisoCompartido = id;
+    registro.editandoCompartido = id;
     registro.editandoAnexo = null;
     pintar();
   } else if (accion === 'eliminar-compartido') {
@@ -876,22 +1167,47 @@ async function manejarClick(ev) {
     const r = await repoCarta.eliminar(id);
     if (r.exito) { await refrescar(); pintar(); }
     else pintarMensaje('error', r.error);
-  } else if (accion === 'empezar-vacio') {
-    empezarVacio();
-  } else if (accion === 'cargar-guia') {
-    cargarTextoGuia();
+  } else if (accion === 'elegir-respuesta') {
+    registro.respuestaSeleccionada =
+      registro.respuestaSeleccionada === id ? null : id;
+    pintar();
+  } else if (accion === 'enviar-respuesta') {
+    enviarRespuesta();
+  } else if (accion === 'cambiar-respuesta') {
+    registro.respuestaSeleccionada = null;
+    registro.respuestaNota = '';
+    pintar();
   }
+}
+
+function manejarInput(ev) {
+  const ta = ev.target.closest('textarea[data-accion="nota-respuesta"]');
+  if (!ta) return;
+  registro.respuestaNota = ta.value;
 }
 
 /* ---------- Refresco y pintado --------------------------------- */
 
-async function refrescar() {
+async function refrescarCarta() {
   const r = await repoCarta.listar();
   if (!r.exito) {
     pintarMensaje('error', r.error);
     return;
   }
-  registro.todas = r.datos;
+  registro.todasCarta = r.datos;
+}
+
+async function refrescarRespuestas() {
+  const r = await repoRespuestas.listar();
+  if (!r.exito) {
+    pintarMensaje('error', r.error);
+    return;
+  }
+  registro.todasRespuestas = r.datos;
+}
+
+async function refrescar() {
+  await Promise.all([refrescarCarta(), refrescarRespuestas()]);
 }
 
 function pintar() {
@@ -903,7 +1219,6 @@ function pintar() {
   cont.append(raiz);
   registro.raiz = raiz;
 
-  pintarBarra(raiz);
   if (registro.pantalla === 'otro') {
     pintarVistaOtro(raiz);
     setTimeout(mostrarToastBienvenida, 400);
@@ -923,37 +1238,51 @@ export async function activar(contenedor) {
   registro.seccionesFijadas = new Set();
   registro.toastMostrado = false;
   registro.editandoAnexo = null;
-  registro.editandoCompromisoCompartido = null;
+  registro.editandoCompartido = null;
+  registro.respuestaSeleccionada = null;
+  registro.respuestaNota = '';
+  registro.respuestaEnviando = false;
 
   const { signal } = registro.abortador;
   contenedor.addEventListener('submit', manejarSubmit, { signal });
   contenedor.addEventListener('click', manejarClick, { signal });
+  contenedor.addEventListener('input', manejarInput, { signal });
 
   registro.desuscribir = [
     al('realtime:carta:crear', async () => { await refrescar(); pintar(); }),
     al('realtime:carta:actualizar', async () => { await refrescar(); pintar(); }),
     al('realtime:carta:eliminar', async () => { await refrescar(); pintar(); }),
+    al('realtime:respuestas:crear', async () => { await refrescarRespuestas(); pintar(); }),
   ];
+
+  montarBarraProgreso();
 
   await refrescar();
   pintar();
 }
 
 export function limpiar() {
+  quitarBarraProgreso();
   registro.desuscribir.forEach((fn) => fn());
   registro.desuscribir = [];
   registro.abortador?.abort();
   registro.abortador = null;
   cerrarToast();
   if (registro.contenedor) limpiarContenedor(registro.contenedor);
-  registro.todas = [];
+  registro.todasCarta = [];
+  registro.todasRespuestas = [];
   registro.borrador = null;
   registro.seccionesFijadas = new Set();
   registro.pantalla = 'otro';
   registro.modo = 'vista';
   registro.toastMostrado = false;
   registro.editandoAnexo = null;
-  registro.editandoCompromisoCompartido = null;
+  registro.editandoCompartido = null;
+  registro.respuestaSeleccionada = null;
+  registro.respuestaNota = '';
+  registro.respuestaEnviando = false;
   registro.contenedor = null;
   registro.raiz = null;
+  registro.barraProgresoEl = null;
+  registro.manejarScrollRef = null;
 }

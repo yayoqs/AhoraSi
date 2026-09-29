@@ -1,17 +1,16 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/hitos.js
-   Versión: 1.4.0
+   Versión: 3.0.0
    Propósito: vista de hitos. Línea de tiempo de cosas que ya
               pasaron o están por venir. Formulario colapsable,
               edición inline de título y fecha, marcar cumplido.
-              Sin fotos.
-              v1.4.0: formulario colapsable, edición inline,
-                      id="vista-hitos" para encapsulado de CSS.
-                      Sin cambios en las firmas públicas.
-              v1.3.0: activar() pinta primero, carga en background.
+              v3.0.0: rediseño al nuevo lenguaje visual. La vista
+                      ya no emite h1 ni lead (los muestra el
+                      shell). Estructura de clases ajustada.
+              v1.4.0: formulario colapsable, edición inline.
+              v1.3.0: activar() pinta primero.
               v1.2.1: mostrarConfirmacion().
-              v1.2.0: activar() pinta primero.
               v1.1.0: distintivoAutor, clase .vista--hitos.
               v1.0.0: versión inicial.
    ================================================================ */
@@ -34,6 +33,8 @@ const registro = {
   formularioAbierto: false,
 };
 
+/* ---------- Utilidades ---------------------------------------- */
+
 function fechaParaInput(iso) {
   if (!iso) return '';
   const d = new Date(iso);
@@ -44,28 +45,21 @@ function fechaParaInput(iso) {
   return `${y}-${m}-${dd}`;
 }
 
-/* ---------- Bloque de registro (colapsable) ------------------- */
+/* ---------- Formulario ---------------------------------------- */
 
 function pintarBloqueRegistro() {
-  const cont = h('div', { class: 'bloque-registro' });
+  const cont = h('div', {});
 
   if (!registro.formularioAbierto) {
-    cont.append(
-      h('button', {
-        type: 'button',
-        class: 'abrir-form',
-        'data-accion': 'abrir-formulario',
-      }, '+ Añadir hito')
-    );
+    cont.append(h('button', {
+      type: 'button',
+      class: 'btn-agregar-principal',
+      'data-accion': 'abrir-formulario',
+    }, '+ Añadir hito'));
     return cont;
   }
 
-  cont.append(pintarFormulario());
-  return cont;
-}
-
-function pintarFormulario() {
-  const form = h('form', { class: 'vista__form', 'data-accion': 'crear' },
+  const form = h('form', { class: 'form-inline', 'data-accion': 'crear' },
     h('input', {
       name: 'titulo',
       placeholder: 'Título del hito',
@@ -73,77 +67,65 @@ function pintarFormulario() {
       maxlength: 200,
     }),
     h('input', { type: 'date', name: 'fecha' }),
-    h('div', { class: 'form-botones' },
+    h('div', { class: 'form-inline__fila' },
       h('button', {
-        type: 'button',
-        class: 'btn-secundario',
+        type: 'button', class: 'btn btn--secundario',
         'data-accion': 'cerrar-formulario',
       }, 'Cancelar'),
-      h('button', { type: 'submit', class: 'btn-primario' }, 'Añadir')
+      h('button', { type: 'submit', class: 'btn btn--primario' }, 'Añadir')
     )
   );
-  return form;
+
+  cont.append(form);
+  return cont;
 }
 
-/* ---------- Pintar -------------------------------------------- */
-
-function pintar() {
-  const cont = registro.contenedor;
-  if (!cont) return;
-  limpiarContenedor(cont);
-
-  const lista = registro.hitos.length === 0
-    ? h('p', { class: 'vista__vacio' }, 'Sin hitos todavía. Añade el primero.')
-    : h('ol', { class: 'linea-tiempo' },
-        ...registro.hitos.map((x) => pintarHito(x))
-      );
-
-  cont.append(
-    h('section', { id: 'vista-hitos', class: 'vista vista--hitos' },
-      h('h1', {}, 'Hitos'),
-      h('p', { class: 'vista__lead' }, 'Lo que ya pasó y lo que está por venir.'),
-      pintarBloqueRegistro(),
-      lista
-    )
-  );
-}
+/* ---------- Hito ---------------------------------------------- */
 
 function pintarHito(x) {
   if (registro.editandoId === x.id) {
     return pintarHitoEnEdicion(x);
   }
 
-  return h('li', {
+  const li = h('li', {
     class: 'hito' + (x.cumplido ? ' hito--cumplido' : ''),
     'data-id': x.id,
-  },
-    h('div', { class: 'hito__marca', 'aria-hidden': 'true' }),
-    h('div', { class: 'hito__cuerpo' },
-      h('div', { class: 'hito__cabecera' },
-        h('span', { class: 'hito__fecha' }, x.fecha ? formatearFecha(x.fecha) : 'Pendiente'),
-        distintivoAutor(x.registradoPor)
-      ),
-      h('h3', { class: 'hito__titulo' }, x.titulo),
-      h('div', { class: 'acciones' },
-        h('button', {
-          type: 'button',
-          'data-accion': 'toggle',
-          'data-id': x.id,
-          'aria-pressed': String(x.cumplido),
-        }, x.cumplido ? 'Cumplido' : 'Marcar cumplido'),
-        h('button', {
-          type: 'button',
-          'data-accion': 'editar',
-          'data-id': x.id,
-        }, 'Editar'),
-        h('button', {
-          type: 'button',
-          'data-accion': 'eliminar',
-          'data-id': x.id,
-        }, 'Eliminar')
-      )
-    )
+  });
+
+  li.append(h('div', { class: 'hito__marca', 'aria-hidden': 'true' }));
+
+  const cuerpo = h('div', { class: 'hito__cuerpo' });
+  cuerpo.append(
+    h('div', { class: 'hito__cabecera' },
+      h('span', { class: 'hito__fecha' }, x.fecha ? formatearFecha(x.fecha) : 'Pendiente'),
+      distintivoAutor(x.registradoPor)
+    ),
+    h('h3', { class: 'hito__titulo' }, x.titulo)
   );
+
+  const acciones = h('div', { class: 'hito__acciones' });
+  acciones.append(
+    h('button', {
+      type: 'button',
+      'data-accion': 'toggle',
+      'data-id': x.id,
+      'aria-pressed': String(x.cumplido),
+    }, x.cumplido ? 'Cumplido' : 'Marcar cumplido'),
+    h('button', {
+      type: 'button',
+      'data-accion': 'editar',
+      'data-id': x.id,
+    }, 'Editar'),
+    h('button', {
+      type: 'button',
+      'data-accion': 'eliminar',
+      'data-id': x.id,
+    }, 'Eliminar')
+  );
+  cuerpo.append(acciones);
+
+  li.append(cuerpo);
+  return li;
 }
 
 function pintarHitoEnEdicion(x) {
@@ -153,23 +135,23 @@ function pintarHitoEnEdicion(x) {
   return h('li', { class: 'hito pieza-edit', 'data-id': x.id },
     h('div', { class: 'pieza-edit__cuerpo' },
       inputTitulo,
-      inputFecha,
-      h('div', { class: 'pieza-edit__botones' },
-        h('button', {
-          type: 'button', class: 'btn-primario',
-          onclick: () => guardarEdicion(x.id, {
-            titulo: inputTitulo.value,
-            fecha: inputFecha.value,
-          }),
-        }, 'Guardar'),
-        h('button', {
-          type: 'button', class: 'btn-secundario',
-          onclick: () => {
-            registro.editandoId = null;
-            pintar();
-          },
-        }, 'Cancelar')
-      )
+      inputFecha
+    ),
+    h('div', { class: 'pieza-edit__botones' },
+      h('button', {
+        type: 'button', class: 'btn btn--secundario',
+        onclick: () => {
+          registro.editandoId = null;
+          pintar();
+        },
+      }, 'Cancelar'),
+      h('button', {
+        type: 'button', class: 'btn btn--primario',
+        onclick: () => guardarEdicion(x.id, {
+          titulo: inputTitulo.value,
+          fecha: inputFecha.value,
+        }),
+      }, 'Guardar')
     )
   );
 }
@@ -188,6 +170,30 @@ async function guardarEdicion(id, valores) {
   } else {
     pintarError(r.error);
   }
+}
+
+/* ---------- Pintar -------------------------------------------- */
+
+function pintar() {
+  const cont = registro.contenedor;
+  if (!cont) return;
+  limpiarContenedor(cont);
+
+  const raiz = h('section', { id: 'vista-hitos', class: 'vista vista--hitos' });
+
+  raiz.append(pintarBloqueRegistro());
+
+  if (registro.hitos.length === 0) {
+    raiz.append(h('p', { class: 'vista__vacio' }, 'Sin hitos todavía. Añade el primero.'));
+  } else {
+    const ol = h('ol', { class: 'linea-tiempo' });
+    for (const x of registro.hitos) {
+      ol.append(pintarHito(x));
+    }
+    raiz.append(ol);
+  }
+
+  cont.append(raiz);
 }
 
 function pintarError(mensaje) {

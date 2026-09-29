@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ahora Sí — Prototipo Ideas 2</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --papel: #F7F1E8;
+  --papel-2: #EFE7DA;
+  --papel-3: #FCF8F0;
+  --borde: #E2D7C5;
+  --borde-fuerte: #D2C4AC;
+  --tinta: #1F1B16;
+  --tinta-suave: #6B6155;
+  --tinta-tenue: #A89B87;
+  --terracota: #C9613B;
+  --terracota-clara: #E8A17A;
+  --mostaza: #D9A421;
+  --musgo: #5A6B3E;
+  --azul-piedra: #4A6785;
+  --ciruela: #7A3E5C;
+  --accent: var(--ciruela);
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-full: 999px;
+  --sombra-1: 0 1px 2px rgba(31,27,22,.06);
+  --sombra-2: 0 12px 28px rgba(31,27,22,.10);
+  --fuente-titulo: 'Bricolage Grotesque', system-ui, sans-serif;
+  --fuente-cuerpo: 'Figtree', system-ui, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+h1,h2,h3,h4,p,ul,ol,li { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+button { background: none; border: none; cursor: pointer; font: inherit; color: inherit; }
+
+body {
+  font-family: var(--fuente-cuerpo);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--tinta);
+  background: radial-gradient(ellipse at top, #2C2620 0%, #13100D 100%);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  -webkit-font-smoothing: antialiased;
+}
+@media (max-width: 520px) { body { padding: 0; display: block; } }
+
+.proto-nav {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.proto-nav__label {
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+  font-weight: 600;
+}
+.proto-nav__links {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--r-full);
+  backdrop-filter: blur(12px);
+}
+.proto-nav__links button {
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,.5);
+  border-radius: var(--r-full);
+  transition: all .2s ease;
+}
+.proto-nav__links button:hover { color: rgba(255,255,255,.85); }
+.proto-nav__links button.is-active {
+  background: rgba(255,255,255,.14);
+  color: #fff;
+}
+@media (max-width: 720px) { .proto-nav { display: none; } }
+
+.phone {
+  width: 390px;
+  height: 844px;
+  max-height: calc(100vh - 48px);
+  background: var(--papel);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 0 0 10px #0E0B08,
+    0 0 0 12px #2A2318,
+    0 30px 80px rgba(0,0,0,.55);
+}
+@media (max-width: 520px) {
+  .phone { width: 100%; height: 100dvh; max-height: none; border-radius: 0; box-shadow: none; }
+}
+
+.screen-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--papel);
+  display: flex;
+  flex-direction: column;
+}
+.screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+.topbar {
+  flex-shrink: 0;
+  padding: 16px 20px 14px;
+  background: var(--papel);
+}
+.topbar__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.topbar__eyebrow {
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.topbar__title {
+  font-family: var(--fuente-titulo);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--accent);
+}
+.topbar__btn {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  color: var(--tinta-suave);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.topbar__btn svg { width: 20px; height: 20px; }
+
+.chips-grupo {
+  display: flex;
+  gap: 6px;
+  padding: 0 20px 14px;
+  background: var(--papel);
+}
+.chip-grupo {
+  padding: 6px 14px;
+  border-radius: var(--r-full);
+  border: 1.5px solid var(--borde);
+  background: transparent;
+  color: var(--tinta-suave);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.chip-grupo.activo {
+  background: var(--tinta);
+  border-color: var(--tinta);
+  color: var(--papel);
+}
+
+.screen__body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 22px 20px 120px;
+}
+.screen__body::-webkit-scrollbar { width: 0; }
+
+.btn-agregar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px 24px;
+  border-radius: var(--r-md);
+  background: var(--accent);
+  color: var(--papel);
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 20px;
+}
+
+/* Filtros por categoría (con color propio) */
+.filtros {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 -20px;
+  padding: 2px 20px 16px;
+}
+.filtros::-webkit-scrollbar { display: none; }
+.filtro {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--r-full);
+  border: 1px solid transparent;
+  color: var(--tinta-suave);
+  background: var(--papel-2);
+  transition: all .15s ease;
+  white-space: nowrap;
+}
+.filtro.is-active {
+  background: var(--tinta);
+  color: var(--papel);
+}
+.filtro[data-cat="per"].is-active { background: var(--mostaza); color: #3D2C0F; }
+.filtro[data-cat="elec"].is-active { background: var(--azul-piedra); color: var(--papel); }
+.filtro[data-cat="nat"].is-active { background: var(--musgo); color: var(--papel); }
+.filtro[data-cat="tra"].is-active { background: var(--terracota); color: var(--papel); }
+.filtro[data-cat="man"].is-active { background: var(--terracota-clara); color: var(--tinta); }
+.filtro[data-cat="esc"].is-active { background: #8892A6; color: var(--papel); }
+.filtro[data-cat="via"].is-active { background: var(--ciruela); color: var(--papel); }
+
+/* Autor */
+.autor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px 2px 2px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.autor__inicial {
+  width: 16px; height: 16px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 9px; font-weight: 800;
+  color: var(--papel);
+  font-family: var(--fuente-titulo);
+}
+.autor--luci { background: #F0E2E2; color: #8A5757; }
+.autor--luci .autor__inicial { background: #D89A9A; }
+.autor--yayo { background: #EFE4CC; color: #6B4F1F; }
+.autor--yayo .autor__inicial { background: #B8893C; }
+
+/* Chips de categoría */
+.cat {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.cat--per  { background: color-mix(in oklab, var(--mostaza) 22%, var(--papel-2)); color: #8A6D0F; }
+.cat--elec { background: color-mix(in oklab, var(--azul-piedra) 18%, var(--papel-2)); color: #3D5876; }
+.cat--nat  { background: color-mix(in oklab, var(--musgo) 20%, var(--papel-2)); color: var(--musgo); }
+.cat--via  { background: color-mix(in oklab, var(--ciruela) 16%, var(--papel-2)); color: var(--ciruela); }
+.cat--tra  { background: color-mix(in oklab, var(--terracota) 18%, var(--papel-2)); color: var(--terracota); }
+.cat--man  { background: color-mix(in oklab, var(--terracota-clara) 26%, var(--papel-2)); color: #A5522C; }
+.cat--esc  { background: color-mix(in oklab, #8892A6 22%, var(--papel-2)); color: #50596E; }
+
+/* Botones mini */
+.btn-mini {
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  background: transparent;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  transition: all .15s ease;
+  white-space: nowrap;
+}
+.btn-mini:hover { background: var(--papel-3); color: var(--tinta); }
+.btn-mini--peligro:hover {
+  background: #FBE9E9;
+  color: #A03737;
+  border-color: #E3B6B6;
+}
+.btn-mini--sumar {
+  color: var(--accent);
+  border-color: color-mix(in oklab, var(--accent) 40%, var(--borde));
+  background: color-mix(in oklab, var(--accent) 8%, transparent);
+}
+.btn-mini--sumar:hover {
+  background: color-mix(in oklab, var(--accent) 15%, transparent);
+  color: var(--accent);
+}
+
+/* ============================================================
+   VARIANTE A2 — Cuaderno filtrado
+   ============================================================ */
+.vA2 .grupo {
+  margin-bottom: 26px;
+}
+.vA2 .grupo__cab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--borde);
+}
+.vA2 .grupo__cat {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--tinta);
+  letter-spacing: -.01em;
+}
+.vA2 .grupo__cuenta {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.vA2 .idea {
+  padding: 12px 0 14px;
+  border-bottom: 1px solid color-mix(in oklab, var(--borde) 50%, transparent);
+}
+.vA2 .idea:last-child { border-bottom: none; }
+.vA2 .idea__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 15.5px;
+  color: var(--tinta);
+  letter-spacing: -.01em;
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+.vA2 .idea__desc {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--tinta-suave);
+  margin-bottom: 8px;
+}
+.vA2 .idea__pie {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.vA2 .idea__pie .autor { flex: 1; min-width: 0; }
+
+/* ============================================================
+   VARIANTE C2 — Flujo limpio (sin fecha)
+   ============================================================ */
+.vC2 .idea {
+  padding: 14px 16px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  margin-bottom: 10px;
+}
+.vC2 .idea__top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.vC2 .idea__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--tinta);
+  letter-spacing: -.01em;
+  line-height: 1.3;
+  margin-bottom: 5px;
+}
+.vC2 .idea__desc {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--tinta-suave);
+  margin-bottom: 10px;
+}
+.vC2 .idea__pie {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.vC2 .idea__pie .autor { flex: 1; min-width: 0; }
+
+/* ============================================================
+   VARIANTE D — Línea expandible
+   ============================================================ */
+.vD .linea {
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  margin-bottom: 8px;
+  overflow: hidden;
+  transition: border-color var(--t-rapida);
+}
+.vD .linea.is-abierta {
+  border-color: var(--accent);
+}
+
+.vD .linea__cab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--t-rapida);
+}
+.vD .linea__cab:hover { background: var(--papel-2); }
+
+.vD .linea__flecha {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--tinta-tenue);
+  transition: transform .2s ease;
+}
+.vD .linea.is-abierta .linea__flecha {
+  transform: rotate(90deg);
+  color: var(--accent);
+}
+
+.vD .linea__titulo {
+  flex: 1;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--tinta);
+  letter-spacing: -.01em;
+  line-height: 1.3;
+  min-width: 0;
+}
+
+.vD .linea__cat {
+  flex-shrink: 0;
+}
+
+.vD .linea__cuerpo {
+  display: none;
+  padding: 0 14px 14px 40px;
+  border-top: 1px dashed var(--borde);
+}
+.vD .linea.is-abierta .linea__cuerpo { display: block; }
+
+.vD .linea__desc {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--tinta-suave);
+  margin: 10px 0 12px;
+}
+.vD .linea__pie {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.vD .linea__pie .autor { flex: 1; min-width: 0; }
+
+/* Tabbar */
+.tabbar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 78px;
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  background: rgba(247, 241, 232, .94);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--borde);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 50;
+}
+.tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--tinta-tenue);
+  opacity: .55;
+  padding: 4px;
+}
+.tabbar__item svg { width: 22px; height: 22px; }
+.tabbar__label { font-size: 10px; font-weight: 600; }
+.tabbar__item.activo { color: var(--accent); opacity: 1; }
+.tabbar__item.activo .tabbar__label { font-weight: 700; }
+</style>
+</head>
+<body>
+
+<nav class="proto-nav">
+  <span class="proto-nav__label">Variante · Ideas (ronda 2)</span>
+  <div class="proto-nav__links" id="protoNav">
+    <button data-v="A2" class="is-active">A2 · Cuaderno filtrado</button>
+    <button data-v="C2">C2 · Flujo limpio</button>
+    <button data-v="D">D · Línea expandible</button>
+  </div>
+</nav>
+
+<div class="phone">
+  <main class="screen-area">
+    <section class="screen">
+
+      <header class="topbar">
+        <div class="topbar__row">
+          <div>
+            <p class="topbar__eyebrow">Vida</p>
+            <h1 class="topbar__title">Ideas</h1>
+          </div>
+          <button class="topbar__btn" aria-label="Opciones">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="5" cy="12" r="1.6"/>
+              <circle cx="12" cy="12" r="1.6"/>
+              <circle cx="19" cy="12" r="1.6"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <nav class="chips-grupo">
+        <button class="chip-grupo">Recetas</button>
+        <button class="chip-grupo">Planes</button>
+        <button class="chip-grupo activo">Ideas</button>
+        <button class="chip-grupo">Hitos</button>
+      </nav>
+
+      <div class="screen__body">
+
+        <!-- ========== VARIANTE A2 — Cuaderno filtrado ========== -->
+        <div class="variant vA2" data-v="A2">
+          <button class="btn-agregar">+ Agregar idea</button>
+
+          <div class="filtros">
+            <button class="filtro is-active">Todas</button>
+            <button class="filtro" data-cat="per">Percusión</button>
+            <button class="filtro" data-cat="tra">Trabajo</button>
+            <button class="filtro" data-cat="man">Manualidades</button>
+            <button class="filtro" data-cat="esc">Escalada</button>
+          </div>
+
+          <div class="grupo">
+            <div class="grupo__cab">
+              <span class="grupo__cat">Percusión</span>
+              <span class="grupo__cuenta">2</span>
+            </div>
+
+            <div class="idea">
+              <h3 class="idea__titulo">Pad de percusión con sensores piezo</h3>
+              <p class="idea__desc">Una placa con piezo eléctricos y una ESP32, para tocar tumbé desde cualquier superficie.</p>
+              <div class="idea__pie">
+                <span class="autor autor--yayo"><span class="autor__inicial">Y</span>Yayo</span>
+                <button class="btn-mini btn-mini--sumar">Pasar a planes</button>
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </div>
+
+            <div class="idea">
+              <h3 class="idea__titulo">Ritmo de tumbé con cantos de pájaros</h3>
+              <p class="idea__desc">Grabar un ritmo propio y superponer cantos de las salidas al cerro.</p>
+              <div class="idea__pie">
+                <span class="autor autor--luci"><span class="autor__inicial">L</span>Luci</span>
+                <button class="btn-mini btn-mini--sumar">Pasar a planes</button>
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grupo">
+            <div class="grupo__cab">
+              <span class="grupo__cat">Manualidades</span>
+              <span class="grupo__cuenta">1</span>
+            </div>
+            <div class="idea">
+              <h3 class="idea__titulo">Stickers con flores secas para el local</h3>
+              <p class="idea__desc">Una serie corta con flores de la zona, para vender o regalar a clientes.</p>
+              <div class="idea__pie">
+                <span class="autor autor--luci"><span class="autor__inicial">L</span>Luci</span>
+                <button class="btn-mini btn-mini--sumar">Pasar a planes</button>
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grupo">
+            <div class="grupo__cab">
+              <span class="grupo__cat">Trabajo</span>
+              <span class="grupo__cuenta">1</span>
+            </div>
+            <div class="idea">
+              <h3 class="idea__titulo">Página de reservas para la barbería</h3>
+              <p class="idea__desc">Sencilla, para que los clientes reserven solos. Con agenda y caja simple.</p>
+              <div class="idea__pie">
+                <span class="autor autor--yayo"><span class="autor__inicial">Y</span>Yayo</span>
+                <button class="btn-mini btn-mini--sumar">Pasar a planes</button>
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grupo">
+            <div class="grupo__cab">
+              <span class="grupo__cat">Escalada</span>
+              <span class="grupo__cuenta">1</span>
+            </div>
+            <div class="idea">
+              <h3 class="idea__titulo">Ruta de escalada cerca de Chillán</h3>
+              <p class="idea__desc">Buscar y mapear algún sector para volver a escalar.</p>
+              <div class="idea__pie">
+                <span class="autor autor--luci"><span class="autor__inicial">L</span>Luci</span>
+                <button class="btn-mini btn-mini--sumar">Pasar a planes</button>
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ========== VARIANTE C2 — Flujo limpio ========== -->
+        <div class="variant vC2" data-v="C2" hidden>
+          <button class="btn-agregar">+ Agregar idea</button>
+
+          <div class="filtros">
+            <button class="filtro is-active">Todas</button>
+            <button class="filtro" data-cat="per">Percusión</button>
+            <button class="filtro" data-cat="tra">Trabajo</button>
+            <button class="filtro" data-cat="man">Manualidades</button>
+            <button class="filtro" data-cat="esc">Escalada</button>
+          </div>
+
+          <div class="idea">
+            <div class="idea__top">
+              <span class="cat cat--per">Percusión</span>
+            </div>
+            <h3 class="idea__titulo">Pad de percusión con sensores piezo</h3>
+            <p class="idea__desc">Una placa con piezo eléctricos y una ESP32, para tocar tumbé desde cualquier superficie.</p>
+            <div class="idea__pie">
+              <span class="autor autor--yayo"><span class="autor__inicial">Y</span>Yayo</span>
+              <button class="btn-mini btn-mini--sumar">Pasar a planes</button>
+              <button class="btn-mini">Editar</button>
+              <button class="btn-mini btn-mini--peligro">Eliminar</button>
+            </div>
+          </div>
+
+          <div class="idea">
+            <div class="idea__top">
+              <span class="cat cat--per">Percusión</span>
+            </div>
+            <h3 class="idea__titulo">Ritmo de tumbé con cantos de pájaros</h3>
+            <p class="idea__desc">Grabar un ritmo propio y superponer cantos de las salidas al cerro.</p>
+            <div class="idea__pie">
+              <span class="autor autor--luci"><span class="autor__inicial">L</span>Luci</span>
+              <button class="btn-mini btn-mini--sumar">Pasar a planes</button>
+              <button class="btn-mini">Editar</button>
+              <button class="btn-mini btn-mini--peligro">Eliminar</button>
+            </div>
+          </div>
+
+          <div class="idea">
+            <div class="idea__top">
+              <span class="cat cat--man">Manualidades</span>
+            </div>
+            <h3 class="idea__titulo">Stickers con flores secas para el local</h3>
+            <p class="idea__desc">Una serie corta con flores de la zona, para vender o regalar a clientes.</p>
+            <div class="idea__pie">
+              <span class="autor autor--luci"><span class="autor__inicial">L</span>Luci</span>
+              <button class="btn-mini btn-mini--sumar">Pasar a planes</button>
+              <button class="btn-mini">Editar</button>
+              <button class="btn-mini btn-mini--peligro">Eliminar</button>
+            </div>
+          </div>
+
+          <div class="idea">
+            <div class="idea__top">
+              <span class="cat cat--tra">Trabajo</span>
+            </div>
+            <h3 class="idea__titulo">Página de reservas para la barbería</h3>
+            <p class="idea__desc">Sencilla, para que los clientes reserven solos. Con agenda y caja simple.</p>
+            <div class="idea__pie">
+              <span class="autor autor--yayo"><span class="autor__inicial">Y</span>Yayo</span>
+              <button class="btn-mini btn-mini--sumar">Pasar a planes</button>
+              <button class="btn-mini">Editar</button>
+              <button class="btn-mini btn-mini--peligro">Eliminar</button>
+            </div>
+          </div>
+
+          <div class="idea">
+            <div class="idea__top">
+              <span class="cat cat--esc">Escalada</span>
+            </div>
+            <h3 class="idea__titulo">Ruta de escalada cerca de Chillán</h3>
+            <p class="idea__desc">Buscar y mapear algún sector para volver a escalar.</p>
+            <div class="idea__pie">
+              <span class="autor autor--luci"><span class="autor__inicial">L</span>Luci</span>
+              <button class="btn-mini btn-mini--sumar">Pasar a planes</button>
+              <button class="btn-mini">Editar</button>
+              <button class="btn-mini btn-mini--peligro">Eliminar</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ========== VARIANTE D — Línea expandible ========== -->
+        <div class="variant vD" data-v="D" hidden>
+          <button class="btn-agregar">+ Agregar idea</button>
+
+          <div class="filtros">
+            <button class="filtro is-active">Todas</button>
+            <button class="filtro" data-cat="per">Percusión</button>
+            <button class="filtro" data-cat="tra">Trabajo</button>
+            <button class="filtro" data-cat="man">Manualidades</button>
+            <button class="filtro" data-cat="esc">Escalada</button>
+          </div>
+
+          <div class="linea is-abierta">
+            <div class="linea__cab">
+              <svg class="linea__flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 6l6 6-6 6"/>
+              </svg>
+              <span class="linea__titulo">Pad de percusión con sensores piezo</span>
+              <span class="cat cat--per linea__cat">Percusión</span>
+            </div>
+            <div class="linea__cuerpo">
+              <p class="linea__desc">Una placa con piezo eléctricos y una ESP32, para tocar tumbé desde cualquier superficie.</p>
+              <div class="linea__pie">
+                <span class="autor autor--yayo"><span class="autor__inicial">Y</span>Yayo</span>
+                <button class="btn-mini btn-mini--sumar">Pasar a planes</button>
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="linea">
+            <div class="linea__cab">
+              <svg class="linea__flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 6l6 6-6 6"/>
+              </svg>
+              <span class="linea__titulo">Ritmo de tumbé con cantos de pájaros</span>
+              <span class="cat cat--per linea__cat">Percusión</span>
+            </div>
+            <div class="linea__cuerpo">
+              <p class="linea__desc">Grabar un ritmo propio y superponer cantos de las salidas al cerro.</p>
+              <div class="linea__pie">
+                <span class="autor autor--luci"><span class="autor__inicial">L</span>Luci</span>
+                <button class="btn-mini btn-mini--sumar">Pasar a planes</button>
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="linea">
+            <div class="linea__cab">
+              <svg class="linea__flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 6l6 6-6 6"/>
+              </svg>
+              <span class="linea__titulo">Stickers con flores secas para el local</span>
+              <span class="cat cat--man linea__cat">Manu</span>
+            </div>
+            <div class="linea__cuerpo">
+              <p class="linea__desc">Una serie corta con flores de la zona, para vender o regalar a clientes.</p>
+              <div class="linea__pie">
+                <span class="autor autor--luci"><span class="autor__inicial">L</span>Luci</span>
+                <button class="btn-mini btn-mini--sumar">Pasar a planes</button>
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="linea">
+            <div class="linea__cab">
+              <svg class="linea__flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 6l6 6-6 6"/>
+              </svg>
+              <span class="linea__titulo">Página de reservas para la barbería</span>
+              <span class="cat cat--tra linea__cat">Trabajo</span>
+            </div>
+            <div class="linea__cuerpo">
+              <p class="linea__desc">Sencilla, para que los clientes reserven solos. Con agenda y caja simple.</p>
+              <div class="linea__pie">
+                <span class="autor autor--yayo"><span class="autor__inicial">Y</span>Yayo</span>
+                <button class="btn-mini btn-mini--sumar">Pasar a planes</button>
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="linea">
+            <div class="linea__cab">
+              <svg class="linea__flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 6l6 6-6 6"/>
+              </svg>
+              <span class="linea__titulo">Ruta de escalada cerca de Chillán</span>
+              <span class="cat cat--esc linea__cat">Escalada</span>
+            </div>
+            <div class="linea__cuerpo">
+              <p class="linea__desc">Buscar y mapear algún sector para volver a escalar.</p>
+              <div class="linea__pie">
+                <span class="autor autor--luci"><span class="autor__inicial">L</span>Luci</span>
+                <button class="btn-mini btn-mini--sumar">Pasar a planes</button>
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button class="tabbar__item" data-tab="nido">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+      </svg>
+      <span class="tabbar__label">Nido</span>
+    </button>
+    <button class="tabbar__item activo" data-tab="vida">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/>
+        <path d="M4 17a3 3 0 0 1 3-3h11"/>
+      </svg>
+      <span class="tabbar__label">Vida</span>
+    </button>
+    <button class="tabbar__item" data-tab="afuera">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 20h18L14 8l-3 5-2-3-6 10z"/>
+      </svg>
+      <span class="tabbar__label">Afuera</span>
+    </button>
+    <button class="tabbar__item" data-tab="juegos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+        <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/>
+      </svg>
+      <span class="tabbar__label">Juegos</span>
+    </button>
+    <button class="tabbar__item" data-tab="mas">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="5" cy="12" r="1.6"/>
+        <circle cx="12" cy="12" r="1.6"/>
+        <circle cx="19" cy="12" r="1.6"/>
+      </svg>
+      <span class="tabbar__label">Más</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const nav = document.getElementById('protoNav');
+  const variants = document.querySelectorAll('.variant');
+  nav.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button[data-v]');
+    if (!btn) return;
+    const v = btn.dataset.v;
+    nav.querySelectorAll('button').forEach((b) => {
+      b.classList.toggle('is-active', b.dataset.v === v);
+    });
+    variants.forEach((el) => {
+      el.hidden = el.dataset.v !== v;
+    });
+  });
+
+  document.querySelectorAll('.filtro').forEach((f) => {
+    f.addEventListener('click', () => {
+      f.parentNode.querySelectorAll('.filtro').forEach((x) => x.classList.remove('is-active'));
+      f.classList.add('is-active');
+    });
+  });
+
+  document.querySelectorAll('.linea__cab').forEach((cab) => {
+    cab.addEventListener('click', () => {
+      cab.parentNode.classList.toggle('is-abierta');
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

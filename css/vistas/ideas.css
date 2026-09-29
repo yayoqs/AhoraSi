@@ -1,218 +1,432 @@
 /* ================================================================
    Ahora Sí — CSS MODULAR
    Archivo: css/vistas/ideas.css
-   Versión: 2.0.0
-   Propósito: Estilos específicos de la vista de ideas. Cabecera
-              con puntos sueltos tipo bocetos, chips de categoría,
-              grupos por categoría, tarjetas de idea.
-              Todo encapsulado bajo #vista-ideas.
-              v2.0.0: reescritura con el patrón de LaTaberna.
+   Versión: 4.0.0
+   Propósito: Estilos de la vista de ideas. Líneas expandibles,
+              filtros con color de categoría, y paleta de colores
+              para categorías conocidas más un fallback rotativo.
+              v4.0.0: variante D del prototipo. Se reemplaza la
+                      lista agrupada por categoría (v3.0.0) por
+                      líneas expandibles. La cabecera de cada línea
+                      tiene flecha, título y chip de categoría.
+                      El cuerpo se despliega con la descripción,
+                      autor y botones. Se agrega .filtros con color
+                      propio del filtro activo según data-color.
+                      Paleta: 7 categorías conocidas con color
+                      fijo, más 5 colores base para las nuevas
+                      (asignados por el JS con hash).
+              v3.0.0: rediseño al nuevo lenguaje visual.
+              v2.0.0: secciones numeradas, selector raíz por ID.
               v1.1.0: edición inline.
               v1.0.0: versión inicial.
    ================================================================ */
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 1 — CABECERA DECORADA
-   Fondo con puntos sutiles, comunica apertura y boceto.
+   SECCIÓN 1 — BOTÓN ABRIR FORMULARIO
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-ideas .ideas__cabecera {
-  position: relative;
-  padding: var(--sp-5) var(--sp-4);
-  margin: calc(var(--sp-2) * -1) calc(var(--sp-4) * -1) var(--sp-5);
-  border-radius: var(--r-lg);
-  background-color: var(--pcb3);
-  background-image:
-    radial-gradient(circle, rgba(141, 183, 216, .22) 1px, transparent 1.5px);
-  background-size: 22px 22px;
-  border: 1px solid rgba(141, 183, 216, .18);
-}
-
-#vista-ideas .ideas__cabecera h1 {
-  color: var(--sky);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 2 — CHIPS DE CATEGORÍA
-   ═══════════════════════════════════════════════════════════════ */
-
-#vista-ideas .chips-categoria {
-  display: flex;
-  gap: var(--sp-2);
-  flex-wrap: wrap;
-  margin-bottom: var(--sp-5);
-}
-
-#vista-ideas .chip-categoria {
-  padding: 6px 14px;
-  border-radius: var(--r-pill);
-  border: 1.5px solid rgba(238, 242, 232, .3);
-  background: transparent;
-  color: var(--paper);
-  font-size: 13px;
-  font-weight: 500;
-  transition: border-color var(--t-rapida), color var(--t-rapida), background var(--t-rapida);
-}
-#vista-ideas .chip-categoria:hover {
-  border-color: var(--sky);
-  color: var(--sky);
-}
-#vista-ideas .chip-categoria[aria-pressed="true"] {
-  background: var(--sky);
-  border-color: var(--sky);
-  color: var(--ink);
-  font-weight: 600;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 3 — GRUPOS DE IDEAS
-   ═══════════════════════════════════════════════════════════════ */
-
-#vista-ideas .grupo-ideas {
-  margin-bottom: var(--sp-6);
-}
-
-#vista-ideas .grupo-ideas__titulo {
-  color: var(--sky);
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  margin: 0 0 var(--sp-3);
-}
-
-#vista-ideas .lista-ideas {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 4 — TARJETA DE IDEA
-   ═══════════════════════════════════════════════════════════════ */
-
-#vista-ideas .idea {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: var(--sp-3);
-  align-items: start;
-  padding: var(--sp-4);
-  background: var(--pcb2);
-  border-radius: var(--r-md);
-  border-left: 3px solid rgba(141, 183, 216, .35);
-  transition: border-color var(--t-rapida);
-}
-#vista-ideas .idea:hover {
-  border-left-color: var(--sky);
-}
-
-#vista-ideas .idea__cuerpo strong {
-  display: block;
-  font-size: 15px;
-  margin-bottom: 4px;
-}
-#vista-ideas .idea__cuerpo p {
-  margin: 0 0 var(--sp-2);
-  color: var(--dim);
-  font-size: 14px;
-  line-height: 1.55;
-}
-#vista-ideas .idea__meta {
+#vista-ideas .btn-agregar-principal {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  margin-top: var(--sp-2);
+  justify-content: center;
+  width: 100%;
+  padding: 14px 24px;
+  border-radius: var(--r-md);
+  background: var(--accent, var(--ciruela));
+  color: var(--papel);
+  font-weight: 700;
+  font-size: 15px;
+  border: 0;
+  cursor: pointer;
+  margin-bottom: var(--sp-4);
+  transition: filter var(--t-rapida), transform var(--t-rapida);
 }
+#vista-ideas .btn-agregar-principal:hover { filter: brightness(1.05); }
+#vista-ideas .btn-agregar-principal:active { transform: translateY(1px); }
 
-#vista-ideas .idea__acciones {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 2 — FORMULARIO COLAPSABLE
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-ideas .form-inline {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-1);
-  align-items: stretch;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--papel-2);
+  border: 1px dashed var(--borde-fuerte);
+  border-radius: var(--r-md);
+  margin-bottom: var(--sp-5);
+}
+#vista-ideas .form-inline input,
+#vista-ideas .form-inline textarea {
+  padding: 10px 12px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: 14px;
+  color: var(--tinta);
+  width: 100%;
+  font-family: var(--fuente-cuerpo);
+}
+#vista-ideas .form-inline input:focus,
+#vista-ideas .form-inline textarea:focus {
+  outline: none;
+  border-color: var(--accent, var(--ciruela));
+  background: var(--papel-carta);
+}
+#vista-ideas .form-inline textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+#vista-ideas .form-inline__fila {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+#vista-ideas .btn {
+  padding: 10px 16px;
+  border-radius: var(--r-sm);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background var(--t-rapida), color var(--t-rapida), filter var(--t-rapida), transform var(--t-rapida);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+#vista-ideas .btn:active { transform: scale(.97); }
+#vista-ideas .btn--primario {
+  background: var(--accent, var(--ciruela));
+  color: var(--papel);
+  border: 0;
+}
+#vista-ideas .btn--primario:hover { filter: brightness(1.05); }
+#vista-ideas .btn--secundario {
+  background: transparent;
+  color: var(--tinta-suave);
+  border: 1px solid var(--borde-fuerte);
+}
+#vista-ideas .btn--secundario:hover {
+  background: var(--papel-3);
+  color: var(--tinta);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 3 — FILTROS POR CATEGORÍA
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-ideas .filtros {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 -20px;
+  padding: 2px 20px 16px;
+}
+#vista-ideas .filtros::-webkit-scrollbar { display: none; }
+
+#vista-ideas .filtro {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--r-full);
+  border: 1px solid transparent;
+  color: var(--tinta-suave);
+  background: var(--papel-2);
+  transition: background var(--t-rapida), color var(--t-rapida);
+  white-space: nowrap;
+  cursor: pointer;
+}
+#vista-ideas .filtro.is-active {
+  background: var(--tinta);
+  color: var(--papel);
+}
+
+/* Filtro activo con color según data-color. */
+#vista-ideas .filtro.is-active[data-color="mostaza"] { background: var(--mostaza); color: #3D2C0F; }
+#vista-ideas .filtro.is-active[data-color="azul"] { background: var(--azul-piedra); color: var(--papel); }
+#vista-ideas .filtro.is-active[data-color="musgo"] { background: var(--musgo); color: var(--papel); }
+#vista-ideas .filtro.is-active[data-color="ciruela"] { background: var(--ciruela); color: var(--papel); }
+#vista-ideas .filtro.is-active[data-color="terracota"] { background: var(--terracota); color: var(--papel); }
+#vista-ideas .filtro.is-active[data-color="terracota-clara"] { background: var(--terracota-clara); color: var(--tinta); }
+#vista-ideas .filtro.is-active[data-color="gris"] { background: #8892A6; color: var(--papel); }
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 4 — LISTA DE IDEAS (líneas expandibles)
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-ideas .lista-ideas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#vista-ideas .linea {
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  transition: border-color var(--t-media);
+}
+#vista-ideas .linea.is-abierta {
+  border-color: var(--accent, var(--ciruela));
+}
+
+/* Cabecera (clickeable). */
+#vista-ideas .linea__cab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--t-rapida);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+#vista-ideas .linea__cab:hover { background: var(--papel-2); }
+
+#vista-ideas .linea__flecha {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--tinta-tenue);
+  transition: transform .2s ease, color .2s ease;
+  display: inline-block;
+}
+#vista-ideas .linea.is-abierta .linea__flecha {
+  transform: rotate(90deg);
+  color: var(--accent, var(--ciruela));
+}
+
+#vista-ideas .linea__titulo {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--tinta);
+  letter-spacing: -.01em;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#vista-ideas .linea__cat {
   flex-shrink: 0;
 }
 
-#vista-ideas .btn-sumar {
-  padding: 8px 16px;
-  border-radius: var(--r-pill);
-  background: var(--sky);
-  color: var(--ink);
-  font-weight: 700;
-  font-size: 13px;
-  transition: filter var(--t-rapida), transform var(--t-rapida);
-  white-space: nowrap;
+/* Cuerpo (solo visible si está abierta). */
+#vista-ideas .linea__cuerpo {
+  padding: 0 14px 14px 40px;
+  border-top: 1px dashed var(--borde);
 }
-#vista-ideas .btn-sumar:hover { filter: brightness(1.05); }
-#vista-ideas .btn-sumar:active { transform: translateY(1px); }
-
-#vista-ideas .btn-mini {
-  padding: 6px 14px;
-  font-size: 12px;
-  font-weight: 500;
-  border-radius: var(--r-pill);
-  border: 1.5px solid rgba(238, 242, 232, .3);
-  background: transparent;
-  color: var(--paper);
-  transition: border-color var(--t-rapida), color var(--t-rapida);
-  white-space: nowrap;
+#vista-ideas .linea__desc {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--tinta-suave);
+  margin: 10px 0 12px;
 }
-#vista-ideas .btn-mini:hover { border-color: var(--sky); color: var(--sky); }
-
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 5 — EDICIÓN INLINE
-   ═══════════════════════════════════════════════════════════════ */
-
-#vista-ideas .pieza-edit {
-  padding: var(--sp-4);
-  background: var(--pcb3);
-  border-radius: var(--r-md);
-  border-left: 3px solid var(--sky);
+#vista-ideas .linea__pie {
   display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
 }
-
-#vista-ideas .pieza-edit input,
-#vista-ideas .pieza-edit textarea {
-  padding: 10px 12px;
-  border-radius: var(--r-md);
-  border: 1.5px solid rgba(238, 242, 232, .3);
-  background: rgba(238, 242, 232, .04);
-  color: var(--paper);
-  font: inherit;
-  font-size: 15px;
-  width: 100%;
-  transition: border-color var(--t-rapida), background var(--t-rapida);
-}
-
-#vista-ideas .pieza-edit textarea { min-height: 80px; resize: vertical; }
-
-#vista-ideas .pieza-edit input:focus,
-#vista-ideas .pieza-edit textarea:focus {
-  border-color: var(--sky);
-  outline: none;
-  background: rgba(238, 242, 232, .08);
-}
-
-#vista-ideas .pieza-edit__botones {
+#vista-ideas .linea__pie .autor { flex: 1; min-width: 0; }
+#vista-ideas .linea__acciones {
   display: flex;
-  gap: var(--sp-2);
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 6 — RESPONSIVE
+   SECCIÓN 5 — CHIPS DE CATEGORÍA
    ═══════════════════════════════════════════════════════════════ */
 
-@media (max-width: 560px) {
-  #vista-ideas .idea {
-    grid-template-columns: 1fr;
-  }
-  #vista-ideas .idea__acciones {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
+#vista-ideas .cat {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+#vista-ideas .cat--mostaza {
+  background: color-mix(in oklab, var(--mostaza) 22%, var(--papel-2));
+  color: #8A6D0F;
+}
+#vista-ideas .cat--azul {
+  background: color-mix(in oklab, var(--azul-piedra) 18%, var(--papel-2));
+  color: #3D5876;
+}
+#vista-ideas .cat--musgo {
+  background: color-mix(in oklab, var(--musgo) 20%, var(--papel-2));
+  color: var(--musgo);
+}
+#vista-ideas .cat--ciruela {
+  background: color-mix(in oklab, var(--ciruela) 16%, var(--papel-2));
+  color: var(--ciruela);
+}
+#vista-ideas .cat--terracota {
+  background: color-mix(in oklab, var(--terracota) 18%, var(--papel-2));
+  color: var(--terracota);
+}
+#vista-ideas .cat--terracota-clara {
+  background: color-mix(in oklab, var(--terracota-clara) 26%, var(--papel-2));
+  color: #A5522C;
+}
+#vista-ideas .cat--gris {
+  background: color-mix(in oklab, #8892A6 22%, var(--papel-2));
+  color: #50596E;
+}
+
+body.modo-noche #vista-ideas .cat--mostaza { color: #D9B345; }
+body.modo-noche #vista-ideas .cat--azul { color: #93B0CB; }
+body.modo-noche #vista-ideas .cat--musgo { color: #9BB17C; }
+body.modo-noche #vista-ideas .cat--ciruela { color: #B48AA6; }
+body.modo-noche #vista-ideas .cat--terracota { color: #E0A18A; }
+body.modo-noche #vista-ideas .cat--terracota-clara { color: #E8A17A; }
+body.modo-noche #vista-ideas .cat--gris { color: #AFB8C9; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 6 — BOTONES MINI
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-ideas .btn-mini {
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  background: transparent;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  transition: background var(--t-rapida), color var(--t-rapida), border-color var(--t-rapida);
+  white-space: nowrap;
+  cursor: pointer;
+}
+#vista-ideas .btn-mini:hover {
+  background: var(--papel-3);
+  color: var(--tinta);
+}
+#vista-ideas .btn-mini--peligro:hover {
+  background: #FBE9E9;
+  color: var(--rojo);
+  border-color: #E3B6B6;
+}
+#vista-ideas .btn-mini--sumar {
+  color: var(--accent, var(--ciruela));
+  border-color: color-mix(in oklab, var(--accent, var(--ciruela)) 40%, var(--borde));
+  background: color-mix(in oklab, var(--accent, var(--ciruela)) 8%, transparent);
+}
+#vista-ideas .btn-mini--sumar:hover {
+  background: color-mix(in oklab, var(--accent, var(--ciruela)) 15%, transparent);
+  color: var(--accent, var(--ciruela));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 7 — EDICIÓN INLINE
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-ideas .pieza-edit {
+  padding: 14px 16px;
+  background: var(--papel-2);
+  border: 1px dashed var(--borde-fuerte);
+  border-radius: var(--r-md);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#vista-ideas .pieza-edit__cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#vista-ideas .pieza-edit input,
+#vista-ideas .pieza-edit textarea {
+  padding: 10px 12px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: 14px;
+  color: var(--tinta);
+  width: 100%;
+  font-family: var(--fuente-cuerpo);
+}
+#vista-ideas .pieza-edit input:focus,
+#vista-ideas .pieza-edit textarea:focus {
+  outline: none;
+  border-color: var(--accent, var(--ciruela));
+  background: var(--papel-carta);
+}
+#vista-ideas .pieza-edit textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+#vista-ideas .pieza-edit__botones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 8 — DISTINTIVO DE AUTOR
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-ideas .autor {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px 2px 2px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+#vista-ideas .autor__inicial {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--papel);
+  font-family: var(--fuente-titulo);
+}
+#vista-ideas .autor--luci { background: #F0E2E2; color: #8A5757; }
+#vista-ideas .autor--luci .autor__inicial { background: #D89A9A; }
+#vista-ideas .autor--yayo { background: #EFE4CC; color: #6B4F1F; }
+#vista-ideas .autor--yayo .autor__inicial { background: #B8893C; }
+#vista-ideas .autor--desconocido { background: var(--papel-2); color: var(--tinta-suave); }
+#vista-ideas .autor--desconocido .autor__inicial { background: var(--tinta-tenue); }
+
+body.modo-noche #vista-ideas .autor--luci { background: rgba(216,154,154,.22); color: #E2B4B4; }
+body.modo-noche #vista-ideas .autor--yayo { background: rgba(184,137,60,.22); color: #D9B876; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 9 — VACÍO
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-ideas .vista__vacio {
+  color: var(--tinta-tenue);
+  font-style: italic;
+  padding: 20px 0;
+  text-align: center;
 }

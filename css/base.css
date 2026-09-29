@@ -1,10 +1,23 @@
 /* ================================================================
    Ahora Sí — CSS
    Archivo: css/base.css
-   Versión: 1.0.0
+   Versión: 3.0.0
    Propósito: reset mínimo, variables de diseño, tipografía base.
-              Todo el resto del CSS depende de estas variables.
-              Mobile-first.
+              Paleta nueva (papel/terracota/Fraunces) con soporte
+              de modo noche global. Se mantienen los alias de
+              compatibilidad para las vistas que todavía no
+              migran al rediseño.
+              v3.0.0: se elimina --verde (queda solo --musgo).
+                      Se agrega bloque de modo noche bajo
+                      body.modo-noche. Se agrega --accent como
+                      variable de primer nivel, alimentada por
+                      cada vista. Se agrega --noche, --noche-2,
+                      --noche-3 como tokens explícitos.
+              v2.0.0: rediseño visual completo. Paleta nueva,
+                      tipografía nueva (Fraunces para carta),
+                      reset mínimo. Alias de compatibilidad para
+                      las vistas viejas.
+              v1.0.0: versión inicial.
    ================================================================ */
 
 /* -------- Reset ------------------------------------------------- */
@@ -16,24 +29,41 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 input, select, textarea { font: inherit; color: inherit; }
 img, picture, svg { max-width: 100%; display: block; }
 
-/* -------- Variables --------------------------------------------- */
+/* -------- Paleta base (modo día) ------------------------------- */
 :root {
-  /* Paleta principal */
-  --pcb: #0C2F26;          /* verde profundo, fondo principal */
-  --pcb2: #123F34;         /* verde medio, superficies elevadas */
-  --pcb3: #0e3529;         /* verde oscuro, contenedores internos */
-  --paper: #EEF2E8;        /* blanco hueso, texto principal */
-  --ink: #0A1F1A;          /* verde casi negro, texto sobre dorado */
-  --gold: #E3BC55;         /* dorado principal */
-  --sky: #8DB7D8;          /* azul cielo para acentos */
-  --rose: #EBA9A2;         /* rosa para acentos suaves */
-  --verde: #4ade80;        /* verde éxito */
-  --rojo: #f87171;         /* rojo error */
-  --dim: #A9C2B6;          /* verde apagado para texto secundario */
+  /* Papel y tintas */
+  --papel:          #F7F1E8;
+  --papel-2:        #EFE7DA;
+  --papel-3:        #FCF8F0;
+  --papel-carta:    #FBF4E6;
+  --borde:          #E2D7C5;
+  --borde-fuerte:   #D2C4AC;
+  --tinta:          #1F1B16;
+  --tinta-suave:    #6B6155;
+  --tinta-tenue:    #A89B87;
+
+  /* Acentos de la paleta nueva */
+  --terracota:        #C9613B;
+  --terracota-clara:  #E8A17A;
+  --terracota-papel:  #F7E3D5;
+  --mostaza:          #D9A421;
+  --musgo:            #5A6B3E;
+  --azul-piedra:      #4A6785;
+  --ciruela:          #7A3E5C;
+  --rojo:             #A03737;
+
+  /* Modo noche (referencia; se aplican bajo body.modo-noche) */
+  --noche:    #14100C;
+  --noche-2:  #241C14;
+  --noche-3:  #3A2E22;
+
+  /* Acento activo. Cada vista lo sobreescribe. */
+  --accent: var(--terracota);
 
   /* Tipografía */
-  --fuente-titulo: 'Bricolage Grotesque', 'Trebuchet MS', system-ui, sans-serif;
-  --fuente-cuerpo: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fuente-titulo: 'Bricolage Grotesque', system-ui, sans-serif;
+  --fuente-cuerpo: 'Figtree', system-ui, sans-serif;
+  --fuente-carta:  'Fraunces', Georgia, serif;
 
   /* Espaciado */
   --sp-1: 4px;
@@ -47,21 +77,57 @@ img, picture, svg { max-width: 100%; display: block; }
   --sp-12: 48px;
 
   /* Radios */
-  --r-sm: 6px;
-  --r-md: 10px;
-  --r-lg: 14px;
-  --r-pill: 999px;
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-full: 999px;
 
   /* Sombras */
-  --sombra-suave: 0 2px 8px rgba(0, 0, 0, .2);
-  --sombra-media: 0 4px 16px rgba(0, 0, 0, .3);
+  --sombra-1: 0 1px 2px rgba(31, 27, 22, .06);
+  --sombra-2: 0 12px 28px rgba(31, 27, 22, .10);
+  --sombra-flotante: 0 12px 32px rgba(31, 27, 22, .18);
 
   /* Transiciones */
-  --t-rapida: .08s ease;
-  --t-media: .18s ease;
+  --t-rapida: .15s ease;
+  --t-media: .22s ease;
 
   /* Anchos */
   --ancho-contenedor: 720px;
+  --alto-tabbar: 78px;
+
+  /* -------- Alias de compatibilidad (vistas viejas) ----------- */
+  /* Estas variables se van a ir eliminando a medida que cada
+     vista migre al rediseño. No usar en código nuevo. */
+  --pcb:  var(--papel);
+  --pcb2: var(--papel-2);
+  --pcb3: var(--papel-3);
+  --paper: var(--tinta);
+  --ink: var(--papel);
+  --gold: var(--terracota);
+  --sky: var(--musgo);
+  --rose: var(--terracota-clara);
+  --dim: var(--tinta-suave);
+  --gris: var(--tinta-tenue);
+  --r-pill: var(--r-full);
+  --sombra-suave: var(--sombra-1);
+  --sombra-media: var(--sombra-2);
+}
+
+/* -------- Modo noche ------------------------------------------- */
+body.modo-noche {
+  --papel:          var(--noche);
+  --papel-2:        var(--noche-2);
+  --papel-3:        var(--noche-3);
+  --papel-carta:    var(--noche-2);
+  --borde:          rgba(242, 230, 208, .12);
+  --borde-fuerte:   rgba(242, 230, 208, .22);
+  --tinta:          #F2E6D0;
+  --tinta-suave:    #B8A888;
+  --tinta-tenue:    #6E5F48;
+
+  --sombra-1: 0 1px 2px rgba(0, 0, 0, .4);
+  --sombra-2: 0 12px 28px rgba(0, 0, 0, .5);
+  --sombra-flotante: 0 12px 32px rgba(0, 0, 0, .6);
 }
 
 /* -------- Tipografía base -------------------------------------- */
@@ -70,13 +136,14 @@ html { scroll-behavior: smooth; }
 body {
   margin: 0;
   min-height: 100svh;
-  background: var(--pcb);
-  color: var(--paper);
+  background: var(--papel);
+  color: var(--tinta);
   font-family: var(--fuente-cuerpo);
-  font-size: 16px;
-  line-height: 1.6;
+  font-size: 15px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background var(--t-media), color var(--t-media);
 }
 
 h1, h2, h3, h4 {
@@ -92,7 +159,7 @@ h3 { font-size: 16px; font-weight: 700; }
 p { max-width: 64ch; }
 
 a {
-  color: var(--gold);
+  color: var(--terracota);
   text-decoration: none;
 }
 a:hover { text-decoration: underline; }
@@ -100,19 +167,19 @@ a:hover { text-decoration: underline; }
 code {
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   font-size: .92em;
-  background: rgba(238, 242, 232, .1);
+  background: var(--papel-2);
   padding: 2px 6px;
   border-radius: var(--r-sm);
 }
 
-/* -------- Foco accesible ---------------------------------------- */
+/* -------- Foco accesible --------------------------------------- */
 :focus-visible {
-  outline: 3px solid var(--sky);
+  outline: 3px solid var(--mostaza);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-/* -------- Preferencia de movimiento reducido -------------------- */
+/* -------- Preferencia de movimiento reducido ------------------- */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {

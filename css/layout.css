@@ -1,15 +1,25 @@
 /* ================================================================
    Ahora Sí — CSS
    Archivo: css/layout.css
-   Versión: 1.1.0
-   Propósito: estructura del shell. Header, nav, main, footer.
-              Mobile-first.
-              v1.1.0: login rediseñado con dos botones grandes
-                      (Luci / Yayo), campo de contraseña que
-                      aparece al elegir usuario. Se agrega botón
-                      "Mi cuenta" al header, junto a Salir. Se
-                      agrega .shell__usuario--nombre para mostrar
-                      el nombre visible del perfil.
+   Versión: 3.0.0
+   Propósito: estructura del shell. Header con topbar + chips de
+              navegación, main con las vistas, tabbar inferior
+              de cinco grupos, botón flotante contextual, y
+              soporte de modo noche heredado de base.css.
+              v3.0.0: shell nuevo. Acento dinámico con var(--accent).
+                      Chips usan var(--tinta) sólido cuando están
+                      activos. Tabbar activo usa var(--accent).
+                      Se agrega .boton-flotante (para vistas
+                      contextuales: Recetas, Fauna, Flora, Series).
+                      Se agrega #cargando. Se migra el login a la
+                      paleta nueva. Sin cambios en las firmas
+                      externas: mismas clases que app.js espera.
+              v2.0.0: rediseño completo. Se reemplaza el nav
+                      horizontal por un tabbar inferior con cinco
+                      grupos (Nido, Vida, Afuera, Juegos, Más).
+                      Cada grupo tiene sus propias vistas, que se
+                      cambian con chips arriba del cuerpo.
+              v1.1.0: login rediseñado, Mi cuenta, nombre visible.
               v1.0.0: versión inicial.
    ================================================================ */
 
@@ -19,126 +29,221 @@
   min-height: 100svh;
 }
 
-/* -------- Header ------------------------------------------------ */
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 1 — HEADER (TOPBAR + CHIPS)
+   Sticky en la parte superior. Agrupa el topbar con eyebrow +
+   título + botón de cuenta, y los chips de navegación del grupo.
+   ═══════════════════════════════════════════════════════════════ */
+
 .shell__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-3);
-  padding: var(--sp-3) var(--sp-4);
-  background: var(--pcb2);
-  border-bottom: 1px solid rgba(238, 242, 232, .12);
   position: sticky;
   top: 0;
-  z-index: 10;
-  flex-wrap: wrap;
+  z-index: 20;
+  background: var(--papel);
+  border-bottom: 1px solid var(--borde);
+  transition: background var(--t-media), border-color var(--t-media);
 }
 
-.shell__marca {
+.shell__topbar {
+  padding: 16px 20px 14px;
+}
+
+.shell__topbar-row {
   display: flex;
-  align-items: baseline;
-  gap: var(--sp-2);
-  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.shell__nombre {
-  font-family: var(--fuente-titulo);
-  font-weight: 800;
-  font-size: 17px;
-  color: var(--gold);
-  letter-spacing: -.02em;
-}
-
-.shell__usuario {
-  font-size: 12px;
-  color: var(--dim);
-}
-
-.shell__cuenta {
-  padding: 6px 14px;
-  font-size: 13px;
-  border: 1.5px solid rgba(238, 242, 232, .35);
-  border-radius: var(--r-pill);
-  color: var(--paper);
-  transition: border-color var(--t-rapida), color var(--t-rapida);
-}
-.shell__cuenta:hover {
-  border-color: var(--sky);
-  color: var(--sky);
-}
-
-.shell__salir {
-  padding: 6px 14px;
-  font-size: 13px;
-  border: 1.5px solid rgba(238, 242, 232, .35);
-  border-radius: var(--r-pill);
-  color: var(--paper);
-  transition: border-color var(--t-rapida), color var(--t-rapida);
-}
-.shell__salir:hover {
-  border-color: var(--gold);
-  color: var(--gold);
-}
-
-.shell__acciones {
-  display: flex;
-  gap: var(--sp-2);
-  align-items: center;
-}
-
-/* -------- Nav --------------------------------------------------- */
-.nav {
-  display: flex;
-  gap: var(--sp-1);
-  flex-wrap: wrap;
-  order: 3;
-  width: 100%;
-  margin-top: var(--sp-2);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding-bottom: 2px;
-}
-.nav::-webkit-scrollbar { display: none; }
-
-.nav__enlace {
-  padding: 6px 12px;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: var(--r-sm);
-  color: var(--paper);
-  white-space: nowrap;
-  transition: background var(--t-rapida), color var(--t-rapida);
-}
-.nav__enlace:hover { background: rgba(238, 242, 232, .1); text-decoration: none; }
-.nav__enlace--activo {
-  background: var(--gold);
-  color: var(--ink);
+.shell__eyebrow {
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
   font-weight: 600;
+  margin-bottom: 6px;
 }
 
-/* -------- Main -------------------------------------------------- */
+.shell__titulo {
+  font-family: var(--fuente-titulo);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -.035em;
+  line-height: 1;
+  color: var(--accent);
+  margin: 0;
+  transition: color var(--t-media);
+}
+
+.shell__btn-cuenta {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  color: var(--tinta-suave);
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition: background var(--t-rapida);
+}
+.shell__btn-cuenta:hover { background: var(--papel-2); }
+.shell__btn-cuenta svg { width: 20px; height: 20px; }
+
+/* -------- Chips de navegación ---------------------------------- */
+
+.shell__chips {
+  display: flex;
+  gap: 6px;
+  padding: 0 20px 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.shell__chips::-webkit-scrollbar { display: none; }
+.shell__chips[hidden] { display: none; }
+
+.shell__chip {
+  padding: 6px 14px;
+  border-radius: var(--r-full);
+  border: 1.5px solid var(--borde);
+  background: transparent;
+  color: var(--tinta-suave);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color var(--t-rapida), color var(--t-rapida), background var(--t-rapida);
+}
+.shell__chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.shell__chip.activo {
+  background: var(--tinta);
+  border-color: var(--tinta);
+  color: var(--papel);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 2 — MAIN
+   ═══════════════════════════════════════════════════════════════ */
+
 .shell__main {
   flex: 1;
-  padding: var(--sp-5) var(--sp-4) var(--sp-12);
+  padding: 22px 20px calc(var(--alto-tabbar) + 30px);
   max-width: var(--ancho-contenedor);
   margin: 0 auto;
   width: 100%;
 }
 
-/* -------- Login ------------------------------------------------- */
-/* Pantalla de bienvenida. Dos botones grandes para elegir usuario,
-   campo de contraseña que aparece al elegir uno. Fondo con el
-   mismo patrón de circuito del prototipo original. */
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 3 — TABBAR INFERIOR
+   ═══════════════════════════════════════════════════════════════ */
+
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--alto-tabbar);
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in oklab, var(--papel) 94%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--borde);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 50;
+  transition: background var(--t-media), border-color var(--t-media);
+}
+
+.tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 4px;
+  border-radius: var(--r-md);
+  color: var(--tinta-tenue);
+  opacity: .55;
+  transition: color var(--t-media), opacity var(--t-media), transform var(--t-rapida);
+  cursor: pointer;
+}
+.tabbar__item:hover { opacity: .85; }
+.tabbar__item svg {
+  width: 22px;
+  height: 22px;
+  transition: transform var(--t-media);
+}
+.tabbar__label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+.tabbar__item:active { transform: scale(.92); }
+.tabbar__item.activo {
+  color: var(--accent);
+  opacity: 1;
+}
+.tabbar__item.activo svg { transform: translateY(-1px); }
+.tabbar__item.activo .tabbar__label { font-weight: 700; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 4 — BOTÓN FLOTANTE CONTEXTUAL
+   Solo se monta en las vistas que lo usan (Recetas, Fauna,
+   Flora, Series). La monta app.js. Acá solo se definen los
+   estilos.
+   ═══════════════════════════════════════════════════════════════ */
+
+.boton-flotante {
+  position: fixed;
+  bottom: calc(var(--alto-tabbar) + 16px);
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-full);
+  background: var(--accent);
+  color: var(--papel);
+  display: grid;
+  place-items: center;
+  box-shadow: var(--sombra-flotante);
+  z-index: 40;
+  transition: transform var(--t-rapida), background var(--t-media), box-shadow var(--t-media);
+}
+.boton-flotante:hover { filter: brightness(1.05); }
+.boton-flotante:active { transform: scale(.9); }
+.boton-flotante svg { width: 24px; height: 24px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 5 — ESTADO DE CARGA
+   ═══════════════════════════════════════════════════════════════ */
+
+#cargando {
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  color: var(--tinta-tenue);
+  font-size: 14px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 6 — LOGIN
+   Pantalla de bienvenida con la paleta nueva. Layout de dos
+   pasos (elegir usuario + contraseña).
+   ═══════════════════════════════════════════════════════════════ */
+
 .login {
   min-height: 100svh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--sp-6) var(--sp-4);
-  background-color: var(--pcb);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' fill='none' stroke='%23E3BC55' stroke-opacity='.1' stroke-width='1.5'%3E%3Cpath d='M0 30h40l20 20h60M60 50v40l20 20h40M0 90h20'/%3E%3Ccircle cx='40' cy='30' r='3'/%3E%3Ccircle cx='120' cy='50' r='3'/%3E%3Ccircle cx='20' cy='90' r='3'/%3E%3C/svg%3E");
+  padding: 24px 20px;
+  background: var(--papel);
 }
 
 .login__caja {
@@ -146,19 +251,19 @@
   max-width: 420px;
   display: flex;
   flex-direction: column;
-  gap: var(--sp-5);
+  gap: 20px;
 }
 
 .login__cabecera {
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: var(--sp-2);
+  gap: 8px;
 }
 
 .login__titulo {
   font-family: var(--fuente-titulo);
-  color: var(--gold);
+  color: var(--terracota);
   font-size: clamp(38px, 10vw, 56px);
   font-weight: 800;
   letter-spacing: -.04em;
@@ -167,7 +272,7 @@
 }
 
 .login__lead {
-  color: var(--dim);
+  color: var(--tinta-suave);
   font-size: 14px;
   margin: 0;
 }
@@ -175,44 +280,44 @@
 .login__paso {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-3);
+  gap: 12px;
 }
 
 .login__etiqueta {
-  color: var(--sky);
-  font-size: 12px;
+  color: var(--tinta-tenue);
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .08em;
+  letter-spacing: .14em;
   margin: 0;
 }
 
 .login__eleccion {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--sp-3);
+  gap: 12px;
 }
 
 .login__usuario {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--sp-2);
-  padding: var(--sp-4) var(--sp-3);
+  gap: 8px;
+  padding: 16px 12px;
   border-radius: var(--r-lg);
-  border: 2px solid rgba(238, 242, 232, .2);
-  background: var(--pcb2);
-  color: var(--paper);
+  border: 1.5px solid var(--borde);
+  background: var(--papel-2);
+  color: var(--tinta);
   cursor: pointer;
   transition: border-color var(--t-media), background var(--t-media), transform var(--t-rapida);
 }
 .login__usuario:hover {
-  border-color: rgba(238, 242, 232, .45);
+  border-color: var(--terracota-clara);
   transform: translateY(-1px);
 }
 .login__usuario[aria-pressed="true"] {
-  border-color: var(--gold);
-  background: var(--pcb3);
+  border-color: var(--terracota);
+  background: var(--terracota-papel);
 }
 
 .login__inicial {
@@ -225,10 +330,10 @@
   font-family: var(--fuente-titulo);
   font-size: 20px;
   font-weight: 800;
-  letter-spacing: -.02em;
+  color: var(--papel);
 }
-.login__usuario--luci .login__inicial { background: var(--sky); color: var(--ink); }
-.login__usuario--yayo .login__inicial { background: var(--gold); color: var(--ink); }
+.login__usuario--luci .login__inicial { background: #D89A9A; }
+.login__usuario--yayo .login__inicial { background: #B8893C; }
 
 .login__usuario-nombre {
   font-size: 15px;
@@ -238,7 +343,7 @@
 .login__campo-grupo {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-2);
+  gap: 8px;
   opacity: 0;
   max-height: 0;
   overflow: hidden;
@@ -252,24 +357,24 @@
 .login__campo {
   padding: 12px 14px;
   border-radius: var(--r-md);
-  border: 1.5px solid rgba(238, 242, 232, .3);
-  background: rgba(238, 242, 232, .04);
-  color: var(--paper);
+  border: 1.5px solid var(--borde);
+  background: var(--papel-3);
+  color: var(--tinta);
   font-size: 15px;
   width: 100%;
   transition: border-color var(--t-rapida), background var(--t-rapida);
 }
 .login__campo:focus {
-  border-color: var(--sky);
-  background: rgba(238, 242, 232, .08);
+  border-color: var(--terracota);
+  background: var(--papel-carta);
   outline: none;
 }
 
 .login__boton {
   padding: 13px 18px;
   border-radius: var(--r-md);
-  background: var(--gold);
-  color: var(--ink);
+  background: var(--terracota);
+  color: var(--papel);
   font-weight: 700;
   font-size: 15px;
   transition: filter var(--t-rapida), transform var(--t-rapida);
@@ -280,12 +385,15 @@
 .login__estado {
   min-height: 1.4em;
   font-size: 13px;
-  color: var(--dim);
+  color: var(--tinta-suave);
   text-align: center;
   margin: 0;
 }
 
-/* -------- Error fatal ------------------------------------------- */
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 7 — ERROR FATAL
+   ═══════════════════════════════════════════════════════════════ */
+
 .error-fatal {
   color: var(--rojo);
   padding: var(--sp-5);
@@ -293,19 +401,12 @@
   font-size: 15px;
 }
 
-/* -------- Breakpoints ------------------------------------------- */
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 8 — RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
+
 @media (min-width: 768px) {
-  .shell__header {
-    padding: var(--sp-3) var(--sp-6);
-    flex-wrap: nowrap;
-  }
-  .nav {
-    order: 2;
-    width: auto;
-    margin-top: 0;
-    flex: 1;
-    justify-content: center;
-  }
-  .shell__acciones { order: 3; }
-  .shell__main { padding: var(--sp-8) var(--sp-6) var(--sp-12); }
+  .shell__topbar { padding: 20px 24px 16px; }
+  .shell__chips { padding: 0 24px 16px; }
+  .shell__main { padding: 28px 24px calc(var(--alto-tabbar) + 40px); }
 }

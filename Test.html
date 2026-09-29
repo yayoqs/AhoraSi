@@ -1,3 +1,25 @@
+<!--
+  Ahora Sí — Test unificado
+  Archivo: Test.html (raíz)
+  Versión: 2.0.3
+  Propósito: batería completa del núcleo, configuración, sesión,
+             repositorios, vistas, audio, realtime, eventos e
+             idempotencia.
+  v2.0.3: corrige bug de contexto. La suite B llama a
+          reiniciarAlmacen(), que borraba usuarioActual y espacio
+          del almacén. Eso dejaba sin contexto a todas las suites
+          siguientes. Ahora se guarda el contexto al prepararlo y
+          se restaura después de la suite B.
+  v2.0.2: corrige colisión de nombres. El import "ejecutar" de
+          bus-comandos.js chocaba con la función local
+          "ejecutar(usuario)". Se renombra el import a
+          "ejecutarComando".
+  v2.0.1: corrige bug del parser de HTML (</script> literal).
+          Se agrega detección de sesión activa al cargar.
+  v2.0.0: reescritura completa.
+  v1.1.0: agrega suite L. Idempotencia.
+  v1.0.0: versión inicial.
+-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6,91 +28,156 @@
 <title>Ahora Sí — Test unificado</title>
 <style>
   :root {
-    --bg: #0C2F26; --bg2: #123F34; --paper: #EEF2E8;
-    --gold: #E3BC55; --sky: #8DB7D8; --dim: #A9C2B6; --ink: #0A1F1A;
+    --papel: #F7F1E8;
+    --papel-2: #EFE7DA;
+    --papel-3: #FCF8F0;
+    --borde: #E2D7C5;
+    --borde-fuerte: #D2C4AC;
+    --tinta: #1F1B16;
+    --tinta-suave: #6B6155;
+    --tinta-tenue: #A89B87;
+    --terracota: #C9613B;
+    --musgo: #5A6B3E;
+    --rojo: #A03737;
+    --ok: #4A7C4A;
+    --fuente-titulo: 'Bricolage Grotesque', system-ui, sans-serif;
+    --fuente-cuerpo: 'Figtree', system-ui, sans-serif;
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0; background: var(--bg); color: var(--paper);
-    font: 400 15px/1.6 system-ui, -apple-system, sans-serif;
-    padding: 20px 16px 60px; -webkit-font-smoothing: antialiased;
+    margin: 0;
+    background: var(--papel);
+    color: var(--tinta);
+    font: 400 15px/1.6 var(--fuente-cuerpo);
+    padding: 20px 16px 60px;
+    -webkit-font-smoothing: antialiased;
   }
   main { max-width: 760px; margin: 0 auto; }
-  h1 { font-size: 22px; margin: 0 0 4px; color: var(--gold); }
-  h2 { font-size: 15px; margin: 26px 0 8px; color: var(--gold); }
-  .lead { color: var(--dim); margin: 0 0 20px; font-size: 14px; }
+  h1 {
+    font-family: var(--fuente-titulo);
+    font-size: 26px;
+    margin: 0 0 4px;
+    color: var(--terracota);
+    letter-spacing: -.02em;
+  }
+  .lead { color: var(--tinta-suave); margin: 0 0 20px; font-size: 14px; }
 
-  #login { max-width: 420px; margin: 40px auto; padding: 24px;
-           background: var(--bg2); border-radius: 12px;
-           display: flex; flex-direction: column; gap: 10px; }
+  #login {
+    max-width: 420px;
+    margin: 40px auto;
+    padding: 24px;
+    background: var(--papel-2);
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
   #botones-usuario { display: flex; gap: 10px; flex-wrap: wrap; }
   .btn-usuario {
-    padding: 10px 22px; border: 1.5px solid var(--gold);
-    background: transparent; color: var(--gold);
-    border-radius: 999px; cursor: pointer; font-weight: 600; font-size: 15px;
-  }
-  .btn-usuario[aria-pressed="true"] { background: var(--gold); color: var(--ink); }
-  input {
-    padding: 11px 14px; font: inherit; border-radius: 10px;
-    border: 1.5px solid rgba(238,242,232,.4); background: transparent;
-    color: var(--paper); font-size: 15px; width: 100%;
-  }
-  input:focus { outline: 3px solid var(--sky); outline-offset: 2px; }
-  button[type="submit"] {
-    padding: 12px 18px; font: inherit; border: 0; border-radius: 10px;
-    background: var(--gold); color: var(--ink); font-weight: 600; cursor: pointer;
+    padding: 10px 22px;
+    border: 1.5px solid var(--terracota);
+    background: transparent;
+    color: var(--terracota);
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 600;
     font-size: 15px;
   }
-  #login-estado { min-height: 1.4em; font-size: 13px; color: var(--dim); margin: 4px 0 0; }
+  .btn-usuario[aria-pressed="true"] { background: var(--terracota); color: var(--papel); }
+  input {
+    padding: 11px 14px;
+    font: inherit;
+    border-radius: 10px;
+    border: 1.5px solid var(--borde);
+    background: var(--papel-3);
+    color: var(--tinta);
+    font-size: 15px;
+    width: 100%;
+  }
+  input:focus { outline: 3px solid var(--musgo); outline-offset: 2px; }
+  button[type="submit"], #btn-entrar {
+    padding: 12px 18px;
+    font: inherit;
+    border: 0;
+    border-radius: 10px;
+    background: var(--terracota);
+    color: var(--papel);
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 15px;
+  }
+  #login-estado { min-height: 1.4em; font-size: 13px; color: var(--tinta-suave); margin: 4px 0 0; }
 
   .suite {
-    color: var(--gold); font-weight: 700; font-size: 12px;
-    text-transform: uppercase; letter-spacing: .05em;
-    margin: 24px 0 6px; border-bottom: 1px solid rgba(227,188,85,.3);
+    color: var(--terracota);
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin: 24px 0 6px;
+    border-bottom: 1px solid color-mix(in oklab, var(--terracota) 30%, var(--borde));
     padding-bottom: 4px;
   }
   .caso {
-    padding: 8px 12px; margin: 4px 0; border-radius: 6px;
-    background: var(--bg2); border-left: 3px solid transparent;
-    font-size: 14px; display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 12px;
+    margin: 4px 0;
+    border-radius: 6px;
+    background: var(--papel-2);
+    border-left: 3px solid transparent;
+    font-size: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
   }
-  .caso.ok { border-left-color: #4ade80; }
-  .caso.fallo { border-left-color: #f87171; }
-  .caso.corriendo { border-left-color: var(--sky); }
+  .caso.ok { border-left-color: var(--ok); }
+  .caso.fallo { border-left-color: var(--rojo); }
+  .caso.corriendo { border-left-color: var(--musgo); }
   .caso .simbolo { font-weight: 700; flex-shrink: 0; }
-  .caso.ok .simbolo { color: #4ade80; }
-  .caso.fallo .simbolo { color: #f87171; }
-  .caso.corriendo .simbolo { color: var(--sky); }
-  .caso .detalle { color: var(--dim); font-size: 12px; margin-top: 4px; }
+  .caso.ok .simbolo { color: var(--ok); }
+  .caso.fallo .simbolo { color: var(--rojo); }
+  .caso.corriendo .simbolo { color: var(--musgo); }
+  .caso .detalle { color: var(--rojo); font-size: 12px; margin-top: 4px; }
 
   #resumen {
-    margin-top: 24px; padding: 16px; background: var(--bg2);
-    border-radius: 10px; font-weight: 600; font-size: 15px;
-    border-left: 4px solid var(--gold);
+    margin-top: 24px;
+    padding: 16px;
+    background: var(--papel-2);
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    border-left: 4px solid var(--terracota);
   }
-  #resumen.ok { border-left-color: #4ade80; }
-  #resumen.fallo { border-left-color: #f87171; }
+  #resumen.ok { border-left-color: var(--ok); }
+  #resumen.fallo { border-left-color: var(--rojo); }
 
   #rerun {
-    margin-top: 16px; padding: 10px 20px; font: inherit;
-    border: 1.5px solid var(--gold); background: transparent;
-    color: var(--gold); border-radius: 999px; cursor: pointer;
+    margin-top: 16px;
+    padding: 10px 20px;
+    font: inherit;
+    border: 1.5px solid var(--terracota);
+    background: transparent;
+    color: var(--terracota);
+    border-radius: 999px;
+    cursor: pointer;
     font-weight: 600;
   }
-  #rerun:hover { background: var(--gold); color: var(--ink); }
+  #rerun:hover { background: var(--terracota); color: var(--papel); }
 </style>
+
+<link rel="stylesheet" href="./externos/leaflet/leaflet.css">
 </head>
 <body>
 <main>
   <h1>Test unificado</h1>
-  <p class="lead">Batería completa del núcleo, repositorios, vistas, Realtime e idempotencia.</p>
+  <p class="lead">Batería completa de núcleo, repositorios, vistas, audio, eventos, Realtime e idempotencia.</p>
 
   <section id="login">
     <div id="botones-usuario" role="group" aria-label="Selecciona usuario">
       <button type="button" class="btn-usuario" data-email="luciviteri@elisekai.com">Luci</button>
       <button type="button" class="btn-usuario" data-email="yayoqs@elisekai.com">Yayo</button>
     </div>
-    <input type="password" id="password" placeholder="contraseña" required autocomplete="current-password">
+    <input type="password" id="password" placeholder="contraseña" autocomplete="current-password">
     <button type="button" id="btn-entrar">Iniciar sesión y correr tests</button>
     <p id="login-estado"></p>
   </section>
@@ -102,48 +189,80 @@
   </section>
 </main>
 
-<script src="../js/appwrite.min.js"></script>
+<script src="./externos/appwrite.min.js"></script>
+<script src="./externos/leaflet/leaflet.js"></script>
 
 <script type="module">
 /* ================================================================
-   Ahora Sí — TEST UNIFICADO (ES6 inline)
-   Archivo: tests/test.html
-   Versión: 1.1.0
-   Propósito: batería completa del núcleo, configuración, sesión,
-              repositorios, vistas, Realtime e idempotencia.
-              v1.1.0: agrega suite L. Idempotencia. Verifica que
-                      crear() dos veces con los mismos datos no
-                      duplica la fila, y que la clave se puede
-                      pasar explícitamente.
-              v1.0.0: versión inicial.
+   Ahora Sí — TEST UNIFICADO
    ================================================================ */
 
-import { CONFIG, validarConfig } from '../js/config/config.js';
-import { iniciarSesion, cerrarSesion, obtenerUsuarioActual } from '../js/datos/sesion.js';
-import { asegurarEspacioCompartido } from '../js/arranque/espacio-inicial.js';
-import { obtener, establecer } from '../js/nucleo/almacen.js';
-import { crearLogger } from '../js/nucleo/logger.js';
+import { CONFIG, validarConfig } from './js/config/config.js';
+import {
+  iniciarSesion, cerrarSesion, cargarSesion, obtenerUsuarioActual,
+} from './js/datos/sesion.js';
+import {
+  obtener, establecer, suscribir, reiniciar as reiniciarAlmacen,
+} from './js/nucleo/almacen.js';
+import { crearLogger } from './js/nucleo/logger.js';
+import {
+  generarId, formatearFecha, escaparHtml, vacio, debounce,
+} from './js/nucleo/utils.js';
+import { Resultado } from './js/dominio/resultado.js';
+import {
+  generarClave, conIdempotencia,
+  limpiar as limpiarIdempotencia,
+  tamanio as tamanioIdempotencia,
+} from './js/nucleo/idempotencia.js';
+import { al, emitir, suscriptoresDe } from './js/nucleo/bus-eventos.js';
+import {
+  registrar,
+  ejecutar as ejecutarComando,
+  existe,
+  desregistrar,
+} from './js/nucleo/bus-comandos.js';
+import { datosDeAutor, etiquetaAutor } from './js/nucleo/autores.js';
 
-import * as repoPlanes from '../js/datos/repositorios/planes.js';
-import * as repoKit from '../js/datos/repositorios/kit.js';
-import * as repoHitos from '../js/datos/repositorios/hitos.js';
-import * as repoCarta from '../js/datos/repositorios/carta.js';
-import * as repoRespuestas from '../js/datos/repositorios/respuestas.js';
-import * as repoFauna from '../js/datos/repositorios/fauna.js';
-import * as repoFlora from '../js/datos/repositorios/flora.js';
-import * as repoRitmos from '../js/datos/repositorios/ritmos.js';
-import * as repoEspacios from '../js/datos/repositorios/espacios.js';
+import * as repoPlanes from './js/datos/repositorios/planes.js';
+import * as repoKit from './js/datos/repositorios/kit.js';
+import * as repoHitos from './js/datos/repositorios/hitos.js';
+import * as repoCarta from './js/datos/repositorios/carta.js';
+import * as repoRespuestas from './js/datos/repositorios/respuestas.js';
+import * as repoFauna from './js/datos/repositorios/fauna.js';
+import * as repoFlora from './js/datos/repositorios/flora.js';
+import * as repoRitmos from './js/datos/repositorios/ritmos.js';
+import * as repoEspacios from './js/datos/repositorios/espacios.js';
+import * as repoLugares from './js/datos/repositorios/lugares.js';
+import * as repoSeries from './js/datos/repositorios/series.js';
+import * as repoRecetas from './js/datos/repositorios/recetas.js';
+import * as repoRetos from './js/datos/repositorios/retos.js';
+import * as repoPenitencias from './js/datos/repositorios/penitencias.js';
+import * as repoPreguntas from './js/datos/repositorios/preguntas.js';
+import * as repoApuestas from './js/datos/repositorios/apuestas.js';
+import * as repoChistes from './js/datos/repositorios/chistes.js';
+import * as repoFotos from './js/datos/repositorios/fotos.js';
+import * as repoPerfiles from './js/datos/repositorios/perfiles.js';
 
-import * as vistaCarta from '../js/vistas/carta.js';
-import * as vistaPlanes from '../js/vistas/planes.js';
-import * as vistaHitos from '../js/vistas/hitos.js';
-import * as vistaKit from '../js/vistas/kit.js';
-import * as vistaFauna from '../js/vistas/fauna.js';
-import * as vistaFlora from '../js/vistas/flora.js';
-import * as vistaPercusion from '../js/vistas/percusion.js';
-import * as vistaRespuesta from '../js/vistas/respuesta.js';
+import * as vistaCarta from './js/vistas/carta.js';
+import * as vistaPlanes from './js/vistas/planes.js';
+import * as vistaIdeas from './js/vistas/ideas.js';
+import * as vistaHitos from './js/vistas/hitos.js';
+import * as vistaKit from './js/vistas/kit.js';
+import * as vistaFauna from './js/vistas/fauna.js';
+import * as vistaFlora from './js/vistas/flora.js';
+import * as vistaMapa from './js/vistas/mapa.js';
+import * as vistaSeries from './js/vistas/series.js';
+import * as vistaJuegos from './js/vistas/juegos.js';
+import * as vistaRecetas from './js/vistas/recetas.js';
+import * as vistaPercusion from './js/vistas/percusion.js';
+import * as vistaRespuesta from './js/vistas/respuesta.js';
+import * as vistaCuenta from './js/vistas/cuenta.js';
+import * as vistaHero from './js/vistas/hero.js';
 
-import * as realtime from '../js/datos/realtime.js';
+import * as audioBeatmaker from './js/audio/beatmaker.js';
+import * as audioSintetizador from './js/audio/sintetizador.js';
+
+import * as realtime from './js/datos/realtime.js';
 
 const log = crearLogger('test:unificado');
 
@@ -155,13 +274,24 @@ const btnRerun = document.getElementById('rerun');
 
 let pasaron = 0;
 let fallaron = 0;
+
+/* Contexto guardado. Lo usa restaurarContexto() después de las
+   suites que borran el almacén (la suite B llama reiniciar). */
+let contextoGuardado = null;
+
 const creados = {
   planes: [], kit: [], hitos: [], carta: [], respuestas: [],
-  fauna: [], flora: [], ritmos: [],
+  fauna: [], flora: [], ritmos: [], lugares: [], series: [],
+  recetas: [], retos: [], penitencias: [], preguntas: [],
+  apuestas: [], chistes: [],
 };
 
 const marca = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/* ================================================================
+   INFRAESTRUCTURA
+   ================================================================ */
 
 function actualizarResumen() {
   resumen.textContent = `${pasaron} pasaron, ${fallaron} fallaron`;
@@ -210,11 +340,15 @@ function exigir(cond, msg) {
 }
 
 async function limpiarTodo() {
+  const mapa = {
+    planes: repoPlanes, kit: repoKit, hitos: repoHitos,
+    carta: repoCarta, fauna: repoFauna, flora: repoFlora,
+    ritmos: repoRitmos, lugares: repoLugares, series: repoSeries,
+    recetas: repoRecetas, retos: repoRetos, penitencias: repoPenitencias,
+    preguntas: repoPreguntas, apuestas: repoApuestas, chistes: repoChistes,
+  };
   for (const [clave, ids] of Object.entries(creados)) {
-    const repo = {
-      planes: repoPlanes, kit: repoKit, hitos: repoHitos,
-      carta: repoCarta, fauna: repoFauna, flora: repoFlora, ritmos: repoRitmos,
-    }[clave];
+    const repo = mapa[clave];
     if (!repo) continue;
     for (const id of ids) {
       try { await repo.eliminar(id); } catch (e) { log.warn('Limpieza falló:', clave, id); }
@@ -233,14 +367,24 @@ async function prepararContexto(usuario) {
   exigir(r.exito, 'No se pudo crear el espacio de prueba: ' + r.error);
   const espacioPrueba = r.datos;
 
+  // Guardo el contexto para poder restaurarlo si alguna suite
+  // borra el almacén (como hace la suite B con reiniciar).
+  contextoGuardado = { usuario, espacio: espacioPrueba };
+
   establecer('usuarioActual', usuario);
   establecer('espacio', espacioPrueba);
   return espacioPrueba;
 }
 
-// =================================================================
-// SUITES
-// =================================================================
+function restaurarContexto() {
+  if (!contextoGuardado) return;
+  establecer('usuarioActual', contextoGuardado.usuario);
+  establecer('espacio', contextoGuardado.espacio);
+}
+
+/* ================================================================
+   SUITES
+   ================================================================ */
 
 async function suiteSanidad() {
   suite('A. Sanidad del núcleo');
@@ -254,6 +398,19 @@ async function suiteSanidad() {
     exigir(typeof window.Appwrite.Channel === 'function', 'Channel no está en el bundle');
   });
 
+  await caso('TablesDB disponible', () => {
+    exigir(typeof window.Appwrite.TablesDB === 'function', 'TablesDB no está en el bundle');
+  });
+
+  await caso('Storage disponible', () => {
+    exigir(typeof window.Appwrite.Storage === 'function', 'Storage no está en el bundle');
+  });
+
+  await caso('Leaflet cargado', () => {
+    exigir(window.L, 'window.L no existe');
+    exigir(typeof window.L.map === 'function', 'L.map no disponible');
+  });
+
   await caso('config válida', () => {
     exigir(validarConfig(), 'validarConfig falló');
   });
@@ -264,192 +421,1028 @@ async function suiteSanidad() {
   });
 }
 
-async function suiteRepositorios() {
-  suite('B. Repositorios: planes');
+async function suiteAlmacen() {
+  suite('B. Núcleo: almacén');
+
+  await caso('establecer y obtener', () => {
+    establecer('testClave', { a: 1 });
+    const v = obtener('testClave');
+    exigir(v?.a === 1, 'no devolvió el valor');
+  });
+
+  await caso('suscribir recibe notificación', async () => {
+    let recibido = null;
+    const desuscribir = suscribir(({ clave, valor }) => {
+      if (clave === 'testSuscripcion') recibido = valor;
+    });
+    establecer('testSuscripcion', 42);
+    await esperar(20);
+    desuscribir();
+    exigir(recibido === 42, 'no llegó la notificación');
+  });
+
+  await caso('reiniciar limpia el estado', () => {
+    // Uso una clave que NO pisa el contexto. Después de reiniciar,
+    // restauro el contexto para las suites siguientes.
+    establecer('testReinicio', { x: 1 });
+    reiniciarAlmacen();
+    exigir(obtener('testReinicio') === null, 'no se limpió');
+    // Restaurar el contexto para las suites siguientes.
+    restaurarContexto();
+  });
+}
+
+async function suiteResultado() {
+  suite('C. Núcleo: Resultado');
+
+  await caso('Resultado.ok', () => {
+    const r = Resultado.ok({ x: 1 });
+    exigir(r.exito === true, 'exito debería ser true');
+    exigir(r.datos.x === 1, 'datos incorrectos');
+    exigir(r.error === null, 'error debería ser null');
+  });
+
+  await caso('Resultado.fallo', () => {
+    const r = Resultado.fallo('boom');
+    exigir(r.exito === false, 'exito debería ser false');
+    exigir(r.error === 'boom', 'error incorrecto');
+  });
+
+  await caso('encadenar en éxito', () => {
+    const r = Resultado.ok(2).encadenar((v) => Resultado.ok(v * 3));
+    exigir(r.exito && r.datos === 6, 'encadenar falló');
+  });
+
+  await caso('encadenar en fallo se propaga', () => {
+    const r = Resultado.fallo('boom').encadenar(() => Resultado.ok(1));
+    exigir(!r.exito && r.error === 'boom', 'debería propagar el fallo');
+  });
+
+  await caso('recuperar transforma fallo en ok', () => {
+    const r = Resultado.fallo('boom').recuperar(() => Resultado.ok('salvado'));
+    exigir(r.exito && r.datos === 'salvado', 'recuperar falló');
+  });
+}
+
+async function suiteUtilidades() {
+  suite('D. Núcleo: utilidades');
+
+  await caso('generarId usa prefijo', () => {
+    const id = generarId('prueba');
+    exigir(id.startsWith('prueba_'), 'no usa el prefijo');
+    exigir(id.length > 10, 'id demasiado corto');
+  });
+
+  await caso('formatearFecha con ISO', () => {
+    const s = formatearFecha('2026-09-25T12:00:00Z');
+    exigir(typeof s === 'string' && s.length > 0, 'no formatea');
+  });
+
+  await caso('formatearFecha con fecha inválida devuelve vacío', () => {
+    const s = formatearFecha('no-es-fecha');
+    exigir(s === '', 'debería ser vacío');
+  });
+
+  await caso('escaparHtml', () => {
+    // Uso <\/script> para que el parser de HTML no corte el bloque.
+    const s = escaparHtml('<\/script>');
+    exigir(!s.includes('<\/script>'), 'no escapó');
+    exigir(s.includes('&lt;'), 'no usó entidades');
+  });
+
+  await caso('vacio reconoce null, undefined y string vacío', () => {
+    exigir(vacio(null), 'null no es vacío');
+    exigir(vacio(undefined), 'undefined no es vacío');
+    exigir(vacio(''), 'string vacío no es vacío');
+    exigir(!vacio('x'), 'string con contenido sí es vacío');
+    exigir(!vacio(0), 'cero sí es vacío');
+  });
+
+  await caso('debounce ejecuta una sola vez', async () => {
+    let contador = 0;
+    const fn = debounce(() => { contador++; }, 40);
+    fn(); fn(); fn();
+    await esperar(120);
+    exigir(contador === 1, 'debounce debería ejecutar una vez');
+  });
+}
+
+async function suiteIdempotenciaNucleo() {
+  suite('E. Núcleo: idempotencia');
+
+  await caso('generarClave es determinista', () => {
+    const k1 = generarClave('u1', 'op', { a: 1 });
+    const k2 = generarClave('u1', 'op', { a: 1 });
+    const k3 = generarClave('u1', 'op', { a: 2 });
+    exigir(k1 === k2, 'misma entrada dio distinta clave');
+    exigir(k1 !== k3, 'entrada distinta dio misma clave');
+  });
+
+  await caso('conIdempotencia cachea éxito', async () => {
+    limpiarIdempotencia();
+    const clave = 'test-' + marca();
+    let contador = 0;
+    await conIdempotencia(clave, async () => { contador++; return Resultado.ok({ x: 1 }); });
+    await conIdempotencia(clave, async () => { contador++; return Resultado.ok({ x: 1 }); });
+    exigir(contador === 1, 'debería ejecutar una sola vez');
+  });
+
+  await caso('conIdempotencia libera clave tras fallo', async () => {
+    limpiarIdempotencia();
+    const clave = 'test-fallo-' + marca();
+    let contador = 0;
+    await conIdempotencia(clave, async () => { contador++; return Resultado.fallo('boom'); }, (r) => r.exito);
+    await conIdempotencia(clave, async () => { contador++; return Resultado.ok({}); });
+    exigir(contador === 2, 'debería ejecutar dos veces');
+  });
+
+  await caso('limpiar deja el registro en cero', () => {
+    limpiarIdempotencia();
+    exigir(tamanioIdempotencia() === 0, 'no se limpió');
+  });
+}
+
+async function suiteBusEventos() {
+  suite('F. Núcleo: bus de eventos');
+
+  await caso('al y emitir', () => {
+    let recibido = null;
+    const desuscribir = al('test:evento', (d) => { recibido = d; });
+    emitir('test:evento', { x: 5 });
+    desuscribir();
+    exigir(recibido?.x === 5, 'no llegó el payload');
+  });
+
+  await caso('desuscribir detiene la recepción', () => {
+    let contador = 0;
+    const desuscribir = al('test:evento2', () => { contador++; });
+    desuscribir();
+    emitir('test:evento2', {});
+    exigir(contador === 0, 'siguió recibiendo tras desuscribir');
+  });
+
+  await caso('suscriptoresDe cuenta suscriptores', () => {
+    const d1 = al('test:evento3', () => {});
+    const d2 = al('test:evento3', () => {});
+    exigir(suscriptoresDe('test:evento3') === 2, 'no cuenta bien');
+    d1(); d2();
+    exigir(suscriptoresDe('test:evento3') === 0, 'no limpió bien');
+  });
+}
+
+async function suiteBusComandos() {
+  suite('G. Núcleo: bus de comandos');
+
+  await caso('registrar y ejecutarComando', () => {
+    registrar('test:comando', (a, b) => a + b);
+    exigir(ejecutarComando('test:comando', 2, 3) === 5, 'no ejecutó');
+  });
+
+  await caso('existe detecta el comando', () => {
+    exigir(existe('test:comando'), 'debería existir');
+    exigir(!existe('test:no-existe-' + marca()), 'no debería existir');
+  });
+
+  await caso('desregistrar lo elimina', () => {
+    desregistrar('test:comando');
+    exigir(!existe('test:comando'), 'no se desregistró');
+  });
+}
+
+async function suiteAutores() {
+  suite('H. Núcleo: autores');
+
+  await caso('etiquetaAutor con usuario conocido', () => {
+    const etiqueta = etiquetaAutor(CONFIG.usuarios.yayo);
+    exigir(etiqueta === 'Yayo', 'etiqueta incorrecta: ' + etiqueta);
+  });
+
+  await caso('datosDeAutor con usuario desconocido', () => {
+    const d = datosDeAutor('usuario-inexistente-' + marca());
+    exigir(d.clase === 'autor--desconocido', 'clase incorrecta');
+  });
+}
+
+async function suitePlanes() {
+  suite('I. Repositorios: planes e ideas');
 
   let planId = null;
-  await caso('planes.crear', async () => {
+  let ideaId = null;
+
+  await caso('crear plan', async () => {
     const r = await repoPlanes.crear({ titulo: 'Plan ' + marca(), descripcion: 'test' });
     exigir(r.exito, r.error);
     exigir(r.datos.estado === 'pendiente', 'estado inicial incorrecto');
+    exigir(r.datos.esIdea === false, 'debería ser plan');
     planId = r.datos.id;
     creados.planes.push(planId);
   });
 
-  await caso('planes.listar', async () => {
+  await caso('listar planes (esIdea=false)', async () => {
     const r = await repoPlanes.listar();
     exigir(r.exito, r.error);
-    exigir(r.datos.some((p) => p.id === planId), 'el plan creado no aparece');
+    exigir(r.datos.some((p) => p.id === planId), 'el plan no aparece');
+    exigir(r.datos.every((p) => p.esIdea === false), 'aparece una idea');
   });
 
-  await caso('planes.actualizar', async () => {
+  await caso('crear idea', async () => {
+    const r = await repoPlanes.crear({
+      titulo: 'Idea ' + marca(),
+      categoria: 'Test',
+      esIdea: true,
+    });
+    exigir(r.exito, r.error);
+    exigir(r.datos.esIdea === true, 'debería ser idea');
+    ideaId = r.datos.id;
+    creados.planes.push(ideaId);
+  });
+
+  await caso('listar ideas (esIdea=true)', async () => {
+    const r = await repoPlanes.listarIdeas();
+    exigir(r.exito, r.error);
+    exigir(r.datos.some((p) => p.id === ideaId), 'la idea no aparece');
+    exigir(r.datos.every((p) => p.esIdea === true), 'aparece un plan');
+  });
+
+  await caso('sumarAPlanes convierte idea en plan', async () => {
+    const r = await repoPlanes.sumarAPlanes(ideaId);
+    exigir(r.exito, r.error);
+    exigir(r.datos.esIdea === false, 'no se convirtió en plan');
+    const listado = await repoPlanes.listar();
+    exigir(listado.datos.some((p) => p.id === ideaId), 'no aparece en planes');
+  });
+
+  await caso('actualizar plan', async () => {
     const r = await repoPlanes.actualizar(planId, { descripcion: 'actualizado' });
     exigir(r.exito, r.error);
-    exigir(r.datos.descripcion === 'actualizado', 'descripción no cambió');
+    exigir(r.datos.descripcion === 'actualizado', 'no cambió');
   });
 
-  await caso('planes.cambiarEstado', async () => {
+  await caso('cambiarEstado', async () => {
     const r = await repoPlanes.cambiarEstado(planId, 'si');
     exigir(r.exito, r.error);
-    exigir(r.datos.estado === 'si', 'estado no cambió');
+    exigir(r.datos.estado === 'si', 'no cambió');
   });
 
-  await caso('planes.eliminar', async () => {
+  await caso('eliminar plan', async () => {
     const r = await repoPlanes.eliminar(planId);
     exigir(r.exito, r.error);
     creados.planes = creados.planes.filter((x) => x !== planId);
     planId = null;
   });
+}
 
-  suite('C. Repositorios: kit');
+async function suiteKit() {
+  suite('J. Repositorios: kit');
 
   let kitId = null;
-  await caso('kit.crear', async () => {
+
+  await caso('crear item', async () => {
     const r = await repoKit.crear({ categoria: 'Dormir', item: 'Carpa ' + marca() });
     exigir(r.exito, r.error);
-    exigir(r.datos.listo === false, 'item debería empezar no listo');
+    exigir(r.datos.listo === false, 'debería empezar no listo');
     kitId = r.datos.id;
     creados.kit.push(kitId);
   });
 
-  await caso('kit.marcar', async () => {
+  await caso('marcar listo', async () => {
     const r = await repoKit.marcar(kitId, true);
     exigir(r.exito, r.error);
     exigir(r.datos.listo === true, 'no quedó listo');
+    exigir(r.datos.marcadoPor, 'no guardó marcadoPor');
   });
 
-  await caso('kit.eliminar', async () => {
+  await caso('actualizar item', async () => {
+    const r = await repoKit.actualizar(kitId, { item: 'Carpa editada' });
+    exigir(r.exito, r.error);
+    exigir(r.datos.item === 'Carpa editada', 'no cambió');
+  });
+
+  await caso('eliminar item', async () => {
     const r = await repoKit.eliminar(kitId);
     exigir(r.exito, r.error);
     creados.kit = creados.kit.filter((x) => x !== kitId);
   });
+}
 
-  suite('D. Repositorios: hitos');
+async function suiteHitos() {
+  suite('K. Repositorios: hitos');
 
-  let hitoId = null;
-  await caso('hitos.crear y marcar', async () => {
+  let id = null;
+
+  await caso('crear hito', async () => {
     const r = await repoHitos.crear({ titulo: 'Hito ' + marca() });
     exigir(r.exito, r.error);
-    hitoId = r.datos.id;
-    creados.hitos.push(hitoId);
-    const r2 = await repoHitos.marcar(hitoId, true);
-    exigir(r2.exito, r2.error);
-    exigir(r2.datos.cumplido === true, 'no quedó cumplido');
+    exigir(r.datos.cumplido === false, 'debería empezar no cumplido');
+    id = r.datos.id;
+    creados.hitos.push(id);
   });
 
-  await caso('hitos.eliminar', async () => {
-    const r = await repoHitos.eliminar(hitoId);
+  await caso('marcar cumplido', async () => {
+    const r = await repoHitos.marcar(id, true);
     exigir(r.exito, r.error);
-    creados.hitos = creados.hitos.filter((x) => x !== hitoId);
+    exigir(r.datos.cumplido === true, 'no quedó cumplido');
   });
 
-  suite('E. Repositorios: carta');
-
-  let cartaId = null;
-  await caso('carta.crear (base)', async () => {
-    const r = await repoCarta.crear({ tipo: 'base', titulo: 'Manifiesto ' + marca(), contenido: 'test' });
+  await caso('actualizar hito', async () => {
+    const r = await repoHitos.actualizar(id, { titulo: 'Hito editado' });
     exigir(r.exito, r.error);
-    exigir(r.datos.tipo === 'base', 'tipo no es base');
-    cartaId = r.datos.id;
-    creados.carta.push(cartaId);
+    exigir(r.datos.titulo === 'Hito editado', 'no cambió');
   });
 
-  await caso('carta.listarBase', async () => {
+  await caso('eliminar hito', async () => {
+    const r = await repoHitos.eliminar(id);
+    exigir(r.exito, r.error);
+    creados.hitos = creados.hitos.filter((x) => x !== id);
+  });
+}
+
+async function suiteCarta() {
+  suite('L. Repositorios: carta');
+
+  const ids = [];
+
+  await caso('crear base', async () => {
+    const r = await repoCarta.crear({
+      tipo: 'base', titulo: 'Manifiesto ' + marca(), contenido: 'test',
+    });
+    exigir(r.exito, r.error);
+    exigir(r.datos.tipo === 'base', 'tipo incorrecto');
+    ids.push(r.datos.id);
+    creados.carta.push(r.datos.id);
+  });
+
+  await caso('crear compromiso', async () => {
+    const r = await repoCarta.crear({
+      tipo: 'compromiso', titulo: 'Compromiso ' + marca(), contenido: 'test',
+    });
+    exigir(r.exito, r.error);
+    exigir(r.datos.tipo === 'compromiso', 'tipo incorrecto');
+    ids.push(r.datos.id);
+    creados.carta.push(r.datos.id);
+  });
+
+  await caso('crear compromiso compartido', async () => {
+    const r = await repoCarta.crear({
+      tipo: 'compromiso_compartido', titulo: 'Compartido ' + marca(), contenido: 'test',
+    });
+    exigir(r.exito, r.error);
+    exigir(r.datos.tipo === 'compromiso_compartido', 'tipo incorrecto');
+    ids.push(r.datos.id);
+    creados.carta.push(r.datos.id);
+  });
+
+  await caso('crear anexo', async () => {
+    const r = await repoCarta.crear({
+      tipo: 'anexo', titulo: 'Anexo ' + marca(), contenido: 'test',
+    });
+    exigir(r.exito, r.error);
+    exigir(r.datos.tipo === 'anexo', 'tipo incorrecto');
+    ids.push(r.datos.id);
+    creados.carta.push(r.datos.id);
+  });
+
+  await caso('crear firma', async () => {
+    const r = await repoCarta.crear({
+      tipo: 'firma', titulo: 'Firma', contenido: 'Yayo',
+    });
+    exigir(r.exito, r.error);
+    exigir(r.datos.tipo === 'firma', 'tipo incorrecto');
+    ids.push(r.datos.id);
+    creados.carta.push(r.datos.id);
+  });
+
+  await caso('crear con tipo inválido falla', async () => {
+    const r = await repoCarta.crear({
+      tipo: 'inventado', titulo: 'X', contenido: 'X',
+    });
+    exigir(!r.exito, 'debería haber fallado');
+  });
+
+  await caso('listarBase devuelve solo base', async () => {
     const r = await repoCarta.listarBase();
     exigir(r.exito, r.error);
-    exigir(r.datos.some((p) => p.id === cartaId), 'base no aparece');
+    exigir(r.datos.every((p) => p.tipo === 'base'), 'aparece algo que no es base');
   });
 
-  await caso('carta.eliminar', async () => {
-    const r = await repoCarta.eliminar(cartaId);
+  await caso('listarAnexos devuelve solo anexos', async () => {
+    const r = await repoCarta.listarAnexos();
     exigir(r.exito, r.error);
-    creados.carta = creados.carta.filter((x) => x !== cartaId);
+    exigir(r.datos.every((p) => p.tipo === 'anexo'), 'aparece algo que no es anexo');
   });
 
-  suite('F. Repositorios: respuestas');
+  await caso('actualizar pieza', async () => {
+    const r = await repoCarta.actualizar(ids[0], { contenido: 'editado' });
+    exigir(r.exito, r.error);
+    exigir(r.datos.contenido === 'editado', 'no cambió');
+  });
 
-  await caso('respuestas.crear', async () => {
+  await caso('eliminar pieza', async () => {
+    const r = await repoCarta.eliminar(ids[0]);
+    exigir(r.exito, r.error);
+    creados.carta = creados.carta.filter((x) => x !== ids[0]);
+  });
+}
+
+async function suiteRespuestas() {
+  suite('M. Repositorios: respuestas');
+
+  await caso('crear respuesta', async () => {
     const r = await repoRespuestas.crear({ eleccion: 'hablar', nota: 'test' });
     exigir(r.exito, r.error);
-    exigir(r.datos.eleccion === 'hablar', 'elección no coincide');
+    exigir(r.datos.eleccion === 'hablar', 'elección incorrecta');
   });
 
-  await caso('respuestas.crear inválida falla', async () => {
+  await caso('crear con elección inválida falla', async () => {
     const r = await repoRespuestas.crear({ eleccion: 'inventado' });
     exigir(!r.exito, 'debería haber fallado');
   });
 
-  suite('G. Repositorios: fauna y flora');
-
-  let faunaId = null;
-  await caso('fauna.crear', async () => {
-    const r = await repoFauna.crear({ nombre: 'Chincol ' + marca(), tipo: 'ave' });
+  await caso('listar respuestas', async () => {
+    const r = await repoRespuestas.listar();
     exigir(r.exito, r.error);
-    faunaId = r.datos.id;
-    creados.fauna.push(faunaId);
+    exigir(Array.isArray(r.datos), 'no devuelve array');
+  });
+}
+
+async function suiteFauna() {
+  suite('N. Repositorios: fauna');
+
+  let id = null;
+
+  await caso('crear con campos nuevos', async () => {
+    const r = await repoFauna.crear({
+      nombre: 'Chincol ' + marca(),
+      nombrePropio: 'Pío',
+      tipo: 'ave',
+      perteneceA: 'Silvestre',
+      lugar: 'Termas',
+      notas: 'Cantaba al amanecer',
+    });
+    exigir(r.exito, r.error);
+    exigir(r.datos.nombrePropio === 'Pío', 'no guardó nombrePropio');
+    exigir(r.datos.perteneceA === 'Silvestre', 'no guardó perteneceA');
+    id = r.datos.id;
+    creados.fauna.push(id);
   });
 
-  await caso('fauna.listar', async () => {
-    const r = await repoFauna.listar();
+  await caso('actualizar fauna', async () => {
+    const r = await repoFauna.actualizar(id, { notas: 'editado' });
     exigir(r.exito, r.error);
-    exigir(r.datos.some((x) => x.id === faunaId), 'fauna no aparece');
+    exigir(r.datos.notas === 'editado', 'no cambió');
   });
 
-  await caso('fauna.eliminar', async () => {
-    const r = await repoFauna.eliminar(faunaId);
+  await caso('eliminar fauna', async () => {
+    const r = await repoFauna.eliminar(id);
     exigir(r.exito, r.error);
-    creados.fauna = creados.fauna.filter((x) => x !== faunaId);
+    creados.fauna = creados.fauna.filter((x) => x !== id);
   });
+}
 
-  let floraId = null;
-  await caso('flora.crear', async () => {
+async function suiteFlora() {
+  suite('O. Repositorios: flora');
+
+  let id = null;
+
+  await caso('crear flora', async () => {
     const r = await repoFlora.crear({ nombre: 'Quillay ' + marca(), tipo: 'arbol' });
     exigir(r.exito, r.error);
-    floraId = r.datos.id;
-    creados.flora.push(floraId);
+    id = r.datos.id;
+    creados.flora.push(id);
   });
 
-  await caso('flora.eliminar', async () => {
-    const r = await repoFlora.eliminar(floraId);
+  await caso('actualizar flora', async () => {
+    const r = await repoFlora.actualizar(id, { lugar: 'cerro' });
     exigir(r.exito, r.error);
-    creados.flora = creados.flora.filter((x) => x !== floraId);
+    exigir(r.datos.lugar === 'cerro', 'no cambió');
   });
 
-  suite('H. Repositorios: ritmos');
-
-  let ritmoId = null;
-  await caso('ritmos.crear con patrón', async () => {
-    const patron = [[1,0,0,1,0,0,1,0],[0,0,1,0,1,0,0,1],[0,1,0,0,0,1,0,0],[1,0,1,1,0,1,1,0]];
-    const r = await repoRitmos.crear({ nombre: 'Ritmo ' + marca(), bpm: 96, patron });
+  await caso('eliminar flora', async () => {
+    const r = await repoFlora.eliminar(id);
     exigir(r.exito, r.error);
-    exigir(Array.isArray(r.datos.patron), 'patrón no es array');
-    exigir(r.datos.patron.length === 4, 'patrón debería tener 4 filas');
-    ritmoId = r.datos.id;
-    creados.ritmos.push(ritmoId);
+    creados.flora = creados.flora.filter((x) => x !== id);
+  });
+}
+
+async function suiteRitmos() {
+  suite('P. Repositorios: ritmos');
+
+  let idSimple = null;
+  let idExt = null;
+
+  await caso('crear ritmo simple', async () => {
+    const patron = [
+      { sonidoId: 'bombo_gordo', pasos: [1,0,0,0, 0,0,1,0] },
+      { sonidoId: 'caja_seca', pasos: [0,0,1,0, 0,0,1,0] },
+      { sonidoId: 'hh_cerrado', pasos: [1,1,1,1, 1,1,1,1] },
+      { sonidoId: 'shaker', pasos: [0,0,0,0, 0,0,0,0] },
+    ];
+    const r = await repoRitmos.crear({
+      nombre: 'Simple ' + marca(),
+      bpm: 90,
+      patron,
+      modo: 'simple',
+    });
+    exigir(r.exito, r.error);
+    exigir(r.datos.modo === 'simple', 'modo incorrecto');
+    idSimple = r.datos.id;
+    creados.ritmos.push(idSimple);
   });
 
-  await caso('ritmos.eliminar', async () => {
-    const r = await repoRitmos.eliminar(ritmoId);
+  await caso('crear ritmo extendido', async () => {
+    const fila = Array(16).fill(0);
+    const filaNotas = Array(16).fill(-1);
+    const patron = [
+      fila.slice(), fila.slice(), fila.slice(), fila.slice(), fila.slice(),
+      filaNotas.slice(), filaNotas.slice(),
+    ];
+    const r = await repoRitmos.crear({
+      nombre: 'Extendido ' + marca(),
+      bpm: 110,
+      patron,
+      modo: 'extendido',
+      estiloId: 'tumbe',
+      familia: 'afr',
+    });
     exigir(r.exito, r.error);
-    creados.ritmos = creados.ritmos.filter((x) => x !== ritmoId);
+    exigir(r.datos.modo === 'extendido', 'modo incorrecto');
+    idExt = r.datos.id;
+    creados.ritmos.push(idExt);
+  });
+
+  await caso('eliminar ritmo simple', async () => {
+    const r = await repoRitmos.eliminar(idSimple);
+    exigir(r.exito, r.error);
+    creados.ritmos = creados.ritmos.filter((x) => x !== idSimple);
+  });
+
+  await caso('eliminar ritmo extendido', async () => {
+    const r = await repoRitmos.eliminar(idExt);
+    exigir(r.exito, r.error);
+    creados.ritmos = creados.ritmos.filter((x) => x !== idExt);
+  });
+}
+
+async function suiteLugares() {
+  suite('Q. Repositorios: lugares');
+
+  let id = null;
+
+  await caso('crear lugar', async () => {
+    const r = await repoLugares.crear({
+      nombre: 'Termas ' + marca(),
+      latitud: -36.6,
+      longitud: -72.1,
+      region: 'Ñuble',
+      estado: 'pendiente',
+    });
+    exigir(r.exito, r.error);
+    exigir(r.datos.estado === 'pendiente', 'estado incorrecto');
+    id = r.datos.id;
+    creados.lugares.push(id);
+  });
+
+  await caso('actualizar lugar', async () => {
+    const r = await repoLugares.actualizar(id, { notas: 'Buen lugar' });
+    exigir(r.exito, r.error);
+    exigir(r.datos.notas === 'Buen lugar', 'no cambió');
+  });
+
+  await caso('marcarVisitado', async () => {
+    const r = await repoLugares.marcarVisitado(id, true);
+    exigir(r.exito, r.error);
+    exigir(r.datos.estado === 'visitado', 'no quedó visitado');
+    exigir(r.datos.fechaVisita, 'sin fechaVisita');
+  });
+
+  await caso('eliminar lugar', async () => {
+    const r = await repoLugares.eliminar(id);
+    exigir(r.exito, r.error);
+    creados.lugares = creados.lugares.filter((x) => x !== id);
+  });
+}
+
+async function suiteSeries() {
+  suite('R. Repositorios: series');
+
+  const ids = [];
+
+  await caso('crear serie', async () => {
+    const r = await repoSeries.crear({
+      titulo: 'Serie ' + marca(),
+      tipo: 'serie',
+      estado: 'viendo',
+      temporadaActual: 1,
+      capituloActual: 3,
+      totalTemporadas: 2,
+      totalCapitulosTemporada: 10,
+    });
+    exigir(r.exito, r.error);
+    exigir(r.datos.tipo === 'serie', 'tipo incorrecto');
+    ids.push(r.datos.id);
+    creados.series.push(r.datos.id);
+  });
+
+  await caso('crear película', async () => {
+    const r = await repoSeries.crear({
+      titulo: 'Película ' + marca(),
+      tipo: 'pelicula',
+      estado: 'pendiente',
+    });
+    exigir(r.exito, r.error);
+    ids.push(r.datos.id);
+    creados.series.push(r.datos.id);
+  });
+
+  await caso('actualizar serie (puntuación)', async () => {
+    const r = await repoSeries.actualizar(ids[0], { puntuacion: 9 });
+    exigir(r.exito, r.error);
+    exigir(r.datos.puntuacion === 9, 'no guardó puntuación');
+  });
+
+  await caso('puntuación fuera de rango falla', async () => {
+    const r = await repoSeries.actualizar(ids[0], { puntuacion: 11 });
+    exigir(!r.exito, 'debería haber fallado');
+  });
+
+  await caso('reordenar', async () => {
+    const r = await repoSeries.reordenar(ids.slice().reverse());
+    exigir(r.exito, r.error);
+  });
+
+  await caso('eliminar serie', async () => {
+    const r = await repoSeries.eliminar(ids[0]);
+    exigir(r.exito, r.error);
+    creados.series = creados.series.filter((x) => x !== ids[0]);
+  });
+
+  await caso('eliminar película', async () => {
+    const r = await repoSeries.eliminar(ids[1]);
+    exigir(r.exito, r.error);
+    creados.series = creados.series.filter((x) => x !== ids[1]);
+  });
+}
+
+async function suiteRecetas() {
+  suite('S. Repositorios: recetas');
+
+  let id = null;
+
+  await caso('crear receta', async () => {
+    const r = await repoRecetas.crear({
+      titulo: 'Receta ' + marca(),
+      categoria: 'Cena',
+      ingredientes: [
+        { tipo: 'simple', texto: '2 tazas de harina' },
+        { tipo: 'simple', texto: '1 huevo' },
+      ],
+      pasos: ['Mezclar', 'Hornear'],
+      nota: 'Receta de prueba',
+      fotos: [],
+    });
+    exigir(r.exito, r.error);
+    exigir(r.datos.ingredientes.length === 2, 'ingredientes no guardados');
+    exigir(r.datos.pasos.length === 2, 'pasos no guardados');
+    id = r.datos.id;
+    creados.recetas.push(id);
+  });
+
+  await caso('actualizar receta', async () => {
+    const r = await repoRecetas.actualizar(id, { nota: 'editada' });
+    exigir(r.exito, r.error);
+    exigir(r.datos.nota === 'editada', 'no cambió');
+  });
+
+  await caso('categoría inválida falla', async () => {
+    const r = await repoRecetas.crear({
+      titulo: 'X',
+      categoria: 'Inventada',
+      ingredientes: [{ tipo: 'simple', texto: 'x' }],
+      pasos: ['x'],
+    });
+    exigir(!r.exito, 'debería haber fallado');
+  });
+
+  await caso('eliminar receta', async () => {
+    const r = await repoRecetas.eliminar(id);
+    exigir(r.exito, r.error);
+    creados.recetas = creados.recetas.filter((x) => x !== id);
+  });
+}
+
+async function suiteRetos() {
+  suite('T. Repositorios: retos');
+
+  let id = null;
+
+  await caso('crear reto', async () => {
+    const r = await repoRetos.crear({
+      texto: 'Reto ' + marca(),
+      contexto: 'Con contexto',
+      destinatario: CONFIG.usuarios.yayo,
+    });
+    exigir(r.exito, r.error);
+    exigir(r.datos.estado === 'propuesto', 'estado inicial incorrecto');
+    id = r.datos.id;
+    creados.retos.push(id);
+  });
+
+  await caso('cambiarEstado', async () => {
+    const r = await repoRetos.cambiarEstado(id, 'aceptado');
+    exigir(r.exito, r.error);
+    exigir(r.datos.estado === 'aceptado', 'no cambió');
+  });
+
+  await caso('eliminar reto', async () => {
+    const r = await repoRetos.eliminar(id);
+    exigir(r.exito, r.error);
+    creados.retos = creados.retos.filter((x) => x !== id);
+  });
+}
+
+async function suitePenitencias() {
+  suite('U. Repositorios: penitencias');
+
+  let id = null;
+
+  await caso('crear penitencia', async () => {
+    const r = await repoPenitencias.crear({
+      texto: 'Penitencia ' + marca(),
+      razon: 'Por algo',
+      paraQuien: CONFIG.usuarios.yayo,
+    });
+    exigir(r.exito, r.error);
+    exigir(r.datos.estado === 'pendiente', 'estado inicial incorrecto');
+    id = r.datos.id;
+    creados.penitencias.push(id);
+  });
+
+  await caso('cambiarEstado', async () => {
+    const r = await repoPenitencias.cambiarEstado(id, 'cumplida');
+    exigir(r.exito, r.error);
+    exigir(r.datos.estado === 'cumplida', 'no cambió');
+  });
+
+  await caso('eliminar penitencia', async () => {
+    const r = await repoPenitencias.eliminar(id);
+    exigir(r.exito, r.error);
+    creados.penitencias = creados.penitencias.filter((x) => x !== id);
+  });
+}
+
+async function suitePreguntas() {
+  suite('V. Repositorios: preguntas');
+
+  let id = null;
+
+  await caso('crear pregunta', async () => {
+    const r = await repoPreguntas.crear({ texto: 'Pregunta ' + marca() });
+    exigir(r.exito, r.error);
+    exigir(r.datos.texto, 'sin texto');
+    id = r.datos.id;
+    creados.preguntas.push(id);
+  });
+
+  await caso('eliminar pregunta', async () => {
+    const r = await repoPreguntas.eliminar(id);
+    exigir(r.exito, r.error);
+    creados.preguntas = creados.preguntas.filter((x) => x !== id);
+  });
+}
+
+async function suiteApuestas() {
+  suite('W. Repositorios: apuestas');
+
+  let id = null;
+  const otro = obtenerUsuarioActual().$id === CONFIG.usuarios.yayo
+    ? CONFIG.usuarios.luci
+    : CONFIG.usuarios.yayo;
+
+  await caso('crear apuesta', async () => {
+    const r = await repoApuestas.crear({
+      texto: 'Apuesta ' + marca(),
+      quien: otro,
+    });
+    exigir(r.exito, r.error);
+    exigir(r.datos.estado === 'pendiente', 'estado inicial incorrecto');
+    id = r.datos.id;
+    creados.apuestas.push(id);
+  });
+
+  await caso('resolver apuesta', async () => {
+    const r = await repoApuestas.resolver(id, otro);
+    exigir(r.exito, r.error);
+    exigir(r.datos.estado === 'resuelta', 'no se resolvió');
+    exigir(r.datos.ganador === otro, 'ganador incorrecto');
+  });
+
+  await caso('eliminar apuesta', async () => {
+    const r = await repoApuestas.eliminar(id);
+    exigir(r.exito, r.error);
+    creados.apuestas = creados.apuestas.filter((x) => x !== id);
+  });
+}
+
+async function suiteChistes() {
+  suite('X. Repositorios: chistes');
+
+  let id = null;
+
+  await caso('crear chiste', async () => {
+    const r = await repoChistes.crear({ texto: 'Chiste ' + marca() });
+    exigir(r.exito, r.error);
+    exigir(r.datos.creadoPor, 'sin creadoPor');
+    id = r.datos.id;
+    creados.chistes.push(id);
+  });
+
+  await caso('eliminar chiste', async () => {
+    const r = await repoChistes.eliminar(id);
+    exigir(r.exito, r.error);
+    creados.chistes = creados.chistes.filter((x) => x !== id);
+  });
+}
+
+async function suiteFotos() {
+  suite('Y. Repositorios: fotos');
+
+  await caso('contarPorFila devuelve 0 sin fotos', async () => {
+    const r = await repoFotos.contarPorFila('ahorasi_fauna', 'fila-inventada-' + marca());
+    exigir(r.exito, r.error);
+    exigir(r.datos === 0, 'debería ser 0');
+  });
+
+  await caso('urlArchivo devuelve string', () => {
+    const url = repoFotos.urlArchivo('archivo-inventado');
+    exigir(typeof url === 'string' && url.length > 0, 'no devuelve string');
+  });
+
+  await caso('urlPreview devuelve string', () => {
+    const url = repoFotos.urlPreview('archivo-inventado');
+    exigir(typeof url === 'string' && url.length > 0, 'no devuelve string');
+  });
+}
+
+async function suiteEspacios() {
+  suite('Z. Repositorios: espacios');
+
+  const usuario = obtenerUsuarioActual();
+  let id = null;
+
+  await caso('crear espacio', async () => {
+    const r = await repoEspacios.crear({
+      nombre: 'Espacio ' + marca(),
+      miembros: [usuario.$id],
+    });
+    exigir(r.exito, r.error);
+    id = r.datos.id;
+  });
+
+  await caso('obtenerPorId', async () => {
+    const r = await repoEspacios.obtenerPorId(id);
+    exigir(r.exito, r.error);
+    exigir(r.datos.id === id, 'id incorrecto');
+  });
+
+  await caso('listarDeUsuario', async () => {
+    const r = await repoEspacios.listarDeUsuario(usuario.$id);
+    exigir(r.exito, r.error);
+    exigir(r.datos.some((e) => e.id === id), 'no aparece el espacio');
+  });
+
+  await caso('eliminar espacio', async () => {
+    const r = await repoEspacios.eliminar(id);
+    exigir(r.exito, r.error);
+  });
+}
+
+async function suitePerfiles() {
+  suite('AA. Repositorios: perfiles');
+
+  const usuario = obtenerUsuarioActual();
+
+  await caso('obtenerPorUsuarioId responde', async () => {
+    const r = await repoPerfiles.obtenerPorUsuarioId(usuario.$id);
+    exigir(typeof r.exito === 'boolean', 'no devolvió Resultado');
+  });
+}
+
+async function suiteAudio() {
+  suite('AB. Audio');
+
+  await caso('beatmaker: buscarSonidoSimple', () => {
+    const s = audioBeatmaker.buscarSonidoSimple('bombo_gordo');
+    exigir(s, 'no encontró el sonido');
+    exigir(s.nombre === 'Bombo gordo', 'nombre incorrecto');
+  });
+
+  await caso('beatmaker: buscarEstiloExtendido', () => {
+    const e = audioBeatmaker.buscarEstiloExtendido('tumbe');
+    exigir(e, 'no encontró el estilo');
+  });
+
+  await caso('beatmaker: nombreNota', () => {
+    exigir(audioBeatmaker.nombreNota(60) === 'DO', 'nota 60 debería ser DO');
+  });
+
+  await caso('beatmaker: normalizarPatronExtendido', () => {
+    const estilo = audioBeatmaker.ESTILOS_EXTENDIDOS[0];
+    const p = audioBeatmaker.normalizarPatronExtendido(estilo.patrones, estilo.escala);
+    exigir(p.length === audioBeatmaker.FILAS_EXTENDIDO, 'filas incorrectas');
+    exigir(p[0].length === audioBeatmaker.PASOS_EXTENDIDO, 'pasos incorrectos');
+  });
+
+  await caso('sintetizador: voces', () => {
+    const v = audioSintetizador.voces();
+    exigir(Array.isArray(v) && v.length === 4, 'deberían ser 4 voces');
+  });
+
+  await caso('sintetizador: PATRON_INICIAL', () => {
+    exigir(audioSintetizador.PATRON_INICIAL.length === 4, 'deberían ser 4 filas');
+    exigir(audioSintetizador.PATRON_INICIAL[0].length === 8, 'deberían ser 8 pasos');
+  });
+}
+
+async function suiteEventos() {
+  suite('AC. Eventos: emisión por repositorio');
+
+  await caso('planes:creado se emite', async () => {
+    let capturado = null;
+    const desuscribir = al('planes:creado', (p) => { capturado = p; });
+    const r = await repoPlanes.crear({ titulo: 'Evento ' + marca() });
+    desuscribir();
+    exigir(capturado, 'no se emitió');
+    exigir(capturado.id === r.datos.id, 'payload no coincide');
+    creados.planes.push(r.datos.id);
+  });
+
+  await caso('planes:actualizado se emite', async () => {
+    const r1 = await repoPlanes.crear({ titulo: 'Ev2 ' + marca() });
+    creados.planes.push(r1.datos.id);
+    let capturado = null;
+    const desuscribir = al('planes:actualizado', (p) => { capturado = p; });
+    await repoPlanes.actualizar(r1.datos.id, { descripcion: 'editado' });
+    desuscribir();
+    exigir(capturado, 'no se emitió');
+  });
+
+  await caso('planes:eliminado se emite', async () => {
+    const r1 = await repoPlanes.crear({ titulo: 'Ev3 ' + marca() });
+    let capturado = null;
+    const desuscribir = al('planes:eliminado', (d) => { capturado = d; });
+    await repoPlanes.eliminar(r1.datos.id);
+    desuscribir();
+    exigir(capturado, 'no se emitió');
+    exigir(capturado.id === r1.datos.id, 'id incorrecto');
+  });
+
+  await caso('kit:creado se emite', async () => {
+    let capturado = null;
+    const desuscribir = al('kit:creado', (i) => { capturado = i; });
+    const r = await repoKit.crear({ categoria: 'Test', item: 'Ev ' + marca() });
+    desuscribir();
+    exigir(capturado, 'no se emitió');
+    creados.kit.push(r.datos.id);
+  });
+
+  await caso('carta:actualizado se emite', async () => {
+    const r1 = await repoCarta.crear({ tipo: 'base', titulo: 'Ev ' + marca(), contenido: 'x' });
+    creados.carta.push(r1.datos.id);
+    let capturado = null;
+    const desuscribir = al('carta:actualizado', (p) => { capturado = p; });
+    await repoCarta.actualizar(r1.datos.id, { contenido: 'editado' });
+    desuscribir();
+    exigir(capturado, 'no se emitió');
   });
 }
 
 async function suiteVistas() {
-  suite('I. Vistas: ciclo activar/limpiar');
+  suite('AD. Vistas: ciclo activar/limpiar');
 
   const contenedor = document.createElement('div');
+  contenedor.style.width = '400px';
+  contenedor.style.height = '600px';
+  contenedor.style.position = 'fixed';
+  contenedor.style.left = '-9999px';
+  contenedor.style.top = '0';
   document.body.append(contenedor);
 
   const pruebas = [
     { nombre: 'carta', modulo: vistaCarta },
     { nombre: 'planes', modulo: vistaPlanes },
+    { nombre: 'ideas', modulo: vistaIdeas },
     { nombre: 'hitos', modulo: vistaHitos },
     { nombre: 'kit', modulo: vistaKit },
     { nombre: 'fauna', modulo: vistaFauna },
     { nombre: 'flora', modulo: vistaFlora },
+    { nombre: 'mapa', modulo: vistaMapa },
+    { nombre: 'series', modulo: vistaSeries },
+    { nombre: 'juegos', modulo: vistaJuegos },
+    { nombre: 'recetas', modulo: vistaRecetas },
     { nombre: 'percusion', modulo: vistaPercusion },
     { nombre: 'respuesta', modulo: vistaRespuesta },
+    { nombre: 'cuenta', modulo: vistaCuenta },
+    { nombre: 'hero', modulo: vistaHero },
   ];
 
   for (const { nombre, modulo } of pruebas) {
@@ -465,7 +1458,7 @@ async function suiteVistas() {
 }
 
 async function suiteRealtime() {
-  suite('J. Realtime');
+  suite('AE. Realtime');
 
   await caso('iniciar suscripciones', async () => {
     const espacio = obtener('espacio');
@@ -480,13 +1473,13 @@ async function suiteRealtime() {
   });
 }
 
-async function suiteIdempotencia() {
-  suite('L. Idempotencia');
+async function suiteIdempotenciaRepo() {
+  suite('AF. Idempotencia en repositorios');
 
   let planIdIdem = null;
 
   await caso('crear dos veces con los mismos datos no duplica', async () => {
-    const datos = { titulo: 'Idempotencia ' + marca(), descripcion: 'test' };
+    const datos = { titulo: 'Idem ' + marca(), descripcion: 'test' };
     const r1 = await repoPlanes.crear(datos);
     exigir(r1.exito, r1.error);
     planIdIdem = r1.datos.id;
@@ -494,20 +1487,20 @@ async function suiteIdempotencia() {
 
     const r2 = await repoPlanes.crear(datos);
     exigir(r2.exito, r2.error);
-    exigir(r2.datos.id === planIdIdem, `Se duplicó la fila: ${r1.datos.id} vs ${r2.datos.id}`);
+    exigir(r2.datos.id === planIdIdem, `Se duplicó: ${r1.datos.id} vs ${r2.datos.id}`);
 
     const listado = await repoPlanes.listar();
     exigir(listado.exito, listado.error);
     const coincidencias = listado.datos.filter((p) => p.titulo === datos.titulo);
-    exigir(coincidencias.length === 1, `Se encontraron ${coincidencias.length} filas con el mismo título`);
+    exigir(coincidencias.length === 1, `Se encontraron ${coincidencias.length} filas`);
   });
 
   await caso('crear con datos distintos sí crea dos filas', async () => {
-    const r1 = await repoPlanes.crear({ titulo: 'Idem A ' + marca() });
+    const r1 = await repoPlanes.crear({ titulo: 'A ' + marca() });
     exigir(r1.exito, r1.error);
     creados.planes.push(r1.datos.id);
 
-    const r2 = await repoPlanes.crear({ titulo: 'Idem B ' + marca() });
+    const r2 = await repoPlanes.crear({ titulo: 'B ' + marca() });
     exigir(r2.exito, r2.error);
     creados.planes.push(r2.datos.id);
 
@@ -516,18 +1509,17 @@ async function suiteIdempotencia() {
 
   await caso('clave explícita fuerza la reutilización', async () => {
     const clave = 'test-explicito-' + marca();
-    const datos = { titulo: 'Idem explícito ' + marca() };
+    const datos = { titulo: 'X ' + marca() };
     const r1 = await repoPlanes.crear(datos, { idOperacion: clave });
     exigir(r1.exito, r1.error);
     creados.planes.push(r1.datos.id);
 
-    const datosDiferentes = { titulo: 'Otro título distinto ' + marca() };
-    const r2 = await repoPlanes.crear(datosDiferentes, { idOperacion: clave });
+    const r2 = await repoPlanes.crear({ titulo: 'Y ' + marca() }, { idOperacion: clave });
     exigir(r2.exito, r2.error);
     exigir(r2.datos.id === r1.datos.id, 'Con la misma clave debería devolver la misma fila');
   });
 
-  await caso('eliminar el plan creado por idempotencia', async () => {
+  await caso('eliminar el plan de la suite', async () => {
     const r = await repoPlanes.eliminar(planIdIdem);
     exigir(r.exito, r.error);
     creados.planes = creados.planes.filter((x) => x !== planIdIdem);
@@ -535,9 +1527,9 @@ async function suiteIdempotencia() {
   });
 }
 
-// =================================================================
-// ORQUESTACIÓN
-// =================================================================
+/* ================================================================
+   ORQUESTACIÓN
+   ================================================================ */
 
 async function ejecutar(usuario) {
   pasaron = 0;
@@ -562,12 +1554,39 @@ async function ejecutar(usuario) {
   }
 
   await suiteSanidad();
-  await suiteRepositorios();
+  await suiteAlmacen();
+  await suiteResultado();
+  await suiteUtilidades();
+  await suiteIdempotenciaNucleo();
+  await suiteBusEventos();
+  await suiteBusComandos();
+  await suiteAutores();
+  await suitePlanes();
+  await suiteKit();
+  await suiteHitos();
+  await suiteCarta();
+  await suiteRespuestas();
+  await suiteFauna();
+  await suiteFlora();
+  await suiteRitmos();
+  await suiteLugares();
+  await suiteSeries();
+  await suiteRecetas();
+  await suiteRetos();
+  await suitePenitencias();
+  await suitePreguntas();
+  await suiteApuestas();
+  await suiteChistes();
+  await suiteFotos();
+  await suiteEspacios();
+  await suitePerfiles();
+  await suiteAudio();
+  await suiteEventos();
   await suiteVistas();
   await suiteRealtime();
-  await suiteIdempotencia();
+  await suiteIdempotenciaRepo();
 
-  suite('K. Limpieza final');
+  suite('AG. Limpieza final');
   await caso('eliminar espacio de prueba', async () => {
     exigir(espacioPrueba, 'sin espacio de prueba');
     await limpiarTodo();
@@ -579,9 +1598,9 @@ async function ejecutar(usuario) {
   btnRerun.hidden = false;
 }
 
-// =================================================================
-// LOGIN
-// =================================================================
+/* ================================================================
+   LOGIN
+   ================================================================ */
 
 let emailSeleccionado = '';
 
@@ -601,12 +1620,12 @@ async function entrarYCorrer() {
     const password = document.getElementById('password').value;
     if (!emailSeleccionado) {
       estadoLogin.textContent = 'Primero elige un usuario.';
-      estadoLogin.style.color = '#f87171';
+      estadoLogin.style.color = '#A03737';
       return;
     }
     if (!password) {
       estadoLogin.textContent = 'Escribe la contraseña.';
-      estadoLogin.style.color = '#f87171';
+      estadoLogin.style.color = '#A03737';
       return;
     }
     await iniciarSesion(emailSeleccionado, password);
@@ -619,7 +1638,7 @@ async function entrarYCorrer() {
   } catch (e) {
     log.error('Error en login:', e.message);
     estadoLogin.textContent = 'Error: ' + e.message;
-    estadoLogin.style.color = '#f87171';
+    estadoLogin.style.color = '#A03737';
   }
 }
 
@@ -628,20 +1647,29 @@ document.getElementById('password').addEventListener('keydown', (ev) => {
   if (ev.key === 'Enter') entrarYCorrer();
 });
 
-btnRerun.addEventListener('click', async () => {
-  const usuario = obtenerUsuarioActual();
-  if (!usuario) {
-    btnRerun.hidden = true;
-    document.getElementById('login').hidden = false;
-    return;
-  }
-  try {
-    await cerrarSesion();
-  } catch (e) {
-    log.warn('Error al cerrar sesión:', e.message);
-  }
+btnRerun.addEventListener('click', () => {
+  // Recarga sin cerrar sesión.
   location.reload();
 });
+
+/* ================================================================
+   ARRANQUE: detectar sesión existente
+   ================================================================ */
+
+(async () => {
+  try {
+    const usuario = await cargarSesion();
+    if (usuario) {
+      // Ya hay sesión. Saltamos el login y corremos directo.
+      document.getElementById('login').hidden = true;
+      sectionTests.hidden = false;
+      await ejecutar(usuario);
+    }
+    // Si no hay usuario, se queda mostrando el login.
+  } catch (e) {
+    // Silencioso: si falla, se muestra el login normal.
+  }
+})();
 </script>
 </body>
 </html>

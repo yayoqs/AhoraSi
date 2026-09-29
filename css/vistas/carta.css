@@ -1,22 +1,51 @@
 /* ================================================================
    Ahora Sí — CSS MODULAR
    Archivo: css/vistas/carta.css
-   Versión: 2.0.0
-   Propósito: Estilos específicos de la vista de carta. Manifiesto
-              limpio, compromisos con check verde, firma grande al
-              pie, anexos, modo edición con fijado por sección y
-              toast. Todo encapsulado bajo #vista-carta.
-              v2.0.0: reescritura con el patrón de LaTaberna:
-                      secciones numeradas, selector raíz por ID.
-              v1.2.0: meta y acciones de compromiso compartido y
-                      anexo.
-              v1.1.0: compromisos, firma, edición, divisores, toast.
+   Versión: 4.0.0
+   Propósito: Estilos de la vista de carta en el nuevo lenguaje
+              visual. Hoja de papel crema con borde terracota,
+              textos en Fraunces itálico, firma con subrayado,
+              separadores de puntos. Todo encapsulado bajo
+              #vista-carta. Se agrega el bloque de respuesta
+              fusionado y la barra de progreso de lectura.
+              v4.0.0: fusión con Respuesta. Se agrega la barra
+                      de progreso de lectura (.progreso-lectura)
+                      que vive fuera de #vista-carta (montada en
+                      el header del shell por la vista). Se
+                      agregan los estilos del bloque de respuesta
+                      (.respuesta-cta, .respuesta-opciones,
+                      .respuesta-opcion, .respuesta-nota,
+                      .respuesta-boton-enviar, .ya-respondiste,
+                      .historial) portados de respuesta.css.
+              v3.0.0: rediseño al nuevo lenguaje visual.
+              v2.0.0: secciones numeradas, selector raíz por ID.
+              v1.2.0: meta y acciones.
+              v1.1.0: compromisos, firma, edición.
               v1.0.0: versión inicial.
    ================================================================ */
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 1 — BARRA SUPERIOR
-   Botones de navegación entre vista del otro y vista propia.
+   SECCIÓN 0 — BARRA DE PROGRESO DE LECTURA (fuera del #vista-carta)
+   Vive pegada al header del shell, debajo del topbar y los chips.
+   La monta y desmonta la vista Carta al activar / limpiar.
+   ═══════════════════════════════════════════════════════════════ */
+
+.progreso-lectura {
+  height: 2px;
+  background: color-mix(in oklab, var(--terracota) 12%, var(--papel));
+  overflow: hidden;
+}
+.progreso-lectura i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: var(--accent, var(--terracota));
+  border-radius: 0 2px 2px 0;
+  transition: width .12s linear;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 1 — BARRA SUPERIOR (entre vista del otro y propia)
    ═══════════════════════════════════════════════════════════════ */
 
 #vista-carta .vista__barra {
@@ -24,373 +53,1003 @@
   gap: var(--sp-2);
   align-items: center;
   justify-content: flex-end;
-  margin-bottom: var(--sp-5);
+  margin-bottom: var(--sp-4);
   flex-wrap: wrap;
 }
 
 #vista-carta .vista__aviso-modo {
   margin-right: auto;
-  color: var(--gold);
-  font-size: 12px;
-  font-weight: 600;
+  color: var(--mostaza);
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .06em;
+  letter-spacing: .14em;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 2 — MANIFIESTO
-   Texto corrido con títulos opcionales por párrafo.
+   SECCIÓN 2 — HOJA DE CARTA
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-carta .manifiesto {
+#vista-carta .carta-hoja {
+  position: relative;
+  background: var(--papel-carta);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-lg);
+  padding: 30px 24px 28px;
+  box-shadow:
+    0 1px 2px rgba(31, 27, 22, .04),
+    0 12px 30px rgba(31, 27, 22, .06);
+  overflow: hidden;
+  margin-bottom: var(--sp-5);
+}
+body.modo-noche #vista-carta .carta-hoja {
+  background: var(--papel-2);
+  box-shadow:
+    0 1px 2px rgba(0,0,0,.3),
+    0 12px 30px rgba(0,0,0,.4);
+}
+
+#vista-carta .carta-hoja::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(201, 97, 59, .035) 0%, transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(201, 97, 59, .025) 0%, transparent 50%);
+}
+body.modo-noche #vista-carta .carta-hoja::before { display: none; }
+
+#vista-carta .carta-hoja::after {
+  content: '';
+  position: absolute;
+  top: 30px;
+  bottom: 30px;
+  left: 0;
+  width: 3px;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    var(--terracota-clara) 15%,
+    var(--terracota) 50%,
+    var(--terracota-clara) 85%,
+    transparent 100%);
+  opacity: .55;
+}
+
+#vista-carta .carta__fecha {
+  position: relative;
+  font-size: 11px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  margin-bottom: 22px;
   display: flex;
-  flex-direction: column;
-  gap: var(--sp-4);
-  margin-bottom: var(--sp-3);
+  align-items: center;
+  gap: 10px;
+}
+#vista-carta .carta__fecha::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--borde);
 }
 
-#vista-carta .manifiesto article {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+#vista-carta .carta__parrafo { position: relative; margin-bottom: 30px; }
+#vista-carta .carta__parrafo:last-of-type { margin-bottom: 0; }
 
-#vista-carta .manifiesto h3 {
-  color: var(--gold);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: .02em;
-  margin: 0;
-}
-
-#vista-carta .manifiesto p {
-  margin: 0;
-  line-height: 1.75;
+#vista-carta .carta__titulo-interno {
+  font-family: var(--fuente-carta);
+  font-style: italic;
+  font-weight: 500;
   font-size: 17px;
-  max-width: 62ch;
+  color: var(--terracota);
+  margin-bottom: 6px;
+  letter-spacing: -.005em;
+}
+
+#vista-carta .carta__texto {
+  font-family: var(--fuente-carta);
+  font-size: 19px;
+  line-height: 1.7;
+  color: var(--tinta);
+  letter-spacing: -.005em;
   white-space: pre-wrap;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 3 — COMPROMISOS
-   Lista con check verde a la izquierda. Los compartidos llevan
-   acento azul cielo en el borde y el check.
-   ═══════════════════════════════════════════════════════════════ */
-
-#vista-carta .compromisos {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
-}
-
-#vista-carta .compromiso {
-  display: grid;
-  grid-template-columns: 30px 1fr;
-  gap: var(--sp-3);
-  padding: var(--sp-3) var(--sp-4);
-  background: var(--pcb2);
-  border-radius: var(--r-md);
-  border-left: 3px solid rgba(74, 222, 128, .4);
-}
-
-#vista-carta .compromiso--compartido {
-  border-left-color: rgba(141, 183, 216, .5);
-}
-
-#vista-carta .compromiso__check {
-  width: 26px;
-  height: 26px;
+#vista-carta .carta__separador {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--verde);
+  gap: 12px;
+  margin: 32px 0 26px;
+  color: var(--terracota-clara);
+  font-size: 12px;
+  letter-spacing: .5em;
 }
 
-#vista-carta .compromiso--compartido .compromiso__check {
-  color: var(--sky);
+#vista-carta .carta__firma {
+  position: relative;
+  text-align: right;
+  padding-top: 8px;
 }
 
-#vista-carta .compromiso__check svg { width: 22px; height: 22px; }
+#vista-carta .carta__firma-texto {
+  font-family: var(--fuente-carta);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 30px;
+  color: var(--tinta);
+  letter-spacing: -.02em;
+  line-height: 1;
+  display: inline-block;
+  position: relative;
+  padding-bottom: 6px;
+}
+#vista-carta .carta__firma-texto::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 6px;
+  bottom: 0;
+  height: 2px;
+  background: var(--terracota);
+  border-radius: 2px;
+  opacity: .55;
+}
+
+#vista-carta .carta__firma-rol {
+  display: block;
+  font-family: var(--fuente-cuerpo);
+  font-style: normal;
+  font-weight: 600;
+  font-size: 10px;
+  color: var(--tinta-tenue);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  margin-top: 10px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 3 — SECCIONES
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-carta .seccion { margin-top: 34px; }
+
+#vista-carta .seccion__cab {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+#vista-carta .seccion__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--tinta);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  margin: 0;
+}
+#vista-carta .seccion__titulo::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--borde);
+}
+
+#vista-carta .seccion__contador {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tinta-tenue);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 4 — COMPROMISOS DEL OTRO (decorativos)
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-carta .compromisos__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#vista-carta .compromiso {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  background: var(--papel-2);
+  border-radius: var(--r-md);
+  border: 1px solid var(--borde);
+}
+
+#vista-carta .compromiso__check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--borde-fuerte);
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+}
+#vista-carta .compromiso__check svg {
+  width: 11px;
+  height: 11px;
+  color: var(--tinta-tenue);
+  opacity: .4;
+}
+
+#vista-carta .compromiso__cuerpo { flex: 1; min-width: 0; }
 
 #vista-carta .compromiso__titulo {
-  font-weight: 700;
-  font-size: 15px;
-  margin: 0 0 4px;
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--tinta);
+  margin-bottom: 3px;
+  line-height: 1.35;
 }
 
 #vista-carta .compromiso__desc {
-  color: var(--dim);
-  font-size: 14px;
+  font-size: 13px;
+  color: var(--tinta-suave);
+  line-height: 1.5;
   margin: 0;
-  line-height: 1.55;
 }
 
-#vista-carta .compromiso__meta {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 5 — COMPROMISOS COMPARTIDOS (editables)
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-carta .compartidos__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+#vista-carta .compartido {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  background: color-mix(in oklab, var(--musgo) 6%, var(--papel-2));
+  border-radius: var(--r-md);
+  border: 1px solid color-mix(in oklab, var(--musgo) 20%, var(--borde));
+}
+
+#vista-carta .compartido__check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in oklab, var(--musgo) 40%, var(--borde-fuerte));
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: grid;
+  place-items: center;
+}
+#vista-carta .compartido__check svg {
+  width: 11px;
+  height: 11px;
+  color: color-mix(in oklab, var(--musgo) 60%, var(--tinta-tenue));
+  opacity: .75;
+}
+
+#vista-carta .compartido__cuerpo { flex: 1; min-width: 0; }
+
+#vista-carta .compartido__titulo {
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--tinta);
+  margin-bottom: 3px;
+  line-height: 1.35;
+}
+
+#vista-carta .compartido__desc {
+  font-size: 13px;
+  color: var(--tinta-suave);
+  line-height: 1.5;
+  margin: 0 0 8px;
+}
+
+#vista-carta .compartido__meta {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  margin-top: var(--sp-3);
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 4 — FIRMA
-   Al pie del manifiesto y los compromisos.
+   SECCIÓN 6 — DISTINTIVO DE AUTOR (variante local)
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-carta .firma {
-  margin-top: var(--sp-6);
-  padding: var(--sp-6) 4px var(--sp-2);
-  border-top: 1px solid rgba(238, 242, 232, .15);
+#vista-carta .autor {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px 2px 2px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
 }
 
-#vista-carta .firma__texto {
+#vista-carta .autor__inicial {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--papel);
   font-family: var(--fuente-titulo);
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--gold);
-  letter-spacing: -.01em;
+}
+
+#vista-carta .autor--luci { background: #F0E2E2; color: #8A5757; }
+#vista-carta .autor--luci .autor__inicial { background: #D89A9A; }
+#vista-carta .autor--yayo { background: #EFE4CC; color: #6B4F1F; }
+#vista-carta .autor--yayo .autor__inicial { background: #B8893C; }
+#vista-carta .autor--desconocido { background: var(--papel-2); color: var(--tinta-suave); }
+#vista-carta .autor--desconocido .autor__inicial { background: var(--tinta-tenue); }
+
+body.modo-noche #vista-carta .autor--luci { background: rgba(216,154,154,.22); color: #E2B4B4; }
+body.modo-noche #vista-carta .autor--yayo { background: rgba(184,137,60,.22); color: #D9B876; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 7 — BOTONES MINI
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-carta .btn-mini {
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  background: transparent;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background var(--t-rapida), color var(--t-rapida), border-color var(--t-rapida);
+}
+#vista-carta .btn-mini:hover {
+  background: var(--papel-3);
+  color: var(--tinta);
+}
+#vista-carta .btn-mini--peligro:hover {
+  background: #FBE9E9;
+  color: var(--rojo);
+  border-color: #E3B6B6;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 5 — ANEXOS
-   Piezas con borde dorado lateral.
+   SECCIÓN 8 — ANEXOS
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-carta .anexos {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+#vista-carta .anexos__lista {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-3);
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
 #vista-carta .anexo {
-  padding: var(--sp-4);
-  background: var(--pcb2);
+  padding: 16px 18px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
   border-radius: var(--r-md);
-  border-left: 3px solid rgba(227, 188, 85, .35);
 }
 
-#vista-carta .anexo h3 {
-  color: var(--gold);
-  font-size: 17px;
-  margin: 0 0 var(--sp-2);
+#vista-carta .anexo__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--tinta);
+  margin-bottom: 6px;
+  letter-spacing: -.01em;
 }
 
-#vista-carta .anexo p {
-  margin: 0;
-  line-height: 1.7;
+#vista-carta .anexo__contenido {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--tinta-suave);
+  margin-bottom: 10px;
   white-space: pre-wrap;
 }
 
 #vista-carta .anexo__meta {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  margin-top: var(--sp-3);
-}
-
-#vista-carta .anexo__acciones {
-  display: flex;
-  gap: var(--sp-1);
-  margin-top: var(--sp-2);
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 6 — MODO EDICIÓN
-   Bloque de edición inline para párrafos, compromisos, firma y
-   anexos.
+   SECCIÓN 9 — FORMULARIO INLINE
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-carta .pieza-edit {
-  padding: var(--sp-4);
-  background: var(--pcb3);
-  border-radius: var(--r-md);
-  border-left: 3px solid var(--sky);
+#vista-carta .form-inline {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-2);
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--papel-2);
+  border: 1px dashed var(--borde-fuerte);
+  border-radius: var(--r-md);
 }
 
-#vista-carta .pieza-edit input,
-#vista-carta .pieza-edit textarea {
+#vista-carta .form-inline input,
+#vista-carta .form-inline textarea {
   padding: 10px 12px;
-  border-radius: var(--r-md);
-  border: 1.5px solid rgba(238, 242, 232, .3);
-  background: rgba(238, 242, 232, .04);
-  color: var(--paper);
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
+  color: var(--tinta);
   width: 100%;
-  transition: border-color var(--t-rapida), background var(--t-rapida);
+  font-family: var(--fuente-cuerpo);
 }
-
-#vista-carta .pieza-edit textarea {
-  min-height: 90px;
-  resize: vertical;
-}
-
-#vista-carta .pieza-edit input:focus,
-#vista-carta .pieza-edit textarea:focus {
-  border-color: var(--sky);
+#vista-carta .form-inline input:focus,
+#vista-carta .form-inline textarea:focus {
   outline: none;
-  background: rgba(238, 242, 232, .08);
+  border-color: var(--accent, var(--terracota));
+  background: var(--papel-carta);
+}
+#vista-carta .form-inline textarea {
+  resize: vertical;
+  min-height: 60px;
 }
 
-#vista-carta .pieza-edit__botones {
+#vista-carta .form-inline__fila {
   display: flex;
-  gap: var(--sp-2);
-  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 7 — BOTONES
-   Overrides locales de los botones genéricos para que se vean
-   como el resto de la carta.
+   SECCIÓN 10 — BOTONES GENÉRICOS
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-carta .btn-mini {
-  padding: 6px 14px;
-  font-size: 13px;
-  font-weight: 500;
-  border-radius: var(--r-pill);
-  border: 1.5px solid rgba(238, 242, 232, .3);
-  background: transparent;
-  color: var(--paper);
-  transition: border-color var(--t-rapida), color var(--t-rapida);
-}
-
-#vista-carta .btn-mini:hover {
-  border-color: var(--gold);
-  color: var(--gold);
-}
-
-#vista-carta .btn-primario {
-  padding: 9px 18px;
-  border-radius: var(--r-md);
-  background: var(--gold);
-  color: var(--ink);
-  font-weight: 700;
-  font-size: 14px;
-  border: 0;
-  cursor: pointer;
-  transition: filter var(--t-rapida);
-}
-
-#vista-carta .btn-primario:hover { filter: brightness(1.05); }
-
-#vista-carta .btn-secundario {
-  padding: 9px 18px;
-  border-radius: var(--r-md);
-  background: transparent;
-  color: var(--paper);
-  border: 1.5px solid rgba(238, 242, 232, .35);
-  font-weight: 500;
-  font-size: 14px;
-  cursor: pointer;
-  transition: border-color var(--t-rapida), color var(--t-rapida);
-}
-
-#vista-carta .btn-secundario:hover {
-  border-color: var(--gold);
-  color: var(--gold);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 8 — DIVISOR DE FIJAR SECCIÓN
-   Línea con botón al centro para fijar una sección en modo
-   edición.
-   ═══════════════════════════════════════════════════════════════ */
-
-#vista-carta .fijar-seccion {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  margin: var(--sp-6) 0;
-  color: var(--dim);
-  font-size: 12px;
-}
-
-#vista-carta .fijar-seccion::before,
-#vista-carta .fijar-seccion::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: rgba(238, 242, 232, .15);
-}
-
-#vista-carta .fijar-seccion button {
-  padding: 6px 16px;
-  border-radius: var(--r-pill);
-  border: 1.5px solid rgba(227, 188, 85, .5);
-  background: transparent;
-  color: var(--gold);
-  font-size: 12px;
+#vista-carta .btn {
+  padding: 10px 16px;
+  border-radius: var(--r-sm);
   font-weight: 600;
-  transition: background var(--t-rapida), color var(--t-rapida);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background var(--t-rapida), color var(--t-rapida), filter var(--t-rapida), transform var(--t-rapida);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+#vista-carta .btn:active { transform: scale(.97); }
+
+#vista-carta .btn--primario {
+  background: var(--accent, var(--terracota));
+  color: var(--papel);
+  border: 0;
+}
+#vista-carta .btn--primario:hover { filter: brightness(1.05); }
+
+#vista-carta .btn--secundario {
+  background: transparent;
+  color: var(--tinta-suave);
+  border: 1px solid var(--borde-fuerte);
+}
+#vista-carta .btn--secundario:hover {
+  background: var(--papel-3);
+  color: var(--tinta);
 }
 
-#vista-carta .fijar-seccion button:hover {
-  background: var(--gold);
-  color: var(--ink);
+#vista-carta .btn--full {
+  width: 100%;
+  justify-content: center;
+  padding: 14px;
+  font-size: 14px;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 9 — CAJA VACÍA
-   Cuando la carta del otro está vacía o la propia no se ha
-   empezado a escribir.
+   SECCIÓN 11 — CTA "VER MI CARTA"
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-carta .cta-carta {
+  margin-top: 36px;
+  padding: 20px;
+  background: linear-gradient(180deg,
+    var(--terracota-papel) 0%,
+    color-mix(in oklab, var(--terracota) 5%, var(--papel-2)) 100%);
+  border: 1px solid color-mix(in oklab, var(--terracota) 28%, var(--borde));
+  border-radius: var(--r-lg);
+  text-align: center;
+}
+body.modo-noche #vista-carta .cta-carta {
+  background: color-mix(in oklab, var(--terracota) 8%, var(--papel-2));
+  border-color: color-mix(in oklab, var(--terracota) 35%, var(--borde));
+}
+
+#vista-carta .cta-carta__eyebrow {
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--terracota);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+#vista-carta .cta-carta__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 19px;
+  color: var(--tinta);
+  margin-bottom: 6px;
+  letter-spacing: -.015em;
+}
+
+#vista-carta .cta-carta__sub {
+  font-size: 13px;
+  color: var(--tinta-suave);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 12 — CAJA VACÍA
    ═══════════════════════════════════════════════════════════════ */
 
 #vista-carta .vacio-caja {
-  padding: var(--sp-8) var(--sp-6);
-  background: var(--pcb2);
+  padding: 32px 24px;
+  background: var(--papel-2);
+  border: 1px dashed var(--borde-fuerte);
   border-radius: var(--r-lg);
-  border: 1.5px dashed rgba(238, 242, 232, .2);
   text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--sp-3);
 }
 
-#vista-carta .vacio-caja p {
-  color: var(--dim);
-  font-size: 14px;
-  margin: 0;
-  max-width: 42ch;
+#vista-carta .vacio-caja__emoji {
+  font-size: 40px;
+  margin-bottom: 12px;
+  line-height: 1;
+}
+
+#vista-carta .vacio-caja__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 19px;
+  color: var(--tinta);
+  letter-spacing: -.015em;
+  margin-bottom: 8px;
+}
+
+#vista-carta .vacio-caja__sub {
+  font-size: 13.5px;
+  color: var(--tinta-suave);
+  line-height: 1.55;
+  margin-bottom: 20px;
 }
 
 #vista-carta .vacio-caja__botones {
   display: flex;
-  gap: var(--sp-2);
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 10 — TOAST DE BIENVENIDA
-   Nota flotante en la parte inferior para Luci. Se monta fuera
-   de #vista-carta (al body), por eso no lleva prefijo.
+   SECCIÓN 13 — MODO EDICIÓN
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-carta .banner-edicion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: color-mix(in oklab, var(--mostaza) 14%, var(--papel-2));
+  border: 1px solid color-mix(in oklab, var(--mostaza) 35%, var(--borde));
+  border-radius: var(--r-md);
+  margin-bottom: 16px;
+}
+
+#vista-carta .banner-edicion__punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mostaza);
+  flex-shrink: 0;
+  animation: punto-pulso 1.6s ease-in-out infinite;
+}
+
+@keyframes punto-pulso {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .35; }
+}
+
+#vista-carta .banner-edicion__texto {
+  flex: 1;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: color-mix(in oklab, var(--mostaza) 70%, var(--tinta));
+  letter-spacing: .01em;
+}
+
+#vista-carta .campo-editable {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+#vista-carta .campo-editable input,
+#vista-carta .campo-editable textarea {
+  padding: 11px 14px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: 15px;
+  color: var(--tinta);
+  width: 100%;
+  transition: border-color var(--t-rapida), background var(--t-rapida);
+}
+#vista-carta .campo-editable input:focus,
+#vista-carta .campo-editable textarea:focus {
+  outline: none;
+  border-color: var(--accent, var(--terracota));
+  background: var(--papel-carta);
+}
+#vista-carta .campo-editable textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: var(--fuente-carta);
+  font-size: 16px;
+  line-height: 1.55;
+}
+#vista-carta .campo-editable input::placeholder,
+#vista-carta .campo-editable textarea::placeholder {
+  color: var(--tinta-tenue);
+  font-style: italic;
+}
+
+#vista-carta .fila-editable {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+#vista-carta .fila-editable__cuerpo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#vista-carta .btn-quitar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--borde-fuerte);
+  color: var(--tinta-suave);
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  margin-top: 4px;
+  cursor: pointer;
+  transition: background var(--t-rapida), color var(--t-rapida), border-color var(--t-rapida);
+  background: transparent;
+}
+#vista-carta .btn-quitar:hover {
+  background: #FBE9E9;
+  color: var(--rojo);
+  border-color: #E3B6B6;
+}
+
+#vista-carta .btn-agregar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: transparent;
+  border: 1.5px dashed var(--borde-fuerte);
+  border-radius: var(--r-sm);
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+  font-weight: 600;
+  width: 100%;
+  justify-content: center;
+  transition: border-color var(--t-rapida), color var(--t-rapida);
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+#vista-carta .btn-agregar:hover {
+  border-color: var(--terracota-clara);
+  color: var(--terracota);
+}
+
+#vista-carta .fijar-seccion {
+  display: flex;
+  justify-content: flex-end;
+  margin: 14px 0 0;
+}
+
+#vista-carta .btn-fijar {
+  padding: 8px 16px;
+  border-radius: var(--r-full);
+  background: var(--mostaza);
+  color: #3D2C0F;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  cursor: pointer;
+  transition: filter var(--t-rapida), transform var(--t-rapida);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+}
+#vista-carta .btn-fijar:hover { filter: brightness(1.05); }
+#vista-carta .btn-fijar:active { transform: scale(.96); }
+#vista-carta .btn-fijar svg { width: 13px; height: 13px; }
+
+#vista-carta .barra-edicion {
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--borde);
+}
+#vista-carta .barra-edicion .btn { flex: 1; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 14 — BLOQUE DE RESPUESTA (portado de respuesta.css)
+   Vive al final del scroll de la vista del otro.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-carta .respuesta-cta {
+  margin-top: 34px;
+  padding: 22px 20px;
+  background: linear-gradient(180deg,
+    color-mix(in oklab, var(--terracota) 8%, var(--papel-2)) 0%,
+    var(--papel-2) 100%);
+  border: 1px solid color-mix(in oklab, var(--terracota) 25%, var(--borde));
+  border-radius: var(--r-lg);
+}
+body.modo-noche #vista-carta .respuesta-cta {
+  background: color-mix(in oklab, var(--terracota) 6%, var(--papel-2));
+  border-color: color-mix(in oklab, var(--terracota) 30%, var(--borde));
+}
+
+#vista-carta .respuesta-cta__eyebrow {
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--terracota);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+#vista-carta .respuesta-cta__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: -.015em;
+  color: var(--tinta);
+  margin-bottom: 16px;
+}
+
+#vista-carta .respuesta-opciones {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#vista-carta .respuesta-opcion {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 14px 16px;
+  background: var(--papel-3);
+  border: 1.5px solid var(--borde);
+  border-radius: var(--r-md);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--t-rapida), background var(--t-rapida), transform var(--t-rapida);
+  min-height: 56px;
+  width: 100%;
+}
+#vista-carta .respuesta-opcion:hover {
+  border-color: color-mix(in oklab, var(--terracota) 45%, var(--borde));
+  background: var(--papel-carta);
+}
+#vista-carta .respuesta-opcion:active { transform: scale(.98); }
+#vista-carta .respuesta-opcion[aria-pressed="true"] {
+  border-color: var(--terracota);
+  background: var(--terracota-papel);
+}
+body.modo-noche #vista-carta .respuesta-opcion[aria-pressed="true"] {
+  background: color-mix(in oklab, var(--terracota) 18%, var(--papel-2));
+}
+
+#vista-carta .respuesta-opcion__t {
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--tinta);
+}
+#vista-carta .respuesta-opcion__s {
+  font-size: 12.5px;
+  color: var(--tinta-suave);
+  line-height: 1.45;
+}
+
+#vista-carta .respuesta-nota {
+  margin-top: 12px;
+  width: 100%;
+  min-height: 60px;
+  padding: 11px 14px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: 14px;
+  color: var(--tinta);
+  font-family: var(--fuente-cuerpo);
+  resize: vertical;
+}
+#vista-carta .respuesta-nota:focus {
+  outline: none;
+  border-color: var(--terracota);
+  background: var(--papel-carta);
+}
+#vista-carta .respuesta-nota::placeholder {
+  color: var(--tinta-tenue);
+  font-style: italic;
+}
+
+#vista-carta .respuesta-boton-enviar {
+  margin-top: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: var(--r-sm);
+  background: var(--terracota);
+  color: var(--papel);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: filter var(--t-rapida), opacity var(--t-rapida);
+  border: 0;
+}
+#vista-carta .respuesta-boton-enviar:hover:not(:disabled) { filter: brightness(1.05); }
+#vista-carta .respuesta-boton-enviar:disabled {
+  background: color-mix(in oklab, var(--borde-fuerte) 80%, var(--papel-2));
+  color: var(--tinta-tenue);
+  cursor: not-allowed;
+  filter: none;
+}
+
+/* Estado "ya respondiste" */
+#vista-carta .ya-respondiste {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: color-mix(in oklab, var(--musgo) 8%, var(--papel-2));
+  border: 1px solid color-mix(in oklab, var(--musgo) 28%, var(--borde));
+  border-radius: var(--r-md);
+  margin-bottom: 12px;
+}
+#vista-carta .ya-respondiste__icono {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--musgo);
+  color: var(--papel);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+#vista-carta .ya-respondiste__icono svg { width: 13px; height: 13px; }
+#vista-carta .ya-respondiste__cuerpo { flex: 1; min-width: 0; }
+#vista-carta .ya-respondiste__titulo {
+  font-weight: 600;
+  font-size: 14px;
+  color: color-mix(in oklab, var(--musgo) 75%, var(--tinta));
+  margin-bottom: 2px;
+}
+#vista-carta .ya-respondiste__sub {
+  font-size: 13px;
+  color: var(--tinta-suave);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Historial */
+#vista-carta .historial {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px dashed var(--borde-fuerte);
+}
+#vista-carta .historial__titulo {
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+#vista-carta .historial__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#vista-carta .historial__item {
+  padding: 12px 14px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-left: 3px solid var(--borde-fuerte);
+  border-radius: var(--r-md);
+}
+#vista-carta .historial__cab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+#vista-carta .historial__eleccion {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--tinta);
+  flex: 1;
+  min-width: 0;
+}
+#vista-carta .historial__fecha {
+  font-size: 11px;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+#vista-carta .historial__nota {
+  font-family: var(--fuente-carta);
+  font-size: 14.5px;
+  font-style: italic;
+  color: var(--tinta-suave);
+  line-height: 1.55;
+  margin: 4px 0 0;
+}
+#vista-carta .historial__vacio {
+  margin-top: 20px;
+  color: var(--tinta-tenue);
+  font-size: 13px;
+  font-style: italic;
+  padding: 8px 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 15 — TOAST
+   Vive fuera de #vista-carta (se monta al body).
    ═══════════════════════════════════════════════════════════════ */
 
 .carta-toast {
   position: fixed;
   left: 16px;
   right: 16px;
-  bottom: 20px;
-  max-width: 600px;
+  bottom: calc(var(--alto-tabbar) + 16px);
+  max-width: 480px;
   margin: 0 auto;
   padding: 14px 18px;
-  background: var(--pcb3);
-  border: 1.5px solid var(--gold);
+  background: var(--tinta);
+  color: var(--papel);
   border-radius: var(--r-lg);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, .4);
+  box-shadow: var(--sombra-2);
   display: flex;
   align-items: center;
   gap: var(--sp-3);
@@ -403,18 +1062,18 @@
 
 .carta-toast__texto {
   flex: 1;
-  color: var(--paper);
-  font-size: 14px;
+  color: var(--papel);
+  font-size: 13px;
   line-height: 1.5;
 }
 
 .carta-toast__boton {
   padding: 8px 16px;
-  border-radius: var(--r-pill);
-  background: var(--gold);
-  color: var(--ink);
+  border-radius: var(--r-full);
+  background: var(--terracota);
+  color: var(--papel);
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
   border: 0;
   cursor: pointer;
   flex-shrink: 0;
@@ -423,8 +1082,9 @@
 .carta-toast__cerrar {
   background: none;
   border: 0;
-  color: var(--dim);
-  font-size: 20px;
+  color: var(--papel);
+  opacity: .6;
+  font-size: 18px;
   line-height: 1;
   padding: 4px;
   cursor: pointer;

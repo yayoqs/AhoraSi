@@ -1,11 +1,23 @@
 /* ================================================================
    Ahora Sí — CSS
    Archivo: css/componentes.css
-   Versión: 1.3.0
+   Versión: 2.0.0
    Propósito: componentes reutilizables: títulos de vista, forms,
               listas, items, badges, mensajes, check, botones,
               distintivo de autor, diálogos, cámara, galería,
-              lightbox, formularios colapsables y captura de foto.
+              lightbox, formularios colapsables, captura de foto
+              y piezas editables genéricas.
+              v2.0.0: migración completa a la paleta nueva
+                      (papel/terracota). Se elimina el uso de
+                      --gold, --sky, --pcb, --paper, --ink, --dim
+                      y --gris (los aliases siguen existiendo en
+                      base.css para las vistas que aún no migran,
+                      pero acá usamos los nombres nuevos). Se
+                      agrega SECCIÓN 14 con la clase .pieza-edit
+                      genérica, que arregla fauna y flora (antes
+                      no tenían estilos para la edición inline).
+                      Se reemplazan los rgba() de Tailwind por
+                      color-mix para mensajes y badges.
               v1.3.0: se agregan bloques genéricos usados por las
                       vistas de bitácora (fauna, flora): bloque de
                       registro colapsable, botones primario y
@@ -21,14 +33,14 @@
    SECCIÓN 1 — ENCABEZADO DE VISTA
    ═══════════════════════════════════════════════════════════════ */
 
-.vista h1 { color: var(--gold); margin-bottom: var(--sp-1); }
+.vista h1 { color: var(--terracota); margin-bottom: var(--sp-1); }
 .vista__lead {
-  color: var(--dim);
+  color: var(--tinta-suave);
   font-size: 14px;
   margin-bottom: var(--sp-5);
 }
 .vista__subtitulo {
-  color: var(--sky);
+  color: var(--musgo);
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -53,9 +65,9 @@
 .vista__form textarea {
   padding: 11px 14px;
   border-radius: var(--r-md);
-  border: 1.5px solid rgba(238, 242, 232, .3);
-  background: rgba(238, 242, 232, .04);
-  color: var(--paper);
+  border: 1.5px solid var(--borde);
+  background: var(--papel-3);
+  color: var(--tinta);
   font-size: 15px;
   font-family: inherit;
   width: 100%;
@@ -64,16 +76,16 @@
 .vista__form input:focus,
 .vista__form select:focus,
 .vista__form textarea:focus {
-  border-color: var(--sky);
-  background: rgba(238, 242, 232, .08);
+  border-color: var(--accent);
+  background: var(--papel-carta);
   outline: none;
 }
 .vista__form textarea { resize: vertical; min-height: 90px; }
 .vista__form button[type="submit"] {
   padding: 12px 20px;
   border-radius: var(--r-md);
-  background: var(--gold);
-  color: var(--ink);
+  background: var(--accent);
+  color: var(--papel);
   font-weight: 700;
   font-size: 15px;
   transition: filter var(--t-rapida), transform var(--t-rapida);
@@ -96,11 +108,11 @@
 .vista__item {
   padding: var(--sp-4);
   border-radius: var(--r-md);
-  background: var(--pcb2);
-  border-left: 3px solid rgba(238, 242, 232, .12);
+  background: var(--papel-2);
+  border-left: 3px solid var(--borde);
   transition: border-color var(--t-rapida), background var(--t-rapida);
 }
-.vista__item:hover { border-left-color: var(--gold); }
+.vista__item:hover { border-left-color: var(--accent); }
 .vista__item--completo { opacity: .6; }
 .vista__item--completo strong { text-decoration: line-through; }
 .vista__item-cabecera {
@@ -113,7 +125,7 @@
 .vista__item-cabecera strong { font-size: 15px; }
 .vista__item p { margin: var(--sp-1) 0; }
 .vista__item .meta {
-  color: var(--dim);
+  color: var(--tinta-suave);
   font-size: 13px;
 }
 .vista__item .acciones {
@@ -126,19 +138,19 @@
   padding: 6px 14px;
   font-size: 13px;
   font-weight: 500;
-  border-radius: var(--r-pill);
-  border: 1.5px solid rgba(238, 242, 232, .3);
-  color: var(--paper);
+  border-radius: var(--r-full);
+  border: 1.5px solid var(--borde-fuerte);
+  color: var(--tinta-suave);
   transition: background var(--t-rapida), border-color var(--t-rapida), color var(--t-rapida);
 }
 .vista__item .acciones button:hover {
-  border-color: var(--gold);
-  color: var(--gold);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 .vista__item .acciones button[aria-pressed="true"] {
-  background: var(--gold);
-  color: var(--ink);
-  border-color: var(--gold);
+  background: var(--accent);
+  color: var(--papel);
+  border-color: var(--accent);
   font-weight: 700;
 }
 
@@ -155,7 +167,7 @@
 .vista__check input[type="checkbox"] {
   width: 22px;
   height: 22px;
-  accent-color: var(--gold);
+  accent-color: var(--accent);
   flex-shrink: 0;
   cursor: pointer;
 }
@@ -163,7 +175,7 @@
 
 .vista__grupos { display: flex; flex-direction: column; gap: var(--sp-5); }
 .vista__grupo h3 {
-  color: var(--sky);
+  color: var(--musgo);
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -176,25 +188,25 @@
    ═══════════════════════════════════════════════════════════════ */
 
 .vista__vacio {
-  color: var(--dim);
+  color: var(--tinta-tenue);
   font-style: italic;
   padding: var(--sp-4) 0;
 }
 .vista__error {
   color: var(--rojo);
   padding: var(--sp-3) var(--sp-4);
-  background: rgba(248, 113, 113, .1);
+  background: color-mix(in oklab, var(--rojo) 10%, var(--papel-2));
   border-radius: var(--r-md);
   border-left: 3px solid var(--rojo);
   margin: 0 0 var(--sp-3);
   font-size: 14px;
 }
 .vista__ok {
-  color: var(--verde);
+  color: var(--musgo);
   padding: var(--sp-3) var(--sp-4);
-  background: rgba(74, 222, 128, .1);
+  background: color-mix(in oklab, var(--musgo) 10%, var(--papel-2));
   border-radius: var(--r-md);
-  border-left: 3px solid var(--verde);
+  border-left: 3px solid var(--musgo);
   margin: var(--sp-3) 0;
   font-size: 14px;
 }
@@ -211,29 +223,36 @@
 .autor {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--dim);
-  line-height: 1;
+  gap: 5px;
+  padding: 2px 8px 2px 2px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
 }
 .autor__inicial {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  font-size: 11px;
+  font-family: var(--fuente-titulo);
+  font-size: 9px;
   font-weight: 800;
-  letter-spacing: -.02em;
+  color: var(--papel);
   flex-shrink: 0;
 }
-.autor--yayo .autor__inicial { background: var(--gold); color: var(--ink); }
-.autor--luci .autor__inicial { background: var(--sky); color: var(--ink); }
-.autor--desconocido .autor__inicial {
-  background: rgba(238, 242, 232, .2);
-  color: var(--paper);
-}
+.autor--yayo { background: #EFE4CC; color: #6B4F1F; }
+.autor--yayo .autor__inicial { background: #B8893C; }
+.autor--luci { background: #F0E2E2; color: #8A5757; }
+.autor--luci .autor__inicial { background: #D89A9A; }
+.autor--desconocido { background: var(--papel-2); color: var(--tinta-suave); }
+.autor--desconocido .autor__inicial { background: var(--tinta-tenue); }
+
+body.modo-noche .autor--yayo { background: rgba(184, 137, 60, .22); color: #D9B876; }
+body.modo-noche .autor--luci { background: rgba(216, 154, 154, .22); color: #E2B4B4; }
+body.modo-noche .autor--desconocido { background: var(--papel-2); color: var(--tinta-suave); }
 
 /* ═══════════════════════════════════════════════════════════════
    SECCIÓN 7 — BOTONES GENÉRICOS
@@ -241,20 +260,21 @@
 
 .btn-secundario {
   padding: 9px 16px;
-  border-radius: var(--r-pill);
-  border: 1.5px solid rgba(238, 242, 232, .35);
-  color: var(--paper);
+  border-radius: var(--r-full);
+  border: 1.5px solid var(--borde-fuerte);
+  background: transparent;
+  color: var(--tinta-suave);
   font-size: 14px;
   font-weight: 500;
   transition: border-color var(--t-rapida), color var(--t-rapida);
 }
-.btn-secundario:hover { border-color: var(--gold); color: var(--gold); }
+.btn-secundario:hover { border-color: var(--accent); color: var(--accent); }
 
 .btn-primario {
   padding: 10px 22px;
   border-radius: var(--r-md);
-  background: var(--gold);
-  color: var(--ink);
+  background: var(--accent);
+  color: var(--papel);
   font-weight: 700;
   font-size: 14px;
   transition: filter var(--t-rapida), transform var(--t-rapida);
@@ -268,9 +288,7 @@
    Usado por las vistas de bitácora (fauna, flora).
    ═══════════════════════════════════════════════════════════════ */
 
-.bloque-registro {
-  margin-bottom: var(--sp-5);
-}
+.bloque-registro { margin-bottom: var(--sp-5); }
 
 .abrir-form {
   display: flex;
@@ -279,8 +297,8 @@
   width: 100%;
   padding: 14px 24px;
   border-radius: var(--r-md);
-  background: var(--gold);
-  color: var(--ink);
+  background: var(--accent);
+  color: var(--papel);
   font-weight: 700;
   font-size: 15px;
   transition: filter var(--t-rapida), transform var(--t-rapida);
@@ -297,9 +315,7 @@
 }
 
 .form-botones .btn-primario,
-.form-botones .btn-secundario {
-  padding: 10px 22px;
-}
+.form-botones .btn-secundario { padding: 10px 22px; }
 
 .form-botones .btn-secundario:hover {
   border-color: var(--rojo);
@@ -308,7 +324,7 @@
 
 /* ═══════════════════════════════════════════════════════════════
    SECCIÓN 9 — CAPTURA DE FOTO EN FORMULARIOS
-   Bloque de "Galería / Cámara" que va arriba del formulario.
+   Bloque "Galería / Cámara" que va arriba del formulario.
    Usado por las vistas de bitácora.
    ═══════════════════════════════════════════════════════════════ */
 
@@ -317,9 +333,9 @@
   flex-direction: column;
   gap: var(--sp-2);
   padding: var(--sp-3);
-  background: var(--pcb3);
+  background: var(--papel-3);
   border-radius: var(--r-md);
-  border: 1.5px dashed rgba(141, 183, 216, .35);
+  border: 1.5px dashed color-mix(in oklab, var(--musgo) 35%, var(--borde));
   margin-bottom: var(--sp-2);
 }
 
@@ -332,10 +348,8 @@
 
 .form-foto__archivo {
   position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   border: 0;
@@ -348,9 +362,9 @@
   justify-content: center;
   padding: 10px 18px;
   border-radius: var(--r-md);
-  border: 1.5px solid rgba(141, 183, 216, .55);
+  border: 1.5px solid color-mix(in oklab, var(--musgo) 45%, var(--borde));
   background: transparent;
-  color: var(--sky);
+  color: var(--musgo);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -358,25 +372,25 @@
   text-align: center;
 }
 .form-foto__boton:hover {
-  background: var(--sky);
-  color: var(--ink);
-  border-color: var(--sky);
+  background: var(--musgo);
+  color: var(--papel);
+  border-color: var(--musgo);
 }
 
 .form-foto__boton--camara {
-  border-color: rgba(227, 188, 85, .55);
-  color: var(--gold);
+  border-color: color-mix(in oklab, var(--terracota) 45%, var(--borde));
+  color: var(--terracota);
 }
 .form-foto__boton--camara:hover {
-  background: var(--gold);
-  color: var(--ink);
-  border-color: var(--gold);
+  background: var(--terracota);
+  color: var(--papel);
+  border-color: var(--terracota);
 }
 
 .form-foto__ayuda {
   margin: 0;
   font-size: 12px;
-  color: var(--dim);
+  color: var(--tinta-tenue);
   text-align: center;
   max-width: 40ch;
   align-self: center;
@@ -389,11 +403,10 @@
 }
 
 .form-foto__preview img {
-  width: 80px;
-  height: 80px;
+  width: 80px; height: 80px;
   object-fit: cover;
   border-radius: var(--r-md);
-  border: 1.5px solid var(--sky);
+  border: 1.5px solid var(--musgo);
   flex-shrink: 0;
 }
 
@@ -407,7 +420,7 @@
 
 .form-foto__peso {
   margin: 0;
-  color: var(--paper);
+  color: var(--tinta);
   font-size: 14px;
   font-weight: 500;
 }
@@ -415,8 +428,8 @@
 .form-foto__quitar {
   align-self: flex-start;
   padding: 6px 14px;
-  border-radius: var(--r-pill);
-  border: 1.5px solid rgba(248, 113, 113, .5);
+  border-radius: var(--r-full);
+  border: 1.5px solid color-mix(in oklab, var(--rojo) 50%, var(--borde));
   background: transparent;
   color: var(--rojo);
   font-size: 12px;
@@ -425,7 +438,7 @@
 }
 .form-foto__quitar:hover {
   background: var(--rojo);
-  color: var(--ink);
+  color: var(--papel);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -441,20 +454,20 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: rgba(10, 31, 26, 0);
+  background: rgba(20, 16, 12, 0);
   opacity: 0;
   transition: background var(--t-media), opacity var(--t-media);
 }
 .dialogo--visible {
-  background: rgba(10, 31, 26, 0.72);
+  background: rgba(20, 16, 12, .72);
   opacity: 1;
 }
 
 .dialogo__tarjeta {
-  background: var(--pcb2);
-  border: 1px solid rgba(238, 242, 232, 0.15);
+  background: var(--papel);
+  border: 1px solid var(--borde);
   border-radius: var(--r-lg);
-  box-shadow: var(--sombra-media);
+  box-shadow: var(--sombra-2);
   width: 100%;
   max-width: 400px;
   padding: var(--sp-5) var(--sp-5) var(--sp-4);
@@ -464,16 +477,14 @@
   transform: translateY(8px);
   transition: transform var(--t-media);
 }
-.dialogo--visible .dialogo__tarjeta {
-  transform: translateY(0);
-}
+.dialogo--visible .dialogo__tarjeta { transform: translateY(0); }
 
 .dialogo__cabecera { margin: 0; }
 .dialogo__titulo {
   font-family: var(--fuente-titulo);
   font-size: 18px;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--tinta);
   margin: 0;
 }
 
@@ -484,7 +495,7 @@
 }
 .dialogo__mensaje {
   font-size: 14px;
-  color: var(--paper);
+  color: var(--tinta-suave);
   line-height: 1.55;
   margin: 0;
   white-space: pre-wrap;
@@ -493,16 +504,16 @@
 .dialogo__campo {
   padding: 11px 14px;
   border-radius: var(--r-md);
-  border: 1.5px solid rgba(238, 242, 232, 0.3);
-  background: rgba(238, 242, 232, 0.04);
-  color: var(--paper);
+  border: 1.5px solid var(--borde);
+  background: var(--papel-3);
+  color: var(--tinta);
   font-size: 15px;
   width: 100%;
   transition: border-color var(--t-rapida), background var(--t-rapida);
 }
 .dialogo__campo:focus {
-  border-color: var(--sky);
-  background: rgba(238, 242, 232, 0.08);
+  border-color: var(--accent);
+  background: var(--papel-carta);
   outline: none;
 }
 
@@ -525,25 +536,25 @@
 .dialogo__boton:active { transform: translateY(1px); }
 
 .dialogo__boton--primario {
-  background: var(--gold);
-  color: var(--ink);
+  background: var(--terracota);
+  color: var(--papel);
 }
 .dialogo__boton--primario:hover { filter: brightness(1.05); }
 
 .dialogo__boton--peligro {
   background: var(--rojo);
-  color: var(--ink);
+  color: var(--papel);
 }
 .dialogo__boton--peligro:hover { filter: brightness(1.05); }
 
 .dialogo__boton--secundario {
   background: transparent;
-  border-color: rgba(238, 242, 232, 0.4);
-  color: var(--paper);
+  border-color: var(--borde-fuerte);
+  color: var(--tinta-suave);
 }
 .dialogo__boton--secundario:hover {
-  border-color: var(--gold);
-  color: var(--gold);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -559,7 +570,7 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: rgba(10, 31, 26, .9);
+  background: rgba(20, 16, 12, .9);
   opacity: 0;
   transition: opacity .18s ease;
 }
@@ -571,11 +582,11 @@
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
-  background: var(--pcb2);
-  border: 1px solid rgba(238, 242, 232, .15);
+  background: var(--papel);
+  border: 1px solid var(--borde);
   border-radius: var(--r-lg);
   padding: var(--sp-4);
-  box-shadow: var(--sombra-media);
+  box-shadow: var(--sombra-2);
 }
 
 .camara__visor {
@@ -598,7 +609,7 @@
 .camara__mensaje {
   min-height: 1.4em;
   font-size: 13px;
-  color: var(--dim);
+  color: var(--tinta-suave);
   margin: 0;
   text-align: center;
 }
@@ -612,7 +623,7 @@
 
 .camara__boton {
   padding: 11px 24px;
-  border-radius: var(--r-pill);
+  border-radius: var(--r-full);
   font-weight: 700;
   font-size: 14px;
   border: 1.5px solid transparent;
@@ -621,19 +632,19 @@
 .camara__boton:active { transform: translateY(1px); }
 
 .camara__boton--capturar {
-  background: var(--gold);
-  color: var(--ink);
+  background: var(--terracota);
+  color: var(--papel);
 }
 .camara__boton--capturar:hover { filter: brightness(1.05); }
 
 .camara__boton--secundario {
   background: transparent;
-  border-color: rgba(238, 242, 232, .4);
-  color: var(--paper);
+  border-color: var(--borde-fuerte);
+  color: var(--tinta-suave);
 }
 .camara__boton--secundario:hover {
-  border-color: var(--gold);
-  color: var(--gold);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -660,12 +671,12 @@
   padding: 0;
   border-radius: var(--r-md);
   overflow: hidden;
-  border: 1px solid rgba(238, 242, 232, .15);
-  background: var(--pcb3);
+  border: 1px solid var(--borde);
+  background: var(--papel-3);
   cursor: pointer;
   transition: border-color var(--t-rapida);
 }
-.galeria__miniatura:hover { border-color: var(--gold); }
+.galeria__miniatura:hover { border-color: var(--accent); }
 .galeria__miniatura img {
   width: 100%;
   height: 100%;
@@ -680,8 +691,8 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: rgba(10, 31, 26, .75);
-  color: var(--paper);
+  background: rgba(20, 16, 12, .75);
+  color: var(--papel);
   font-size: 16px;
   line-height: 1;
   display: flex;
@@ -703,10 +714,8 @@
 
 .galeria__archivo {
   position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   border: 0;
@@ -721,9 +730,9 @@
   min-height: 0;
   flex: 1;
   border-radius: var(--r-md);
-  border: 1.5px dashed rgba(238, 242, 232, .3);
+  border: 1.5px dashed var(--borde-fuerte);
   background: transparent;
-  color: var(--dim);
+  color: var(--tinta-suave);
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
@@ -732,13 +741,13 @@
   transition: border-color var(--t-rapida), color var(--t-rapida);
 }
 .galeria__boton:hover {
-  border-color: var(--gold);
-  color: var(--gold);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .galeria__boton--camara {
-  border-color: rgba(227, 188, 85, .4);
-  color: var(--gold);
+  border-color: color-mix(in oklab, var(--terracota) 40%, var(--borde));
+  color: var(--terracota);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -753,7 +762,7 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: rgba(10, 31, 26, .92);
+  background: rgba(20, 16, 12, .92);
   opacity: 0;
   transition: opacity .18s ease;
 }
@@ -773,8 +782,8 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(10, 31, 26, .85);
-  color: var(--paper);
+  background: rgba(20, 16, 12, .85);
+  color: var(--papel);
   font-size: 22px;
   line-height: 1;
   display: flex;
@@ -783,3 +792,59 @@
   transition: background var(--t-rapida);
 }
 .lightbox__cerrar:hover { background: var(--rojo); }
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 14 — PIEZA EDITABLE GENÉRICA
+   Reemplazo del bloque que faltaba en fauna y flora. Se puede
+   usar en cualquier vista que haga edición inline. Las vistas
+   pueden pisar estilos con su propio selector por ID.
+   ═══════════════════════════════════════════════════════════════ */
+
+.pieza-edit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: 14px 16px;
+  background: var(--papel-2);
+  border: 1px dashed var(--borde-fuerte);
+  border-radius: var(--r-md);
+  list-style: none;
+}
+
+.pieza-edit input,
+.pieza-edit select,
+.pieza-edit textarea {
+  padding: 10px 12px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: 14px;
+  color: var(--tinta);
+  width: 100%;
+  font-family: var(--fuente-cuerpo);
+}
+.pieza-edit input:focus,
+.pieza-edit select:focus,
+.pieza-edit textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--papel-carta);
+}
+.pieza-edit textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+.pieza-edit__cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pieza-edit__botones {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}

@@ -1,13 +1,23 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/ideas.js
-   Versión: 1.2.1
+   Versión: 4.0.0
    Propósito: vista de ideas. Anotaciones sin fecha ni estado, con
-              categoría. Formulario colapsable, chips de filtro,
-              agrupación por categoría, edición inline.
-              v1.2.1: se quita el datalist de sugerencias del
-                      formulario de creación. El campo categoría
-                      queda como texto libre, igual que en Kit.
+              categoría. Cada idea es una línea que se expande al
+              toque para mostrar la descripción y las acciones.
+              Solo una abierta a la vez.
+              v4.0.0: variante D del prototipo. Se reemplaza la
+                      lista agrupada por categoría (v3.0.0) por
+                      una lista plana de líneas expandibles. El
+                      chip de categoría va en la cabecera de cada
+                      línea. Al tocar la línea, se abre y muestra
+                      descripción, autor y botones. Solo una
+                      abierta a la vez. Filtros con color propio.
+                      Colores de categoría: las conocidas tienen
+                      color fijo, las nuevas rotan entre 5
+                      acentos según hash del nombre.
+              v3.0.0: rediseño al nuevo lenguaje visual.
+              v1.2.1: se quita datalist de sugerencias.
               v1.2.0: formulario colapsable, id="vista-ideas".
               v1.1.0: edición inline de ideas.
               v1.0.0: versión inicial.
@@ -22,15 +32,45 @@ import { h, limpiarContenedor } from '../nucleo/utils.js';
 
 const log = crearLogger('vista:ideas');
 
+/* Colores fijos para categorías conocidas. Las que no están
+   en este mapa rotan entre los 5 colores base según un hash. */
+const CATEGORIA_COLOR = {
+  'Percusión': 'mostaza',
+  'Electrónica': 'azul',
+  'Naturaleza': 'musgo',
+  'Viajes': 'ciruela',
+  'Trabajo': 'terracota',
+  'Manualidades': 'terracota-clara',
+  'Escalada': 'gris',
+};
+
+const COLORES_FALLBACK = ['terracota', 'mostaza', 'musgo', 'azul', 'ciruela'];
+
 const registro = {
   contenedor: null,
   abortador: null,
   desuscribir: [],
   ideas: [],
   categoriaActiva: null,
-  editandoIdea: null,
+  abiertaId: null,
+  editandoId: null,
   formularioAbierto: false,
 };
+
+/* ---------- Colores de categoría ------------------------------- */
+
+function colorDeCategoria(nombre) {
+  if (!nombre) return 'terracota';
+  if (CATEGORIA_COLOR[nombre]) return CATEGORIA_COLOR[nombre];
+  // Hash simple para asignar un color estable.
+  let hash = 0;
+  for (let i = 0; i < nombre.length; i++) {
+    hash = (hash * 31 + nombre.charCodeAt(i)) >>> 0;
+  }
+  return COLORES_FALLBACK[hash % COLORES_FALLBACK.length];
+}
+
+/* ---------- Utilidades ----------------------------------------- */
 
 function categoriasDe(items) {
   const set = new Set();
@@ -45,48 +85,35 @@ function ideasFiltradas() {
   return registro.ideas.filter((i) => i.categoria === registro.categoriaActiva);
 }
 
-function ideasPorCategoria(items) {
-  const mapa = new Map();
-  for (const it of items) {
-    const cat = it.categoria || 'Sin categoría';
-    if (!mapa.has(cat)) mapa.set(cat, []);
-    mapa.get(cat).push(it);
-  }
-  return [...mapa.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-}
-
-/* ---------- Bloque de registro (colapsable) ------------------- */
+/* ---------- Formulario de creación ----------------------------- */
 
 function pintarBloqueRegistro() {
-  const cont = h('div', { class: 'bloque-registro' });
+  const cont = h('div', {});
 
   if (!registro.formularioAbierto) {
-    cont.append(
-      h('button', {
-        type: 'button',
-        class: 'abrir-form',
-        'data-accion': 'abrir-formulario',
-      }, '+ Agregar idea')
-    );
+    cont.append(h('button', {
+      type: 'button',
+      class: 'btn-agregar-principal',
+      'data-accion': 'abrir-formulario',
+    }, '+ Agregar idea'));
     return cont;
   }
 
-  const form = h('form', { class: 'vista__form', 'data-accion': 'crear' },
+  const form = h('form', { class: 'form-inline', 'data-accion': 'crear' },
     h('input', {
       name: 'categoria',
-      placeholder: 'Categoría (Naturaleza, Electrónica…)',
+      placeholder: 'Categoría (Percusión, Trabajo…)',
       required: true,
       maxlength: 50,
     }),
     h('input', { name: 'titulo', placeholder: 'Título de la idea', required: true, maxlength: 200 }),
     h('textarea', { name: 'descripcion', placeholder: 'Descripción', maxlength: 500, rows: 3 }),
-    h('div', { class: 'form-botones' },
+    h('div', { class: 'form-inline__fila' },
       h('button', {
-        type: 'button',
-        class: 'btn-secundario',
+        type: 'button', class: 'btn btn--secundario',
         'data-accion': 'cerrar-formulario',
       }, 'Cancelar'),
-      h('button', { type: 'submit', class: 'btn-primario' }, 'Agregar')
+      h('button', { type: 'submit', class: 'btn btn--primario' }, 'Agregar')
     )
   );
 
@@ -94,28 +121,133 @@ function pintarBloqueRegistro() {
   return cont;
 }
 
-/* ---------- Tarjeta de idea ----------------------------------- */
+/* ---------- Filtros por categoría ------------------------------ */
 
-function pintarIdeaEnEdicion(it) {
+function pintarFiltros() {
+  const cats = categoriasDe(registro.ideas);
+  if (cats.length === 0) return null;
+
+  const cont = h('div', { class: 'filtros', role: 'group', 'aria-label': 'Filtrar por categoría' });
+
+  cont.append(h('button', {
+    type: 'button',
+    class: 'filtro' + (registro.categoriaActiva === null ? ' is-active' : ''),
+    'data-accion': 'filtrar',
+    'data-categoria': '',
+    'aria-pressed': String(registro.categoriaActiva === null),
+  }, 'Todas'));
+
+  for (const c of cats) {
+    const color = colorDeCategoria(c);
+    cont.append(h('button', {
+      type: 'button',
+      class: 'filtro' + (registro.categoriaActiva === c ? ' is-active' : ''),
+      'data-accion': 'filtrar',
+      'data-categoria': c,
+      'data-color': color,
+      'aria-pressed': String(registro.categoriaActiva === c),
+    }, c));
+  }
+
+  return cont;
+}
+
+/* ---------- Línea de idea -------------------------------------- */
+
+function pintarLinea(it) {
+  if (registro.editandoId === it.id) {
+    return pintarLineaEnEdicion(it);
+  }
+
+  const abierta = registro.abiertaId === it.id;
+  const color = colorDeCategoria(it.categoria);
+
+  const linea = h('div', {
+    class: 'linea' + (abierta ? ' is-abierta' : ''),
+    'data-id': it.id,
+  });
+
+  // Cabecera: clickeable para abrir/cerrar.
+  const cab = h('button', {
+    type: 'button',
+    class: 'linea__cab',
+    'data-accion': 'toggle-linea',
+    'data-id': it.id,
+    'aria-expanded': String(abierta),
+  });
+
+  const flecha = h('span', { class: 'linea__flecha', 'aria-hidden': 'true' });
+  flecha.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:100%;height:100%"><path d="M9 6l6 6-6 6"/></svg>';
+  cab.append(flecha);
+
+  cab.append(h('span', { class: 'linea__titulo' }, it.titulo));
+
+  if (it.categoria) {
+    cab.append(h('span', { class: `cat cat--${color} linea__cat` }, it.categoria));
+  }
+
+  linea.append(cab);
+
+  // Cuerpo: solo se muestra cuando está abierta.
+  if (abierta) {
+    const cuerpo = h('div', { class: 'linea__cuerpo' });
+
+    if (it.descripcion) {
+      cuerpo.append(h('p', { class: 'linea__desc' }, it.descripcion));
+    }
+
+    cuerpo.append(
+      h('div', { class: 'linea__pie' },
+        distintivoAutor(it.creadoPor),
+        h('div', { class: 'linea__acciones' },
+          h('button', {
+            type: 'button', class: 'btn-mini btn-mini--sumar',
+            'data-accion': 'sumar-a-planes',
+            'data-id': it.id,
+          }, 'Pasar a planes'),
+          h('button', {
+            type: 'button', class: 'btn-mini',
+            'data-accion': 'editar-idea',
+            'data-id': it.id,
+          }, 'Editar'),
+          h('button', {
+            type: 'button', class: 'btn-mini btn-mini--peligro',
+            'data-accion': 'eliminar',
+            'data-id': it.id,
+          }, 'Eliminar')
+        )
+      )
+    );
+
+    linea.append(cuerpo);
+  }
+
+  return linea;
+}
+
+function pintarLineaEnEdicion(it) {
   const inputCat = h('input', { value: it.categoria || '', placeholder: 'Categoría', maxlength: 50 });
   const inputTitulo = h('input', { value: it.titulo || '', placeholder: 'Título', maxlength: 200 });
   const textarea = h('textarea', { placeholder: 'Descripción' }, it.descripcion || '');
-  return h('li', { class: 'pieza-edit', style: 'list-style:none;' },
-    inputCat,
-    inputTitulo,
-    textarea,
+
+  return h('div', { class: 'linea is-abierta pieza-edit', 'data-id': it.id },
+    h('div', { class: 'pieza-edit__cuerpo' },
+      inputCat,
+      inputTitulo,
+      textarea
+    ),
     h('div', { class: 'pieza-edit__botones' },
       h('button', {
-        type: 'button', class: 'btn-primario',
-        onclick: () => guardarEdicion(it.id, inputCat.value, inputTitulo.value, textarea.value),
-      }, 'Guardar'),
-      h('button', {
-        type: 'button', class: 'btn-secundario',
+        type: 'button', class: 'btn btn--secundario',
         onclick: () => {
-          registro.editandoIdea = null;
+          registro.editandoId = null;
           pintar();
         },
-      }, 'Cancelar')
+      }, 'Cancelar'),
+      h('button', {
+        type: 'button', class: 'btn btn--primario',
+        onclick: () => guardarEdicion(it.id, inputCat.value, inputTitulo.value, textarea.value),
+      }, 'Guardar')
     )
   );
 }
@@ -133,7 +265,8 @@ async function guardarEdicion(id, categoria, titulo, descripcion) {
   if (r.exito) {
     const i = registro.ideas.findIndex((x) => x.id === id);
     if (i >= 0) registro.ideas[i] = r.datos;
-    registro.editandoIdea = null;
+    registro.editandoId = null;
+    registro.abiertaId = id;
     pintar();
   } else {
     pintarError(r.error);
@@ -147,40 +280,12 @@ function pintar() {
   if (!cont) return;
   limpiarContenedor(cont);
 
-  const cats = categoriasDe(registro.ideas);
-
   const raiz = h('section', { id: 'vista-ideas', class: 'vista vista--ideas' });
-
-  raiz.append(
-    h('header', { class: 'ideas__cabecera' },
-      h('h1', {}, 'Ideas'),
-      h('p', { class: 'vista__lead' },
-        'Cosas que se nos ocurren y quedan anotadas. Sin fecha, sin estado. Cuando alguna tenga sentido, la pasamos a planes.')
-    )
-  );
 
   raiz.append(pintarBloqueRegistro());
 
-  if (cats.length > 0) {
-    const chips = h('div', { class: 'chips-categoria', role: 'group', 'aria-label': 'Filtrar por categoría' });
-    chips.append(h('button', {
-      type: 'button',
-      class: 'chip-categoria',
-      'data-accion': 'filtrar-categoria',
-      'data-categoria': '',
-      'aria-pressed': String(!registro.categoriaActiva),
-    }, 'Todas'));
-    for (const c of cats) {
-      chips.append(h('button', {
-        type: 'button',
-        class: 'chip-categoria',
-        'data-accion': 'filtrar-categoria',
-        'data-categoria': c,
-        'aria-pressed': String(registro.categoriaActiva === c),
-      }, c));
-    }
-    raiz.append(chips);
-  }
+  const filtros = pintarFiltros();
+  if (filtros) raiz.append(filtros);
 
   const items = ideasFiltradas();
 
@@ -190,47 +295,11 @@ function pintar() {
         ? 'Todavía no hay ideas.'
         : 'No hay ideas en esta categoría.'));
   } else {
-    const grupos = ideasPorCategoria(items);
-    for (const [categoria, grupo] of grupos) {
-      const seccion = h('section', { class: 'grupo-ideas' });
-      seccion.append(h('h3', { class: 'grupo-ideas__titulo' }, categoria));
-      const ul = h('ul', { class: 'lista-ideas' });
-      for (const it of grupo) {
-        if (registro.editandoIdea === it.id) {
-          ul.append(pintarIdeaEnEdicion(it));
-        } else {
-          ul.append(h('li', { class: 'idea', 'data-id': it.id },
-            h('div', { class: 'idea__cuerpo' },
-              h('strong', {}, it.titulo),
-              it.descripcion ? h('p', {}, it.descripcion) : null,
-              h('div', { class: 'idea__meta' }, distintivoAutor(it.creadoPor))
-            ),
-            h('div', { class: 'idea__acciones' },
-              h('button', {
-                type: 'button',
-                class: 'btn-sumar',
-                'data-accion': 'sumar-a-planes',
-                'data-id': it.id,
-              }, 'Pasar a planes'),
-              h('button', {
-                type: 'button',
-                class: 'btn-mini',
-                'data-accion': 'editar-idea',
-                'data-id': it.id,
-              }, 'Editar'),
-              h('button', {
-                type: 'button',
-                class: 'btn-mini',
-                'data-accion': 'eliminar',
-                'data-id': it.id,
-              }, 'Eliminar')
-            )
-          ));
-        }
-      }
-      seccion.append(ul);
-      raiz.append(seccion);
+    const lista = h('div', { class: 'lista-ideas' });
+    for (const it of items) {
+      lista.append(pintarLinea(it));
     }
+    raiz.append(lista);
   }
 
   cont.append(raiz);
@@ -289,10 +358,10 @@ async function manejarSubmit(ev) {
 /* ---------- Click --------------------------------------------- */
 
 async function manejarClick(ev) {
-  const boton = ev.target.closest('button[data-accion]');
-  if (!boton) return;
-  const accion = boton.dataset.accion;
-  const id = boton.dataset.id;
+  const btn = ev.target.closest('button[data-accion]');
+  if (!btn) return;
+  const accion = btn.dataset.accion;
+  const id = btn.dataset.id;
 
   if (accion === 'abrir-formulario') {
     registro.formularioAbierto = true;
@@ -304,10 +373,19 @@ async function manejarClick(ev) {
   } else if (accion === 'cerrar-formulario') {
     registro.formularioAbierto = false;
     pintar();
+  } else if (accion === 'toggle-linea') {
+    if (registro.abiertaId === id) {
+      registro.abiertaId = null;
+    } else {
+      registro.abiertaId = id;
+      registro.editandoId = null;
+    }
+    pintar();
   } else if (accion === 'sumar-a-planes') {
     const r = await repoPlanes.sumarAPlanes(id);
     if (r.exito) {
       registro.categoriaActiva = null;
+      registro.abiertaId = null;
       registro.ideas = registro.ideas.filter((x) => x.id !== id);
       pintar();
       pintarOk('Idea pasada a planes.');
@@ -315,7 +393,8 @@ async function manejarClick(ev) {
       pintarError(r.error);
     }
   } else if (accion === 'editar-idea') {
-    registro.editandoIdea = id;
+    registro.editandoId = id;
+    registro.abiertaId = id;
     pintar();
   } else if (accion === 'eliminar') {
     const ok = await mostrarConfirmacion(
@@ -327,13 +406,21 @@ async function manejarClick(ev) {
     const r = await repoPlanes.eliminar(id);
     if (r.exito) {
       registro.ideas = registro.ideas.filter((x) => x.id !== id);
+      if (registro.abiertaId === id) registro.abiertaId = null;
       pintar();
     } else {
       pintarError(r.error);
     }
-  } else if (accion === 'filtrar-categoria') {
-    const cat = boton.dataset.categoria || null;
+  } else if (accion === 'filtrar') {
+    const cat = btn.dataset.categoria || null;
     registro.categoriaActiva = cat;
+    // Si la idea abierta no está en el filtro, cerramos.
+    if (registro.abiertaId) {
+      const abierta = registro.ideas.find((x) => x.id === registro.abiertaId);
+      if (abierta && cat && abierta.categoria !== cat) {
+        registro.abiertaId = null;
+      }
+    }
     pintar();
   }
 }
@@ -344,7 +431,8 @@ export async function activar(contenedor) {
   registro.contenedor = contenedor;
   registro.abortador = new AbortController();
   registro.categoriaActiva = null;
-  registro.editandoIdea = null;
+  registro.abiertaId = null;
+  registro.editandoId = null;
   registro.formularioAbierto = false;
 
   const { signal } = registro.abortador;
@@ -369,7 +457,8 @@ export function limpiar() {
   if (registro.contenedor) limpiarContenedor(registro.contenedor);
   registro.ideas = [];
   registro.categoriaActiva = null;
-  registro.editandoIdea = null;
+  registro.abiertaId = null;
+  registro.editandoId = null;
   registro.formularioAbierto = false;
   registro.contenedor = null;
 }

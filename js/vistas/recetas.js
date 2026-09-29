@@ -1,13 +1,21 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/recetas.js
-   Versión: 1.0.0
+   Versión: 3.0.0
    Propósito: vista de recetas. Lista agrupada por categoría con
               índice lateral derecho para saltar entre secciones.
               Cada receta puede tener ingredientes simples (texto
               libre) o sub-recetas (referencia a otra receta con
               cantidad y unidad). Modal de detalle con árbol de
               ingredientes y pasos numerados.
+              v3.0.0: rediseño al nuevo lenguaje visual. La vista
+                      ya no emite h1 ni lead (los muestra el
+                      shell). Paleta de categorías cálida. Se
+                      renombran los botones principales a
+                      .btn-agregar-principal y se mantienen las
+                      clases del modal sin prefijo de ID.
+              v1.0.2: fix del AbortController propio del modal.
+              v1.0.1: fix del nombre de la clase visible del modal.
               v1.0.0: versión inicial.
    ================================================================ */
 
@@ -21,14 +29,15 @@ import { h, limpiarContenedor } from '../nucleo/utils.js';
 
 const log = crearLogger('vista:recetas');
 
+/* Paleta cálida en armonía con el papel crema. */
 const CATEGORIAS_COLOR = {
-  'Desayuno': '#E3BC55',
-  'Almuerzo': '#4ade80',
-  'Cena':     '#8DB7D8',
-  'Postre':   '#EBA9A2',
-  'Snack':    '#F2C879',
-  'Bebida':   '#C4AEEB',
-  'Salsa':    '#F29E6B',
+  'Desayuno': '#D9A421',  // mostaza
+  'Almuerzo': '#5A6B3E',  // musgo
+  'Cena':     '#C9613B',  // terracota
+  'Postre':   '#E8A17A',  // terracota clara
+  'Snack':    '#C8912F',  // mostaza cálida
+  'Bebida':   '#7A8B5E',  // verde claro
+  'Salsa':    '#A03737',  // rojo profundo
 };
 
 const NOMBRES_CATEGORIA = Object.keys(CATEGORIAS_COLOR);
@@ -37,6 +46,7 @@ const registro = {
   contenedor: null,
   raiz: null,
   abortador: null,
+  abortadorModal: null,
   desuscribir: [],
   recetas: [],
   filtroCategoria: null,
@@ -66,7 +76,7 @@ function recetaPorId(id) {
 }
 
 function colorCategoria(cat) {
-  return CATEGORIAS_COLOR[cat] || 'var(--gold)';
+  return CATEGORIAS_COLOR[cat] || 'var(--terracota)';
 }
 
 /* ---------- Mensajes ------------------------------------------- */
@@ -98,22 +108,18 @@ function montarEstructura() {
   registro.raiz = raiz;
 
   raiz.append(
-    h('header', { class: 'recetas__cabecera' },
-      h('h1', {}, 'Recetas'),
-      h('p', { class: 'vista__lead' }, 'Lo que cocinamos juntos. Con sub-recetas y fotos.')
-    ),
     h('button', {
-      type: 'button', class: 'recetas__abrir-form',
+      type: 'button', class: 'btn-agregar-principal',
       'data-accion': 'abrir-formulario',
     }, '+ Nueva receta'),
-    h('div', { class: 'recetas__chips' }),
+    h('div', { class: 'chips-categoria' }),
     h('div', { class: 'recetas__layout' },
       h('div', { class: 'recetas__paginas' }),
       h('nav', { class: 'recetas__indice', 'aria-label': 'Categorías' })
     )
   );
 
-  registro.chipsEl = raiz.querySelector('.recetas__chips');
+  registro.chipsEl = raiz.querySelector('.chips-categoria');
   registro.paginasEl = raiz.querySelector('.recetas__paginas');
   registro.indiceEl = raiz.querySelector('.recetas__indice');
 }
@@ -131,7 +137,7 @@ function pintarChips() {
   for (const op of opciones) {
     cont.append(h('button', {
       type: 'button',
-      class: 'recetas__chip',
+      class: 'chip-categoria',
       'data-accion': 'filtrar',
       'data-categoria': op.id || '',
       'aria-pressed': String(registro.filtroCategoria === op.id),
@@ -153,7 +159,7 @@ function pintarLista() {
 
   const lista = recetasFiltradas();
   if (lista.length === 0) {
-    cont.append(h('p', { class: 'recetas__vacio' },
+    cont.append(h('p', { class: 'vista__vacio' },
       registro.filtroCategoria ? 'No hay recetas en esta categoría.' : 'Todavía no hay recetas.'));
     return;
   }
@@ -311,9 +317,13 @@ async function refrescar() {
 /* ---------- Modal: helpers ------------------------------------ */
 
 function cerrarModal() {
+  if (registro.abortadorModal) {
+    registro.abortadorModal.abort();
+    registro.abortadorModal = null;
+  }
   const m = registro.modalActivo;
   if (!m) return;
-  m.classList.remove('modal--visible');
+  m.classList.remove('recetas__modal--visible');
   setTimeout(() => {
     if (m.parentNode) m.remove();
   }, 200);
@@ -323,7 +333,7 @@ function cerrarModal() {
 function crearModalBase(tituloModal, cuerpo, pie) {
   cerrarModal();
 
-  const modal = h('div', { class: 'recetas__modal', 'data-modal': '' });
+  const modal = h('div', { class: 'recetas__modal' });
   const tarjeta = h('div', { class: 'recetas__modal-tarjeta' });
 
   tarjeta.append(
@@ -347,9 +357,16 @@ function crearModalBase(tituloModal, cuerpo, pie) {
     if (ev.target === modal) cerrarModal();
   });
 
+  const abortadorModal = new AbortController();
+  registro.abortadorModal = abortadorModal;
+  const { signal } = abortadorModal;
+  modal.addEventListener('click', manejarClick, { signal });
+  modal.addEventListener('input', manejarInput, { signal });
+  modal.addEventListener('change', manejarChange, { signal });
+
   document.body.append(modal);
   modal.offsetWidth;
-  modal.classList.add('modal--visible');
+  modal.classList.add('recetas__modal--visible');
   registro.modalActivo = modal;
 
   return modal;
@@ -368,7 +385,7 @@ function abrirDetalle(id) {
     h('div', { class: 'recetas__detalle-meta' },
       h('span', {
         class: 'recetas__badge',
-        style: `background: ${color}33; color: ${color}; padding: 4px 10px; font-size: 11px;`,
+        style: `background: ${color}22; color: ${color}; padding: 4px 10px; font-size: 11px; border: 1px solid ${color}55;`,
       }, r.categoria),
       distintivoAutor(r.creadoPor)
     )
@@ -426,7 +443,7 @@ function pintarIngredientes(ingredientes) {
   const ul = h('ul', { class: 'recetas__ingredientes' });
 
   if (ingredientes.length === 0) {
-    ul.append(h('li', { class: 'recetas__vacio' }, 'Sin ingredientes.'));
+    ul.append(h('li', { class: 'vista__vacio' }, 'Sin ingredientes.'));
     return ul;
   }
 
@@ -508,7 +525,6 @@ function pintarFormulario() {
 
   const cuerpo = h('div', { class: 'recetas__modal-cuerpo' });
 
-  // Título y categoría.
   cuerpo.append(
     h('div', { class: 'recetas__form-fila' },
       h('div', { class: 'recetas__campo' },
@@ -532,7 +548,6 @@ function pintarFormulario() {
     )
   );
 
-  // Ingredientes.
   const listaIng = h('div', { class: 'recetas__lista-editable', 'data-lista': 'ingredientes' });
   cuerpo.append(
     h('div', { class: 'recetas__campo' },
@@ -551,7 +566,6 @@ function pintarFormulario() {
     )
   );
 
-  // Pasos.
   const listaPasos = h('div', { class: 'recetas__lista-editable', 'data-lista': 'pasos' });
   cuerpo.append(
     h('div', { class: 'recetas__campo' },
@@ -564,7 +578,6 @@ function pintarFormulario() {
     )
   );
 
-  // Nota.
   cuerpo.append(
     h('div', { class: 'recetas__campo' },
       h('label', {}, 'Nota (opcional)'),
@@ -576,7 +589,6 @@ function pintarFormulario() {
     )
   );
 
-  // Foto.
   cuerpo.append(
     h('div', { class: 'recetas__campo' },
       h('label', {}, 'Foto (URL, opcional)'),
@@ -602,7 +614,6 @@ function pintarFormulario() {
 
   crearModalBase(editando ? 'Editar receta' : 'Nueva receta', cuerpo, pie);
 
-  // Rellenar las listas después de montar el modal.
   pintarIngredientesEditables();
   pintarPasosEditables();
 }
@@ -744,7 +755,6 @@ async function eliminarReceta(id) {
   );
   if (!ok) return;
 
-  // Verificar si alguna otra receta la usa como sub-receta.
   const usan = registro.recetas.filter((x) => x.id !== id &&
     x.ingredientes.some((i) => i.tipo === 'sub' && i.recetaId === id));
 
@@ -831,7 +841,6 @@ function manejarClick(ev) {
 function manejarInput(ev) {
   const el = ev.target;
 
-  // Campos generales del borrador (solo dentro del modal de formulario).
   const campo = el.dataset.campo;
   if (campo === 'titulo') {
     registro.borrador.titulo = el.value;
@@ -847,7 +856,6 @@ function manejarInput(ev) {
     return;
   }
 
-  // Campos de ingrediente.
   const campoIng = el.dataset.campoIng;
   if (campoIng) {
     const idx = Number(el.dataset.idx);
@@ -860,7 +868,6 @@ function manejarInput(ev) {
     return;
   }
 
-  // Campos de paso.
   if (el.hasAttribute('data-campo-paso')) {
     const idx = Number(el.dataset.idx);
     registro.borrador.pasos[idx] = el.value;
@@ -880,6 +887,7 @@ function manejarChange(ev) {
 export async function activar(contenedor) {
   registro.contenedor = contenedor;
   registro.abortador = new AbortController();
+  registro.abortadorModal = null;
   registro.filtroCategoria = null;
   registro.modalActivo = null;
   registro.borrador = null;

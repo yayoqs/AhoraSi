@@ -1,0 +1,725 @@
+<!--
+  Ahora Sí — Prototipo B · Acentos y modo noche
+  Versión: 1.0.0
+  Prototipo para decidir:
+    - P3: acento por vista vs por grupo
+    - P4: modo noche completo o parcial
+    - P5: criterio del FAB
+  Un solo shell simulado que reacciona a las variables.
+  v1.0.0: versión inicial.
+-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ahora Sí — Acentos y modo noche</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   TOKENS BASE (modo día)
+   ============================================================ */
+:root {
+  --papel:        #F7F1E8;
+  --papel-2:      #EFE7DA;
+  --papel-3:      #FCF8F0;
+  --borde:        #E2D7C5;
+  --borde-fuerte: #D2C4AC;
+  --tinta:        #1F1B16;
+  --tinta-suave:  #6B6155;
+  --tinta-tenue:  #A89B87;
+
+  --terracota:      #C9613B;
+  --azul-piedra:    #4A6785;
+  --ciruela:        #7A3E5C;
+  --mostaza:        #D9A421;
+  --musgo:          #5A6B3E;
+
+  --luci:  #D89A9A;
+  --yayo:  #B8893C;
+  --ambos: #7A8B6B;
+
+  --accent: var(--terracota);
+
+  --sombra-1: 0 1px 2px rgba(31,27,22,.06);
+  --sombra-2: 0 12px 28px rgba(31,27,22,.10);
+  --sombra-flotante: 0 12px 32px rgba(31,27,22,.18);
+
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-full: 999px;
+
+  --fuente-titulo: 'Bricolage Grotesque', system-ui, sans-serif;
+  --fuente-cuerpo: 'Figtree', system-ui, sans-serif;
+  --fuente-carta:  'Fraunces', Georgia, serif;
+}
+
+/* ============================================================
+   MODO NOCHE
+   ============================================================ */
+body.modo-noche {
+  --papel:        #14100C;
+  --papel-2:      #241C14;
+  --papel-3:      #3A2E22;
+  --borde:        rgba(242,230,208,.12);
+  --borde-fuerte: rgba(242,230,208,.22);
+  --tinta:        #F2E6D0;
+  --tinta-suave:  #B8A888;
+  --tinta-tenue:  #6E5F48;
+  --sombra-1: 0 1px 2px rgba(0,0,0,.4);
+  --sombra-2: 0 12px 28px rgba(0,0,0,.5);
+  --sombra-flotante: 0 12px 32px rgba(0,0,0,.6);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+h1,h2,h3,h4,p,ul,ol,li { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+button { background: none; border: none; cursor: pointer; font: inherit; color: inherit; }
+img { display: block; max-width: 100%; }
+
+body {
+  font-family: var(--fuente-cuerpo);
+  font-size: 15px;
+  line-height: 1.5;
+  color: #F2E6D0;
+  background: radial-gradient(ellipse at top, #2C2620 0%, #13100D 100%);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  -webkit-font-smoothing: antialiased;
+  transition: background .3s ease;
+}
+body.modo-noche { background: radial-gradient(ellipse at top, #1A140E 0%, #060403 100%); }
+@media (max-width: 520px) { body { padding: 0; display: block; } }
+
+/* ============================================================
+   NAV DEL PROTOTIPO
+   ============================================================ */
+.proto-nav {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-family: var(--fuente-cuerpo);
+}
+.proto-nav__grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.proto-nav__label {
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+  font-weight: 600;
+}
+.proto-nav__btns {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--r-full);
+  backdrop-filter: blur(12px);
+}
+.proto-nav__btns button {
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.5);
+  border-radius: var(--r-full);
+  transition: all .2s ease;
+}
+.proto-nav__btns button:hover { color: rgba(255,255,255,.85); }
+.proto-nav__btns button.is-active {
+  background: rgba(255,255,255,.14);
+  color: #fff;
+}
+.proto-nav__color {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 4px;
+  vertical-align: middle;
+  border: 1px solid rgba(255,255,255,.2);
+}
+@media (max-width: 900px) { .proto-nav { display: none; } }
+
+/* ============================================================
+   TELÉFONO
+   ============================================================ */
+.phone {
+  width: 390px;
+  height: 844px;
+  max-height: calc(100vh - 48px);
+  background: var(--papel);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 0 0 10px #0E0B08,
+    0 0 0 12px #2A2318,
+    0 30px 80px rgba(0,0,0,.55);
+  transition: background .3s ease;
+}
+@media (max-width: 520px) {
+  .phone { width: 100%; height: 100dvh; max-height: none; border-radius: 0; box-shadow: none; }
+}
+
+.screen-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--papel);
+  display: flex;
+  flex-direction: column;
+  transition: background .3s ease;
+}
+.screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+/* ============================================================
+   TOPBAR
+   ============================================================ */
+.topbar {
+  flex-shrink: 0;
+  padding: 16px 20px 14px;
+  background: var(--papel);
+  position: relative;
+  z-index: 10;
+  transition: background .3s ease;
+}
+.topbar__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.topbar__eyebrow {
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  margin-bottom: 6px;
+  transition: color .3s ease;
+}
+.topbar__title {
+  font-family: var(--fuente-titulo);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--accent);
+  transition: color .3s ease;
+}
+.topbar__btn {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  color: var(--tinta-suave);
+  transition: background .15s ease, color .3s ease;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.topbar__btn:hover { background: var(--papel-2); }
+.topbar__btn svg { width: 20px; height: 20px; }
+
+/* Chips de sub-sección */
+.chips-grupo {
+  display: flex;
+  gap: 6px;
+  padding: 0 20px 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--papel);
+  transition: background .3s ease;
+}
+.chips-grupo::-webkit-scrollbar { display: none; }
+.chip-grupo {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: var(--r-full);
+  border: 1.5px solid var(--borde);
+  background: transparent;
+  color: var(--tinta-suave);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all .2s ease;
+}
+.chip-grupo:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.chip-grupo.is-active {
+  background: var(--tinta);
+  border-color: var(--tinta);
+  color: var(--papel);
+}
+
+/* ============================================================
+   CUERPO
+   ============================================================ */
+.screen__body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 22px 20px 120px;
+  -webkit-overflow-scrolling: touch;
+  transition: background .3s ease;
+}
+.screen__body::-webkit-scrollbar { width: 0; }
+
+/* ============================================================
+   BLOQUES DEMO
+   ============================================================ */
+.demo__titulo {
+  font-family: var(--fuente-titulo);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--tinta);
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  transition: color .3s ease;
+}
+.demo__titulo::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--borde);
+  transition: background .3s ease;
+}
+
+.demo__seccion { margin-bottom: 28px; }
+
+.btn-primario {
+  padding: 12px 20px;
+  border-radius: var(--r-md);
+  background: var(--accent);
+  color: var(--papel);
+  font-weight: 700;
+  font-size: 14px;
+  width: 100%;
+  transition: filter .15s ease, background .3s ease;
+}
+.btn-primario:hover { filter: brightness(1.06); }
+
+.tarjeta {
+  padding: 16px 18px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--r-md);
+  margin-bottom: 10px;
+  transition: background .3s ease, border-color .3s ease;
+}
+.tarjeta__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--tinta);
+  margin-bottom: 4px;
+  transition: color .3s ease;
+}
+.tarjeta__desc {
+  font-size: 13px;
+  color: var(--tinta-suave);
+  line-height: 1.5;
+  transition: color .3s ease;
+}
+
+.autor {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px 2px 2px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.autor__inicial {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--papel);
+  font-family: var(--fuente-titulo);
+}
+.autor--luci { background: rgba(216,154,154,.22); color: #8A5757; }
+.autor--luci .autor__inicial { background: var(--luci); }
+.autor--yayo { background: rgba(184,137,60,.22); color: #6B4F1F; }
+.autor--yayo .autor__inicial { background: var(--yayo); }
+.autor--ambos { background: rgba(122,139,107,.22); color: #4A5C3B; }
+.autor--ambos .autor__inicial { background: var(--ambos); }
+body.modo-noche .autor--luci { color: #D89A9A; }
+body.modo-noche .autor--yayo { color: #D9B876; }
+body.modo-noche .autor--ambos { color: #A4B391; }
+
+/* ============================================================
+   FAB
+   ============================================================ */
+.fab {
+  position: absolute;
+  bottom: 92px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-full);
+  background: var(--accent);
+  color: var(--papel);
+  display: grid;
+  place-items: center;
+  box-shadow: var(--sombra-flotante);
+  z-index: 40;
+  transition: transform .15s ease, opacity .25s ease, background .3s ease;
+}
+.fab:active { transform: scale(.9); }
+.fab svg { width: 24px; height: 24px; }
+.fab[hidden] { display: none; }
+body.sin-fab .fab { display: none; }
+
+/* ============================================================
+   TABBAR
+   ============================================================ */
+.tabbar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 78px;
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  background: color-mix(in oklab, var(--papel) 94%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--borde);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 50;
+  transition: background .3s ease, border-color .3s ease;
+}
+.tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--tinta-tenue);
+  transition: all .18s ease;
+  border-radius: var(--r-md);
+  padding: 4px;
+  opacity: .55;
+}
+.tabbar__item svg { width: 22px; height: 22px; transition: transform .18s ease; }
+.tabbar__label { font-size: 10px; font-weight: 600; letter-spacing: .02em; }
+.tabbar__item:active { transform: scale(.92); }
+.tabbar__item.is-active { color: var(--accent); opacity: 1; }
+.tabbar__item.is-active svg { transform: translateY(-1px); }
+.tabbar__item.is-active .tabbar__label { font-weight: 700; }
+
+/* ============================================================
+   INFO DE ESTADO ACTUAL
+   ============================================================ */
+.info-actual {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px 16px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--r-md);
+  backdrop-filter: blur(12px);
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,.7);
+  z-index: 100;
+  line-height: 1.6;
+  min-width: 180px;
+}
+.info-actual b { color: #fff; font-weight: 600; }
+@media (max-width: 900px) { .info-actual { display: none; } }
+</style>
+</head>
+
+<body>
+
+<!-- NAV DEL PROTOTIPO -->
+<nav class="proto-nav">
+
+  <div class="proto-nav__grupo">
+    <span class="proto-nav__label">Acento</span>
+    <div class="proto-nav__btns" id="navAcento">
+      <button data-acento="terracota" class="is-active">
+        <span class="proto-nav__color" style="background: #C9613B;"></span>Terracota
+      </button>
+      <button data-acento="azul-piedra">
+        <span class="proto-nav__color" style="background: #4A6785;"></span>Azul
+      </button>
+      <button data-acento="ciruela">
+        <span class="proto-nav__color" style="background: #7A3E5C;"></span>Ciruela
+      </button>
+      <button data-acento="mostaza">
+        <span class="proto-nav__color" style="background: #D9A421;"></span>Mostaza
+      </button>
+      <button data-acento="musgo">
+        <span class="proto-nav__color" style="background: #5A6B3E;"></span>Musgo
+      </button>
+    </div>
+  </div>
+
+  <div class="proto-nav__grupo">
+    <span class="proto-nav__label">Modo</span>
+    <div class="proto-nav__btns" id="navModo">
+      <button data-modo="dia" class="is-active">Día</button>
+      <button data-modo="noche">Noche</button>
+    </div>
+  </div>
+
+  <div class="proto-nav__grupo">
+    <span class="proto-nav__label">FAB</span>
+    <div class="proto-nav__btns" id="navFab">
+      <button data-fab="on" class="is-active">Visible</button>
+      <button data-fab="off">Oculto</button>
+    </div>
+  </div>
+
+</nav>
+
+<!-- INFO ESTADO -->
+<aside class="info-actual" id="infoActual">
+  <div>acento: <b id="infoAcento">terracota</b></div>
+  <div>modo: <b id="infoModo">día</b></div>
+  <div>fab: <b id="infoFab">visible</b></div>
+</aside>
+
+
+<div class="phone">
+  <main class="screen-area">
+    <section class="screen">
+
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="topbar__row">
+          <div>
+            <p class="topbar__eyebrow">Vida · Planes</p>
+            <h1 class="topbar__title">Planes</h1>
+          </div>
+          <button class="topbar__btn" aria-label="Opciones">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="5" cy="12" r="1.6"/>
+              <circle cx="12" cy="12" r="1.6"/>
+              <circle cx="19" cy="12" r="1.6"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- CHIPS DEL GRUPO -->
+      <nav class="chips-grupo">
+        <button class="chip-grupo is-active">Planes</button>
+        <button class="chip-grupo">Ideas</button>
+        <button class="chip-grupo">Hitos</button>
+        <button class="chip-grupo">Kit</button>
+        <button class="chip-grupo">Recetas</button>
+      </nav>
+
+      <!-- CUERPO -->
+      <div class="screen__body">
+
+        <div class="demo__seccion">
+          <h2 class="demo__titulo">Botón principal</h2>
+          <button class="btn-primario">+ Crear plan</button>
+        </div>
+
+        <div class="demo__seccion">
+          <h2 class="demo__titulo">Tarjetas</h2>
+
+          <article class="tarjeta">
+            <h3 class="tarjeta__titulo">Ir a las termas en invierno</h3>
+            <p class="tarjeta__desc">Con frío, con once, con todo el día libre.</p>
+            <div style="margin-top: 10px;">
+              <span class="autor autor--ambos">
+                <span class="autor__inicial">L</span>Los dos
+              </span>
+            </div>
+          </article>
+
+          <article class="tarjeta">
+            <h3 class="tarjeta__titulo">Ver el amanecer desde el cerro</h3>
+            <p class="tarjeta__desc">Requiere salir a las 5 am. Hay que ver si vale la pena.</p>
+            <div style="margin-top: 10px;">
+              <span class="autor autor--yayo">
+                <span class="autor__inicial">Y</span>Yayo
+              </span>
+            </div>
+          </article>
+
+          <article class="tarjeta">
+            <h3 class="tarjeta__titulo">Hacer pan juntos un domingo</h3>
+            <p class="tarjeta__desc">Sin apuro, con mate, sin receta perfecta.</p>
+            <div style="margin-top: 10px;">
+              <span class="autor autor--luci">
+                <span class="autor__inicial">L</span>Luci
+              </span>
+            </div>
+          </article>
+        </div>
+
+        <div class="demo__seccion">
+          <h2 class="demo__titulo">Notas</h2>
+          <p style="font-size: 13.5px; color: var(--tinta-suave); line-height: 1.55;">
+            Este es el mismo shell con distintas combinaciones. El acento tiñe el título del topbar, el chip activo del grupo, el tabbar activo, el FAB y el botón principal. El modo noche invierte la paleta completa.
+          </p>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- FAB -->
+  <button class="fab" aria-label="Crear">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+      <path d="M12 5v14M5 12h14"/>
+    </svg>
+  </button>
+
+  <!-- TABBAR -->
+  <nav class="tabbar">
+    <button class="tabbar__item" data-tab="fogon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+      </svg>
+      <span class="tabbar__label">Fogón</span>
+    </button>
+    <button class="tabbar__item is-active" data-tab="vida">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/>
+        <path d="M4 17a3 3 0 0 1 3-3h11"/>
+      </svg>
+      <span class="tabbar__label">Vida</span>
+    </button>
+    <button class="tabbar__item" data-tab="afuera">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 20h18L14 8l-3 5-2-3-6 10z"/>
+      </svg>
+      <span class="tabbar__label">Afuera</span>
+    </button>
+    <button class="tabbar__item" data-tab="juegos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+           stroke-linejoin="round">
+        <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/>
+      </svg>
+      <span class="tabbar__label">Juegos</span>
+    </button>
+    <button class="tabbar__item" data-tab="mas">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="5" cy="12" r="1.6"/>
+        <circle cx="12" cy="12" r="1.6"/>
+        <circle cx="19" cy="12" r="1.6"/>
+      </svg>
+      <span class="tabbar__label">Más</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const ACENTOS = {
+    'terracota':   '#C9613B',
+    'azul-piedra': '#4A6785',
+    'ciruela':     '#7A3E5C',
+    'mostaza':     '#D9A421',
+    'musgo':       '#5A6B3E',
+  };
+
+  const navAcento = document.getElementById('navAcento');
+  const navModo = document.getElementById('navModo');
+  const navFab = document.getElementById('navFab');
+  const infoAcento = document.getElementById('infoAcento');
+  const infoModo = document.getElementById('infoModo');
+  const infoFab = document.getElementById('infoFab');
+
+  let acentoActual = 'terracota';
+  let modoActual = 'dia';
+  let fabActual = 'on';
+
+  function aplicarAcento(nombre) {
+    acentoActual = nombre;
+    document.documentElement.style.setProperty('--accent', ACENTOS[nombre]);
+    navAcento.querySelectorAll('button').forEach((b) => {
+      b.classList.toggle('is-active', b.dataset.acento === nombre);
+    });
+    infoAcento.textContent = nombre;
+  }
+
+  function aplicarModo(nombre) {
+    modoActual = nombre;
+    document.body.classList.toggle('modo-noche', nombre === 'noche');
+    navModo.querySelectorAll('button').forEach((b) => {
+      b.classList.toggle('is-active', b.dataset.modo === nombre);
+    });
+    infoModo.textContent = nombre === 'noche' ? 'noche' : 'día';
+  }
+
+  function aplicarFab(estado) {
+    fabActual = estado;
+    document.body.classList.toggle('sin-fab', estado === 'off');
+    navFab.querySelectorAll('button').forEach((b) => {
+      b.classList.toggle('is-active', b.dataset.fab === estado);
+    });
+    infoFab.textContent = estado === 'off' ? 'oculto' : 'visible';
+  }
+
+  navAcento.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button[data-acento]');
+    if (!btn) return;
+    aplicarAcento(btn.dataset.acento);
+  });
+
+  navModo.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button[data-modo]');
+    if (!btn) return;
+    aplicarModo(btn.dataset.modo);
+  });
+
+  navFab.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button[data-fab]');
+    if (!btn) return;
+    aplicarFab(btn.dataset.fab);
+  });
+
+  // Init
+  aplicarAcento('terracota');
+  aplicarModo('dia');
+  aplicarFab('on');
+})();
+</script>
+
+</body>
+</html>

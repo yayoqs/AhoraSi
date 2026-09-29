@@ -1,24 +1,19 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/kit.js
-   Versión: 1.5.0
+   Versión: 3.0.0
    Propósito: vista del kit de campamento. Formulario colapsable
               para agregar items. Los items se agrupan por
               categoría con checkbox para marcar listo. Barra de
-              progreso con el total. Edición inline de categoría
-              e item.
-              v1.5.0: se agrega edición inline de cada item.
-                      Botón "Editar" convierte la fila en un
-                      formulario con select de categoría y campo
-                      de texto para el item. El select incluye
-                      las 10 categorías fijas más la categoría
-                      actual si es que no está en la lista (para
-                      no perder items con categorías antiguas).
-              v1.4.0: categoría como select con lista cerrada.
-              v1.3.0: formulario colapsable, id="vista-kit".
+              progreso con el total. Edición inline.
+              v3.0.0: rediseño al nuevo lenguaje visual. La vista
+                      ya no emite h1 ni lead (los muestra el
+                      shell). Estructura de clases ajustada.
+              v1.5.0: edición inline.
+              v1.4.0: categoría como select.
+              v1.3.0: formulario colapsable.
               v1.2.1: mostrarConfirmacion().
-              v1.2.0: activar() pinta primero.
-              v1.1.0: distintivoAutor, clase .vista--kit.
+              v1.1.0: distintivoAutor.
               v1.0.0: versión inicial.
    ================================================================ */
 
@@ -53,6 +48,8 @@ const registro = {
   editandoId: null,
 };
 
+/* ---------- Utilidades ---------------------------------------- */
+
 function agruparPorCategoria(items) {
   const mapa = new Map();
   for (const it of items) {
@@ -62,23 +59,21 @@ function agruparPorCategoria(items) {
   return [...mapa.entries()].sort((a, b) => a[0].localeCompare(b[0]));
 }
 
-/* ---------- Bloque de registro (colapsable) ------------------- */
+/* ---------- Formulario ---------------------------------------- */
 
 function pintarBloqueRegistro() {
-  const cont = h('div', { class: 'bloque-registro' });
+  const cont = h('div', {});
 
   if (!registro.formularioAbierto) {
-    cont.append(
-      h('button', {
-        type: 'button',
-        class: 'abrir-form',
-        'data-accion': 'abrir-formulario',
-      }, '+ Añadir item')
-    );
+    cont.append(h('button', {
+      type: 'button',
+      class: 'btn-agregar-principal',
+      'data-accion': 'abrir-formulario',
+    }, '+ Añadir item'));
     return cont;
   }
 
-  const form = h('form', { class: 'vista__form', 'data-accion': 'crear' },
+  const form = h('form', { class: 'form-inline', 'data-accion': 'crear' },
     h('select', { name: 'categoria', required: true },
       ...CATEGORIAS.map((c) => h('option', { value: c }, c))
     ),
@@ -88,13 +83,12 @@ function pintarBloqueRegistro() {
       required: true,
       maxlength: 100,
     }),
-    h('div', { class: 'form-botones' },
+    h('div', { class: 'form-inline__fila' },
       h('button', {
-        type: 'button',
-        class: 'btn-secundario',
+        type: 'button', class: 'btn btn--secundario',
         'data-accion': 'cerrar-formulario',
       }, 'Cancelar'),
-      h('button', { type: 'submit', class: 'btn-primario' }, 'Añadir')
+      h('button', { type: 'submit', class: 'btn btn--primario' }, 'Añadir')
     )
   );
 
@@ -105,9 +99,6 @@ function pintarBloqueRegistro() {
 /* ---------- Edición inline ------------------------------------ */
 
 function pintarItemEnEdicion(it) {
-  // Categorías disponibles: las fijas + la actual si no está en la
-  // lista. Así los items con categorías viejas se pueden editar sin
-  // perder su categoría.
   const categorias = CATEGORIAS.includes(it.categoria)
     ? CATEGORIAS
     : [it.categoria, ...CATEGORIAS];
@@ -128,24 +119,24 @@ function pintarItemEnEdicion(it) {
     maxlength: 100,
   });
 
-  return h('li', { class: 'pieza-edit', style: 'list-style:none;', 'data-id': it.id },
+  return h('li', { class: 'pieza-edit', 'data-id': it.id },
     selectCategoria,
     inputItem,
     h('div', { class: 'pieza-edit__botones' },
       h('button', {
-        type: 'button', class: 'btn-primario',
-        onclick: () => guardarEdicion(it.id, {
-          categoria: selectCategoria.value,
-          item: inputItem.value,
-        }),
-      }, 'Guardar'),
-      h('button', {
-        type: 'button', class: 'btn-secundario',
+        type: 'button', class: 'btn btn--secundario',
         onclick: () => {
           registro.editandoId = null;
           pintar();
         },
-      }, 'Cancelar')
+      }, 'Cancelar'),
+      h('button', {
+        type: 'button', class: 'btn btn--primario',
+        onclick: () => guardarEdicion(it.id, {
+          categoria: selectCategoria.value,
+          item: inputItem.value,
+        }),
+      }, 'Guardar')
     )
   );
 }
@@ -165,6 +156,53 @@ async function guardarEdicion(id, valores) {
   }
 }
 
+/* ---------- Item de lista ------------------------------------- */
+
+function pintarItem(it) {
+  if (registro.editandoId === it.id) {
+    return pintarItemEnEdicion(it);
+  }
+
+  const li = h('li', {
+    class: 'kit__item' + (it.listo ? ' kit__item--listo' : ''),
+    'data-id': it.id,
+  });
+
+  li.append(
+    h('label', { class: 'kit__check' },
+      h('input', {
+        type: 'checkbox',
+        'data-accion': 'toggle',
+        'data-id': it.id,
+        checked: it.listo ? '' : null,
+      }),
+      h('span', { class: 'kit__item-texto' }, it.item)
+    )
+  );
+
+  const acciones = h('div', { class: 'kit__item-acciones' });
+  if (it.listo && it.marcadoPor) {
+    acciones.append(distintivoAutor(it.marcadoPor));
+  }
+  acciones.append(
+    h('button', {
+      type: 'button',
+      class: 'btn-mini',
+      'data-accion': 'editar',
+      'data-id': it.id,
+    }, 'Editar'),
+    h('button', {
+      type: 'button',
+      class: 'btn-mini btn-mini--peligro',
+      'data-accion': 'eliminar',
+      'data-id': it.id,
+    }, 'Eliminar')
+  );
+  li.append(acciones);
+
+  return li;
+}
+
 /* ---------- Pintar -------------------------------------------- */
 
 function pintar() {
@@ -172,73 +210,44 @@ function pintar() {
   if (!cont) return;
   limpiarContenedor(cont);
 
+  const raiz = h('section', { id: 'vista-kit', class: 'vista vista--kit' });
+
   const totales = registro.items.length;
   const listos = registro.items.filter((x) => x.listo).length;
 
-  const progreso = totales === 0
-    ? null
-    : h('div', { class: 'kit__progreso' },
-        h('p', { class: 'kit__progreso-texto' }, `${listos} de ${totales} listos`),
-        h('div', { class: 'kit__barra' },
-          h('i', { style: `width: ${Math.round((listos / totales) * 100)}%` })
-        )
-      );
+  // Barra de progreso (solo si hay items).
+  if (totales > 0) {
+    raiz.append(h('div', { class: 'kit__progreso' },
+      h('span', { class: 'kit__progreso-texto' },
+        `${listos} de ${totales} listos`),
+      h('div', { class: 'kit__barra' },
+        h('i', { style: `width: ${Math.round((listos / totales) * 100)}%` })
+      )
+    ));
+  }
 
-  const grupos = agruparPorCategoria(registro.items);
+  raiz.append(pintarBloqueRegistro());
 
-  const contenido = totales === 0
-    ? h('p', { class: 'vista__vacio' }, 'El kit está vacío. Añade el primer item.')
-    : h('div', { class: 'kit__grupos' },
-        ...grupos.map(([categoria, items]) =>
-          h('section', { class: 'kit__grupo' },
-            h('h3', { class: 'kit__grupo-titulo' }, categoria),
-            h('ul', { class: 'vista__lista' },
-              ...items.map((it) => {
-                if (registro.editandoId === it.id) {
-                  return pintarItemEnEdicion(it);
-                }
-                return h('li', {
-                  class: 'vista__item' + (it.listo ? ' vista__item--completo' : ''),
-                  'data-id': it.id,
-                },
-                  h('label', { class: 'vista__check' },
-                    h('input', {
-                      type: 'checkbox',
-                      'data-accion': 'toggle',
-                      'data-id': it.id,
-                      checked: it.listo ? '' : null,
-                    }),
-                    h('span', {}, it.item)
-                  ),
-                  h('div', { class: 'acciones' },
-                    it.listo && it.marcadoPor ? distintivoAutor(it.marcadoPor) : null,
-                    h('button', {
-                      type: 'button',
-                      'data-accion': 'editar',
-                      'data-id': it.id,
-                    }, 'Editar'),
-                    h('button', {
-                      type: 'button',
-                      'data-accion': 'eliminar',
-                      'data-id': it.id,
-                    }, 'Eliminar')
-                  )
-                );
-              })
-            )
-          )
-        )
-      );
+  if (totales === 0) {
+    raiz.append(h('p', { class: 'vista__vacio' }, 'El kit está vacío. Añade el primer item.'));
+  } else {
+    const grupos = agruparPorCategoria(registro.items);
+    const contenedorGrupos = h('div', { class: 'kit__grupos' });
 
-  cont.append(
-    h('section', { id: 'vista-kit', class: 'vista vista--kit' },
-      h('h1', {}, 'Kit de campamento'),
-      h('p', { class: 'vista__lead' }, 'Lo que llevamos cuando salimos.'),
-      progreso,
-      pintarBloqueRegistro(),
-      contenido
-    )
-  );
+    for (const [categoria, items] of grupos) {
+      const seccion = h('section', { class: 'kit__grupo' });
+      seccion.append(h('h2', { class: 'kit__grupo-titulo' }, categoria));
+      const ul = h('ul', { class: 'kit__lista' });
+      for (const it of items) {
+        ul.append(pintarItem(it));
+      }
+      seccion.append(ul);
+      contenedorGrupos.append(seccion);
+    }
+    raiz.append(contenedorGrupos);
+  }
+
+  cont.append(raiz);
 }
 
 function pintarError(mensaje) {

@@ -1,15 +1,17 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/nucleo/almacen.js
-   Versión: 1.2.0
+   Versión: 1.3.0
    Propósito: estado en memoria, única fuente para la UI.
               Los módulos leen de acá. Las escrituras pasan por
               la capa de datos, que actualiza el almacén y emite
               eventos para que la UI reaccione.
+              v1.3.0: se agrega la clave `modoNoche` (boolean).
+                      La escribe Cuenta y la lee app.js para
+                      aplicar la clase al body.
               v1.2.0: se elimina la clave `perfiles` (plural), sin
                       uso. La clave vigente es `perfil` (singular),
-                      poblada por sesion-inicial.js. Sin cambios
-                      en las firmas públicas.
+                      poblada por sesion-inicial.js.
               v1.1.0: se agregan claves usuarioActual, perfil,
                       ritmos, carta, respuestas, fauna, flora.
               v1.0.0: versión inicial.
@@ -29,6 +31,7 @@ const estado = {
   respuestas: [],
   fauna: [],
   flora: [],
+  modoNoche: false,
   cargando: false,
   error: null,
 };

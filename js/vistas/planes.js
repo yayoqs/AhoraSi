@@ -1,19 +1,25 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/planes.js
-   Versión: 1.7.0
+   Versión: 4.0.0
    Propósito: vista de planes. Lista coordinable de cosas para
-              hacer juntos. Formulario colapsable, botones de estado
-              (Sí/Quizás/No/Pendiente) por plan.
-              v1.7.0: formulario colapsable, id="vista-planes" para
-                      encapsulado de CSS. Sin cambios en las firmas
-                      públicas.
-              v1.6.1: se quita la sección Ideas (movida a ideas.js).
-              v1.6.0: sección ideas (revertido).
+              hacer juntos. Cada tarjeta tiene un segmented control
+              arriba con los 4 estados, descripción y "cuándo"
+              debajo, y al pie el autor más Editar y Eliminar.
+              v4.0.0: se adopta la variante C del prototipo. Se
+                      reemplazan los 4 botones internos por un
+                      segmented control arriba de la tarjeta. Se
+                      agrega edición inline (título, descripción,
+                      cuándo). El botón "Editar" reemplaza al
+                      "Eliminar" único: ahora hay ambos al pie.
+              v3.0.1: reversión del v4.0.0 anterior (ciclado).
+              v3.0.0: rediseño al nuevo lenguaje visual.
+              v1.7.0: form colapsable.
+              v1.6.1: se quita sección Ideas (movida a ideas.js).
               v1.3.1: mostrarConfirmacion().
               v1.3.0: activar() pinta primero.
               v1.2.0: distintivoAutor, clase .vista--planes.
-              v1.1.0: escucha eventos de Realtime.
+              v1.1.0: Realtime.
               v1.0.0: versión inicial.
    ================================================================ */
 
@@ -39,40 +45,152 @@ const registro = {
   desuscribir: [],
   planes: [],
   formularioAbierto: false,
+  editandoId: null,
 };
 
-/* ---------- Bloque de registro (colapsable) ------------------- */
+/* ---------- Formulario de creación ----------------------------- */
 
 function pintarBloqueRegistro() {
-  const cont = h('div', { class: 'bloque-registro' });
+  const cont = h('div', {});
 
   if (!registro.formularioAbierto) {
-    cont.append(
-      h('button', {
-        type: 'button',
-        class: 'abrir-form',
-        'data-accion': 'abrir-formulario',
-      }, '+ Crear plan')
-    );
+    cont.append(h('button', {
+      type: 'button',
+      class: 'btn-agregar-principal',
+      'data-accion': 'abrir-formulario',
+    }, '+ Crear plan'));
     return cont;
   }
 
-  const form = h('form', { class: 'vista__form', 'data-accion': 'crear' },
+  const form = h('form', { class: 'form-inline', 'data-accion': 'crear' },
     h('input', { name: 'titulo', placeholder: 'Título del plan', required: true, maxlength: 200 }),
     h('input', { name: 'descripcion', placeholder: 'Descripción', maxlength: 500 }),
     h('input', { name: 'cuando', placeholder: 'Cuándo' }),
-    h('div', { class: 'form-botones' },
+    h('div', { class: 'form-inline__fila' },
       h('button', {
-        type: 'button',
-        class: 'btn-secundario',
+        type: 'button', class: 'btn btn--secundario',
         'data-accion': 'cerrar-formulario',
       }, 'Cancelar'),
-      h('button', { type: 'submit', class: 'btn-primario' }, 'Crear')
+      h('button', { type: 'submit', class: 'btn btn--primario' }, 'Crear')
     )
   );
 
   cont.append(form);
   return cont;
+}
+
+/* ---------- Tarjeta de plan ------------------------------------ */
+
+function pintarPlan(p) {
+  if (registro.editandoId === p.id) {
+    return pintarPlanEnEdicion(p);
+  }
+
+  const li = h('li', { class: 'plan', 'data-id': p.id, 'data-estado': p.estado });
+
+  // Cabecera: título solo.
+  li.append(
+    h('div', { class: 'plan__cabecera' },
+      h('h3', { class: 'plan__titulo' }, p.titulo)
+    )
+  );
+
+  // Segmented control.
+  const seg = h('div', { class: 'segmented', role: 'group', 'aria-label': 'Estado del plan' });
+  for (const e of ESTADOS) {
+    seg.append(h('button', {
+      type: 'button',
+      'data-accion': 'estado',
+      'data-id': p.id,
+      'data-estado': e.id,
+      'aria-pressed': String(p.estado === e.id),
+    }, e.etiqueta));
+  }
+  li.append(seg);
+
+  if (p.descripcion) {
+    li.append(h('p', { class: 'plan__desc' }, p.descripcion));
+  }
+  if (p.cuando) {
+    li.append(h('p', { class: 'plan__cuando' }, p.cuando));
+  }
+
+  // Pie: autor + Editar + Eliminar.
+  li.append(h('div', { class: 'plan__pie' },
+    distintivoAutor(p.creadoPor),
+    h('div', { class: 'plan__acciones' },
+      h('button', {
+        type: 'button', class: 'btn-mini',
+        'data-accion': 'editar', 'data-id': p.id,
+      }, 'Editar'),
+      h('button', {
+        type: 'button', class: 'btn-mini btn-mini--peligro',
+        'data-accion': 'eliminar', 'data-id': p.id,
+      }, 'Eliminar')
+    )
+  ));
+
+  return li;
+}
+
+function pintarPlanEnEdicion(p) {
+  const inputTitulo = h('input', {
+    type: 'text', value: p.titulo || '',
+    placeholder: 'Título', maxlength: 200, required: true,
+  });
+  const inputDesc = h('input', {
+    type: 'text', value: p.descripcion || '',
+    placeholder: 'Descripción', maxlength: 500,
+  });
+  const inputCuando = h('input', {
+    type: 'text', value: p.cuando || '',
+    placeholder: 'Cuándo',
+  });
+
+  return h('li', { class: 'plan pieza-edit', 'data-id': p.id },
+    h('div', { class: 'pieza-edit__cuerpo' },
+      inputTitulo,
+      inputDesc,
+      inputCuando
+    ),
+    h('div', { class: 'pieza-edit__botones' },
+      h('button', {
+        type: 'button', class: 'btn btn--secundario',
+        onclick: () => {
+          registro.editandoId = null;
+          pintar();
+        },
+      }, 'Cancelar'),
+      h('button', {
+        type: 'button', class: 'btn btn--primario',
+        onclick: () => guardarEdicion(p.id, {
+          titulo: inputTitulo.value,
+          descripcion: inputDesc.value,
+          cuando: inputCuando.value,
+        }),
+      }, 'Guardar')
+    )
+  );
+}
+
+async function guardarEdicion(id, valores) {
+  if (!valores.titulo.trim()) {
+    pintarError('El título no puede quedar vacío.');
+    return;
+  }
+  const r = await repoPlanes.actualizar(id, {
+    titulo: valores.titulo.trim(),
+    descripcion: (valores.descripcion || '').trim(),
+    cuando: (valores.cuando || '').trim(),
+  });
+  if (r.exito) {
+    const i = registro.planes.findIndex((x) => x.id === id);
+    if (i >= 0) registro.planes[i] = r.datos;
+    registro.editandoId = null;
+    pintar();
+  } else {
+    pintarError(r.error);
+  }
 }
 
 /* ---------- Pintar -------------------------------------------- */
@@ -82,48 +200,21 @@ function pintar() {
   if (!cont) return;
   limpiarContenedor(cont);
 
-  const lista = registro.planes.length === 0
-    ? h('p', { class: 'vista__vacio' }, 'Todavía no hay planes. Crea el primero.')
-    : h('ul', { class: 'vista__lista' },
-        ...registro.planes.map((p) => pintarPlan(p))
-      );
+  const raiz = h('section', { id: 'vista-planes', class: 'vista vista--planes' });
 
-  cont.append(
-    h('section', { id: 'vista-planes', class: 'vista vista--planes' },
-      h('header', { class: 'planes__cabecera' },
-        h('h1', {}, 'Planes'),
-        h('p', { class: 'vista__lead' },
-          'Lo que queremos hacer juntos. Marca con Sí, Quizás o No. Cualquier respuesta sirve.')
-      ),
-      pintarBloqueRegistro(),
-      lista
-    )
-  );
-}
+  raiz.append(pintarBloqueRegistro());
 
-function pintarPlan(p) {
-  return h('li', { class: 'vista__item', 'data-id': p.id },
-    h('div', { class: 'vista__item-cabecera' },
-      h('strong', {}, p.titulo),
-      distintivoAutor(p.creadoPor)
-    ),
-    p.descripcion ? h('p', {}, p.descripcion) : null,
-    p.cuando ? h('p', { class: 'meta' }, p.cuando) : null,
-    h('div', { class: 'acciones' },
-      ...ESTADOS.map((e) => h('button', {
-        type: 'button',
-        'data-accion': 'estado',
-        'data-id': p.id,
-        'data-estado': e.id,
-        'aria-pressed': String(p.estado === e.id),
-      }, e.etiqueta)),
-      h('button', {
-        type: 'button',
-        'data-accion': 'eliminar',
-        'data-id': p.id,
-      }, 'Eliminar')
-    )
-  );
+  if (registro.planes.length === 0) {
+    raiz.append(h('p', { class: 'vista__vacio' }, 'Todavía no hay planes. Crea el primero.'));
+  } else {
+    const ul = h('ul', { class: 'lista-planes' });
+    for (const p of registro.planes) {
+      ul.append(pintarPlan(p));
+    }
+    raiz.append(ul);
+  }
+
+  cont.append(raiz);
 }
 
 function pintarError(mensaje) {
@@ -204,6 +295,9 @@ async function manejarClick(ev) {
     } else {
       pintarError(r.error);
     }
+  } else if (accion === 'editar') {
+    registro.editandoId = id;
+    pintar();
   } else if (accion === 'eliminar') {
     const ok = await mostrarConfirmacion(
       'Eliminar plan',
@@ -227,6 +321,7 @@ export async function activar(contenedor) {
   registro.contenedor = contenedor;
   registro.abortador = new AbortController();
   registro.formularioAbierto = false;
+  registro.editandoId = null;
 
   const { signal } = registro.abortador;
   contenedor.addEventListener('submit', manejarSubmit, { signal });
@@ -250,5 +345,6 @@ export function limpiar() {
   if (registro.contenedor) limpiarContenedor(registro.contenedor);
   registro.planes = [];
   registro.formularioAbierto = false;
+  registro.editandoId = null;
   registro.contenedor = null;
 }
