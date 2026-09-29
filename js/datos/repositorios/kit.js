@@ -1,11 +1,14 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/repositorios/kit.js
-   Versión: 1.4.0
+   Versión: 1.5.0
    Propósito: acceso a ahorasi_kit.
-              v1.4.0: se agrega actualizar(id, cambios) con
-                      idempotencia. Permite editar categoria e
-                      item. Emite kit:actualizado.
+              v1.5.0: se agrega el campo `notas` (opcional, texto
+                      libre hasta 200 caracteres). El usuario lo
+                      usa para detalles como cantidad, presentación
+                      o marca del item. Se incluye en normalizar(),
+                      crear() y actualizar().
+              v1.4.0: actualizar() con idempotencia.
               v1.3.0: crear() y marcar() con idempotencia.
               v1.2.0: sin envío de permisos de fila.
               v1.1.0: usa _contexto.js.
@@ -29,6 +32,7 @@ import {
 
 const log = crearLogger('repo:kit');
 const TABLA = 'ahorasi_kit';
+const LARGO_MAX_NOTAS = 200;
 
 function normalizar(fila) {
   if (!fila) return null;
@@ -37,6 +41,7 @@ function normalizar(fila) {
     espacioId: fila.espacioId,
     categoria: fila.categoria,
     item: fila.item,
+    notas: fila.notas || '',
     listo: !!fila.listo,
     marcadoPor: fila.marcadoPor || null,
     actualizadoEn: fila.$updatedAt,
@@ -68,6 +73,9 @@ export async function crear(datos, opciones = {}) {
   if (!datos?.item?.trim()) return Resultado.fallo('Falta nombre del item');
   if (datos.categoria.length > 50) return Resultado.fallo('Categoría demasiado larga');
   if (datos.item.length > 100) return Resultado.fallo('Item demasiado largo');
+  if (datos.notas && datos.notas.length > LARGO_MAX_NOTAS) {
+    return Resultado.fallo(`Las notas no pueden exceder ${LARGO_MAX_NOTAS} caracteres`);
+  }
 
   const ctx = obtenerContexto();
   if (!ctx.exito) return ctx;
@@ -76,6 +84,7 @@ export async function crear(datos, opciones = {}) {
     espacioId: ctx.datos.espacioId,
     categoria: datos.categoria.trim(),
     item: datos.item.trim(),
+    notas: (datos.notas || '').trim(),
     listo: false,
     marcadoPor: null,
   };
@@ -115,6 +124,9 @@ export async function actualizar(id, cambios, opciones = {}) {
   if (cambios.item !== undefined && cambios.item.length > 100) {
     return Resultado.fallo('Item demasiado largo');
   }
+  if (cambios.notas !== undefined && cambios.notas.length > LARGO_MAX_NOTAS) {
+    return Resultado.fallo(`Las notas no pueden exceder ${LARGO_MAX_NOTAS} caracteres`);
+  }
 
   const ctx = obtenerContexto();
   if (!ctx.exito) return ctx;
@@ -122,6 +134,7 @@ export async function actualizar(id, cambios, opciones = {}) {
   const data = {};
   if (cambios.categoria !== undefined) data.categoria = cambios.categoria.trim();
   if (cambios.item !== undefined) data.item = cambios.item.trim();
+  if (cambios.notas !== undefined) data.notas = (cambios.notas || '').trim();
 
   if (Object.keys(data).length === 0) {
     return Resultado.fallo('Sin cambios válidos');

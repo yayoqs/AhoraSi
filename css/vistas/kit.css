@@ -1,15 +1,20 @@
 /* ================================================================
    Ahora Sí — CSS MODULAR
    Archivo: css/vistas/kit.css
-   Versión: 3.0.0
+   Versión: 4.0.0
    Propósito: Estilos de la vista de kit en el nuevo lenguaje
-              visual. Barra de progreso con acento terracota y
-              musgo, encabezados de categoría simples, ítems con
-              checkbox terracota.
-              v3.0.0: rediseño completo. Paleta papel/terracota.
-                      La vista ya no emite h1 ni lead (los muestra
-                      el shell).
-              v2.0.0: secciones numeradas, selector raíz por ID.
+              visual. Progreso grande arriba, items en grilla de
+              2 columnas, item expandible con notas y acciones.
+              v4.0.0: rediseño. Se pasa de lista vertical a
+                      grilla de 2 columnas con item expandible.
+                      Se agrega el bloque de progreso grande
+                      (.kit-progreso). Se agrega la marca de autor
+                      (.autor--ini). Se agrega el preview de notas
+                      en la cabecera y la nota completa al
+                      expandir. Se agrega .pieza-edit para la
+                      edición inline.
+              v3.0.0: rediseño al nuevo lenguaje visual.
+              v2.0.0: secciones numeradas.
               v1.0.0: versión inicial.
    ================================================================ */
 
@@ -24,7 +29,7 @@
   width: 100%;
   padding: 14px 24px;
   border-radius: var(--r-md);
-  background: var(--terracota);
+  background: var(--accent, var(--musgo));
   color: var(--papel);
   font-weight: 700;
   font-size: 15px;
@@ -68,8 +73,12 @@
 #vista-kit .form-inline select:focus,
 #vista-kit .form-inline textarea:focus {
   outline: none;
-  border-color: var(--terracota);
+  border-color: var(--accent, var(--musgo));
   background: var(--papel-carta);
+}
+#vista-kit .form-inline textarea {
+  min-height: 60px;
+  resize: vertical;
 }
 
 #vista-kit .form-inline__fila {
@@ -89,12 +98,12 @@
   align-items: center;
   gap: 6px;
   justify-content: center;
+  border: 0;
 }
 #vista-kit .btn:active { transform: scale(.97); }
 #vista-kit .btn--primario {
-  background: var(--terracota);
+  background: var(--accent, var(--musgo));
   color: var(--papel);
-  border: 0;
 }
 #vista-kit .btn--primario:hover { filter: brightness(1.05); }
 #vista-kit .btn--secundario {
@@ -108,137 +117,246 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 3 — BARRA DE PROGRESO
+   SECCIÓN 3 — PROGRESO GRANDE
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-kit .kit__progreso {
-  padding: 14px 16px;
-  background: var(--papel-2);
-  border: 1px solid var(--borde);
-  border-radius: var(--r-md);
+#vista-kit .kit-progreso {
+  padding: 18px 20px;
+  background: color-mix(in oklab, var(--musgo) 12%, var(--papel-2));
+  border: 1px solid color-mix(in oklab, var(--musgo) 25%, var(--borde));
+  border-radius: var(--r-lg);
   margin-bottom: var(--sp-5);
 }
 
-#vista-kit .kit__progreso-texto {
-  display: block;
-  font-family: var(--fuente-titulo);
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--tinta);
+#vista-kit .kit-progreso__cab {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   margin-bottom: 10px;
-  font-variant-numeric: tabular-nums;
 }
 
-#vista-kit .kit__barra {
+#vista-kit .kit-progreso__num {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 32px;
+  letter-spacing: -0.04em;
+  color: var(--musgo);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+#vista-kit .kit-progreso__num small {
+  font-size: 16px;
+  font-weight: 700;
+  opacity: .55;
+  letter-spacing: -0.02em;
+}
+
+#vista-kit .kit-progreso__txt {
+  font-size: 12px;
+  color: color-mix(in oklab, var(--musgo) 70%, var(--tinta));
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+
+#vista-kit .kit-progreso__barra {
   height: 8px;
-  background: color-mix(in oklab, var(--terracota) 10%, var(--papel-3));
+  background: rgba(255, 255, 255, .55);
   border-radius: var(--r-full);
   overflow: hidden;
 }
-
-#vista-kit .kit__barra i {
+#vista-kit .kit-progreso__barra i {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, var(--terracota-clara), var(--terracota));
+  background: var(--musgo);
   border-radius: var(--r-full);
-  transition: width .3s ease;
+  transition: width .4s cubic-bezier(.25, .9, .35, 1);
 }
 
 /* ═══════════════════════════════════════════════════════════════
    SECCIÓN 4 — GRUPOS POR CATEGORÍA
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-kit .kit__grupos {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-5);
-}
+#vista-kit .kit-grupo { margin-bottom: 22px; }
 
-#vista-kit .kit__grupo-titulo {
-  font-family: var(--fuente-titulo);
-  font-weight: 700;
-  font-size: 17px;
-  color: var(--tinta);
+#vista-kit .kit-grupo__cab {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 0 0 14px;
+  gap: 10px;
+  margin-bottom: 8px;
 }
-#vista-kit .kit__grupo-titulo::after {
-  content: '';
+
+#vista-kit .kit-grupo__nombre {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--tinta);
+  letter-spacing: -0.01em;
+}
+
+#vista-kit .kit-grupo__linea {
   flex: 1;
   height: 1px;
   background: var(--borde);
 }
 
-#vista-kit .kit__lista {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
+#vista-kit .kit-grupo__count {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tinta-tenue);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 5 — GRILLA
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-kit .kit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 5 — ITEM
+   SECCIÓN 6 — ITEM
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-kit .kit__item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-3);
-  padding: 12px 16px;
+#vista-kit .kit-item {
   background: var(--papel-3);
   border: 1px solid var(--borde);
   border-radius: var(--r-md);
-  transition: background var(--t-rapida), opacity var(--t-rapida);
+  overflow: hidden;
+  transition: border-color var(--t-rapida), background var(--t-rapida);
 }
 
-#vista-kit .kit__item--listo {
-  background: color-mix(in oklab, var(--musgo) 6%, var(--papel-3));
-  opacity: .85;
-}
-#vista-kit .kit__item--listo .kit__item-texto {
-  text-decoration: line-through;
-  color: var(--tinta-suave);
+#vista-kit .kit-item.is-listo {
+  background: color-mix(in oklab, var(--musgo) 5%, var(--papel-2));
+  border-color: color-mix(in oklab, var(--musgo) 20%, var(--borde));
 }
 
-#vista-kit .kit__check {
+#vista-kit .kit-item.is-abierto {
+  border-color: var(--accent, var(--musgo));
+  grid-column: 1 / -1;
+}
+
+/* Cabecera. */
+#vista-kit .kit-item__cab {
   display: flex;
-  gap: 12px;
   align-items: center;
+  gap: 10px;
+  padding: 12px;
+  min-height: 52px;
   cursor: pointer;
-  flex: 1;
-  min-width: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
-#vista-kit .kit__check input[type="checkbox"] {
+/* Check. */
+#vista-kit .kit-item__check {
   width: 22px;
   height: 22px;
-  accent-color: var(--terracota);
+  border-radius: 6px;
+  border: 1.5px solid var(--borde-fuerte);
+  background: transparent;
   flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  transition: background var(--t-rapida), border-color var(--t-rapida);
   cursor: pointer;
+  padding: 0;
 }
-
-#vista-kit .kit__item-texto {
-  font-size: 14.5px;
-  color: var(--tinta);
-  line-height: 1.4;
+#vista-kit .kit-item__check svg {
+  width: 12px;
+  height: 12px;
+  color: transparent;
   transition: color var(--t-rapida);
 }
+#vista-kit .kit-item.is-listo .kit-item__check {
+  background: var(--musgo);
+  border-color: var(--musgo);
+}
+#vista-kit .kit-item.is-listo .kit-item__check svg { color: var(--papel); }
 
-#vista-kit .kit__item-acciones {
+/* Cuerpo del nombre. */
+#vista-kit .kit-item__cuerpo-nombre {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#vista-kit .kit-item__nombre {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tinta);
+  line-height: 1.35;
+  word-break: break-word;
+  transition: color var(--t-rapida);
+}
+#vista-kit .kit-item.is-listo .kit-item__nombre {
+  color: var(--tinta-tenue);
+  text-decoration: line-through;
+  text-decoration-color: var(--borde-fuerte);
+  text-decoration-thickness: 1.5px;
+}
+
+#vista-kit .kit-item__preview {
+  font-size: 11.5px;
+  color: var(--tinta-tenue);
+  font-style: italic;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Marca de autor (solo inicial). */
+#vista-kit .autor--ini {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-family: var(--fuente-titulo);
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--papel);
+  flex-shrink: 0;
+}
+#vista-kit .autor--ini.autor--yayo { background: #B8893C; }
+#vista-kit .autor--ini.autor--luci { background: #D89A9A; }
+
+/* Cuerpo expandible. */
+#vista-kit .kit-item__cuerpo {
+  padding: 0 12px 12px;
+  border-top: 1px dashed var(--borde);
+  padding-top: 10px;
+}
+
+#vista-kit .kit-item__nota-completa {
+  font-size: 12.5px;
+  color: var(--tinta-suave);
+  line-height: 1.55;
+  font-style: italic;
+  margin: 0 0 10px;
+  white-space: pre-wrap;
+}
+
+#vista-kit .kit-item__sin-nota {
+  font-size: 12px;
+  color: var(--tinta-tenue);
+  font-style: italic;
+  margin: 0 0 10px;
+}
+
+#vista-kit .kit-item__acciones {
   display: flex;
   gap: 6px;
-  align-items: center;
-  flex-shrink: 0;
+  justify-content: flex-end;
 }
 
 #vista-kit .btn-mini {
-  padding: 5px 10px;
-  font-size: 11px;
+  padding: 6px 12px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--tinta-suave);
   background: transparent;
@@ -246,7 +364,6 @@
   border-radius: 6px;
   cursor: pointer;
   transition: background var(--t-rapida), color var(--t-rapida), border-color var(--t-rapida);
-  white-space: nowrap;
 }
 #vista-kit .btn-mini:hover {
   background: var(--papel-3);
@@ -259,21 +376,17 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 6 — EDICIÓN INLINE
+   SECCIÓN 7 — EDICIÓN INLINE
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-kit .pieza-edit {
+#vista-kit .pieza-edit__cuerpo {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 14px 16px;
-  background: var(--papel-2);
-  border: 1px dashed var(--borde-fuerte);
-  border-radius: var(--r-md);
-  list-style: none;
 }
 #vista-kit .pieza-edit select,
-#vista-kit .pieza-edit input {
+#vista-kit .pieza-edit input,
+#vista-kit .pieza-edit textarea {
   padding: 10px 12px;
   background: var(--papel-3);
   border: 1px solid var(--borde);
@@ -285,49 +398,22 @@
   font-family: var(--fuente-cuerpo);
 }
 #vista-kit .pieza-edit select:focus,
-#vista-kit .pieza-edit input:focus {
+#vista-kit .pieza-edit input:focus,
+#vista-kit .pieza-edit textarea:focus {
   outline: none;
-  border-color: var(--terracota);
+  border-color: var(--accent, var(--musgo));
   background: var(--papel-carta);
+}
+#vista-kit .pieza-edit textarea {
+  min-height: 60px;
+  resize: vertical;
 }
 #vista-kit .pieza-edit__botones {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
+  margin-top: 10px;
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 7 — DISTINTIVO DE AUTOR
-   ═══════════════════════════════════════════════════════════════ */
-
-#vista-kit .autor {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 8px 2px 2px;
-  border-radius: var(--r-full);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-}
-#vista-kit .autor__inicial {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 9px;
-  font-weight: 800;
-  color: var(--papel);
-  font-family: var(--fuente-titulo);
-}
-#vista-kit .autor--luci { background: #F0E2E2; color: #8A5757; }
-#vista-kit .autor--luci .autor__inicial { background: #D89A9A; }
-#vista-kit .autor--yayo { background: #EFE4CC; color: #6B4F1F; }
-#vista-kit .autor--yayo .autor__inicial { background: #B8893C; }
-#vista-kit .autor--desconocido { background: var(--papel-2); color: var(--tinta-suave); }
-#vista-kit .autor--desconocido .autor__inicial { background: var(--tinta-tenue); }
 
 /* ═══════════════════════════════════════════════════════════════
    SECCIÓN 8 — VACÍO

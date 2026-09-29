@@ -1,14 +1,21 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/kit.js
-   Versión: 3.0.0
-   Propósito: vista del kit de campamento. Formulario colapsable
-              para agregar items. Los items se agrupan por
-              categoría con checkbox para marcar listo. Barra de
-              progreso con el total. Edición inline.
-              v3.0.0: rediseño al nuevo lenguaje visual. La vista
-                      ya no emite h1 ni lead (los muestra el
-                      shell). Estructura de clases ajustada.
+   Versión: 4.0.0
+   Propósito: vista del kit de campamento. Progreso grande arriba,
+              items agrupados por categoría en grilla de 2 columnas.
+              Cada item tiene check, nombre, preview de la nota e
+              inicial del autor cuando está listo. Se expande al
+              toque para ver la nota completa y las acciones.
+              v4.0.0: rediseño. La vista deja el layout de lista
+                      agrupada simple y adopta la grilla de 2
+                      columnas con item expandible. Se agrega el
+                      campo notas (preview con ellipsis en la
+                      cabecera, texto completo al expandir). Se
+                      agrega la marca de autor (solo inicial)
+                      cuando el item está listo. Se agrega barra
+                      de progreso grande con contador.
+              v3.0.0: rediseño al nuevo lenguaje visual.
               v1.5.0: edición inline.
               v1.4.0: categoría como select.
               v1.3.0: formulario colapsable.
@@ -18,8 +25,8 @@
    ================================================================ */
 
 import * as repoKit from '../datos/repositorios/kit.js';
+import { CONFIG } from '../config/config.js';
 import { al } from '../nucleo/bus-eventos.js';
-import { distintivoAutor } from '../nucleo/autores.js';
 import { mostrarConfirmacion } from '../nucleo/dialogos.js';
 import { crearLogger } from '../nucleo/logger.js';
 import { h, limpiarContenedor } from '../nucleo/utils.js';
@@ -39,6 +46,8 @@ const CATEGORIAS = [
   'Música',
 ];
 
+const SV_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>';
+
 const registro = {
   contenedor: null,
   abortador: null,
@@ -46,6 +55,7 @@ const registro = {
   items: [],
   formularioAbierto: false,
   editandoId: null,
+  abiertoId: null,
 };
 
 /* ---------- Utilidades ---------------------------------------- */
@@ -59,7 +69,13 @@ function agruparPorCategoria(items) {
   return [...mapa.entries()].sort((a, b) => a[0].localeCompare(b[0]));
 }
 
-/* ---------- Formulario ---------------------------------------- */
+function inicialDeAutor(userId) {
+  if (userId === CONFIG.usuarios.yayo) return { ini: 'Y', clase: 'autor--yayo' };
+  if (userId === CONFIG.usuarios.luci) return { ini: 'L', clase: 'autor--luci' };
+  return null;
+}
+
+/* ---------- Formulario de creación ----------------------------- */
 
 function pintarBloqueRegistro() {
   const cont = h('div', {});
@@ -73,15 +89,23 @@ function pintarBloqueRegistro() {
     return cont;
   }
 
+  const selectCategoria = h('select', { name: 'categoria', required: true },
+    ...CATEGORIAS.map((c) => h('option', { value: c }, c))
+  );
+
   const form = h('form', { class: 'form-inline', 'data-accion': 'crear' },
-    h('select', { name: 'categoria', required: true },
-      ...CATEGORIAS.map((c) => h('option', { value: c }, c))
-    ),
+    selectCategoria,
     h('input', {
       name: 'item',
-      placeholder: 'Item',
+      placeholder: 'Item (Carpa 2p, Papas, Café…)',
       required: true,
       maxlength: 100,
+    }),
+    h('textarea', {
+      name: 'notas',
+      placeholder: 'Notas (opcional). Cantidad, presentación, marca, para qué es…',
+      maxlength: 200,
+      rows: 2,
     }),
     h('div', { class: 'form-inline__fila' },
       h('button', {
@@ -96,7 +120,81 @@ function pintarBloqueRegistro() {
   return cont;
 }
 
-/* ---------- Edición inline ------------------------------------ */
+/* ---------- Item ---------------------------------------------- */
+
+function pintarItem(it) {
+  if (registro.editandoId === it.id) {
+    return pintarItemEnEdicion(it);
+  }
+
+  const abierto = registro.abiertoId === it.id;
+  const autor = inicialDeAutor(it.marcadoPor);
+
+  const item = h('div', {
+    class: 'kit-item' +
+      (it.listo ? ' is-listo' : '') +
+      (abierto ? ' is-abierto' : ''),
+    'data-id': it.id,
+  });
+
+  // Cabecera clickeable.
+  const cab = h('div', { class: 'kit-item__cab' });
+
+  // Check.
+  const check = h('button', {
+    type: 'button',
+    class: 'kit-item__check',
+    'data-accion': 'toggle-listo',
+    'data-id': it.id,
+    'aria-pressed': String(it.listo),
+    'aria-label': it.listo ? 'Marcar como no listo' : 'Marcar como listo',
+  });
+  check.innerHTML = SV_CHECK;
+  cab.append(check);
+
+  // Cuerpo del nombre (nombre + preview de nota).
+  const cuerpoNombre = h('div', { class: 'kit-item__cuerpo-nombre' });
+  cuerpoNombre.append(h('span', { class: 'kit-item__nombre' }, it.item));
+  if (it.notas) {
+    cuerpoNombre.append(h('span', { class: 'kit-item__preview' }, it.notas));
+  }
+  cab.append(cuerpoNombre);
+
+  // Autor (solo si está listo).
+  if (it.listo && autor) {
+    cab.append(h('span', { class: `autor--ini ${autor.clase}` }, autor.ini));
+  }
+
+  item.append(cab);
+
+  // Cuerpo expandible.
+  if (abierto) {
+    const cuerpo = h('div', { class: 'kit-item__cuerpo' });
+
+    if (it.notas) {
+      cuerpo.append(h('p', { class: 'kit-item__nota-completa' }, it.notas));
+    } else {
+      cuerpo.append(h('p', { class: 'kit-item__sin-nota' }, 'Sin nota.'));
+    }
+
+    cuerpo.append(
+      h('div', { class: 'kit-item__acciones' },
+        h('button', {
+          type: 'button', class: 'btn-mini',
+          'data-accion': 'editar', 'data-id': it.id,
+        }, 'Editar'),
+        h('button', {
+          type: 'button', class: 'btn-mini btn-mini--peligro',
+          'data-accion': 'eliminar', 'data-id': it.id,
+        }, 'Eliminar')
+      )
+    );
+
+    item.append(cuerpo);
+  }
+
+  return item;
+}
 
 function pintarItemEnEdicion(it) {
   const categorias = CATEGORIAS.includes(it.categoria)
@@ -119,9 +217,19 @@ function pintarItemEnEdicion(it) {
     maxlength: 100,
   });
 
-  return h('li', { class: 'pieza-edit', 'data-id': it.id },
-    selectCategoria,
-    inputItem,
+  const textareaNotas = h('textarea', {
+    name: 'notas',
+    placeholder: 'Notas (opcional)',
+    maxlength: 200,
+    rows: 2,
+  }, it.notas || '');
+
+  return h('div', { class: 'kit-item is-abierto pieza-edit', 'data-id': it.id },
+    h('div', { class: 'pieza-edit__cuerpo' },
+      selectCategoria,
+      inputItem,
+      textareaNotas
+    ),
     h('div', { class: 'pieza-edit__botones' },
       h('button', {
         type: 'button', class: 'btn btn--secundario',
@@ -135,6 +243,7 @@ function pintarItemEnEdicion(it) {
         onclick: () => guardarEdicion(it.id, {
           categoria: selectCategoria.value,
           item: inputItem.value,
+          notas: textareaNotas.value,
         }),
       }, 'Guardar')
     )
@@ -142,65 +251,24 @@ function pintarItemEnEdicion(it) {
 }
 
 async function guardarEdicion(id, valores) {
+  if (!valores.item.trim()) {
+    pintarError('El nombre del item no puede quedar vacío.');
+    return;
+  }
   const r = await repoKit.actualizar(id, {
     categoria: valores.categoria,
-    item: valores.item,
+    item: valores.item.trim(),
+    notas: (valores.notas || '').trim(),
   });
   if (r.exito) {
     const i = registro.items.findIndex((x) => x.id === id);
     if (i >= 0) registro.items[i] = r.datos;
     registro.editandoId = null;
+    registro.abiertoId = id;
     pintar();
   } else {
     pintarError(r.error);
   }
-}
-
-/* ---------- Item de lista ------------------------------------- */
-
-function pintarItem(it) {
-  if (registro.editandoId === it.id) {
-    return pintarItemEnEdicion(it);
-  }
-
-  const li = h('li', {
-    class: 'kit__item' + (it.listo ? ' kit__item--listo' : ''),
-    'data-id': it.id,
-  });
-
-  li.append(
-    h('label', { class: 'kit__check' },
-      h('input', {
-        type: 'checkbox',
-        'data-accion': 'toggle',
-        'data-id': it.id,
-        checked: it.listo ? '' : null,
-      }),
-      h('span', { class: 'kit__item-texto' }, it.item)
-    )
-  );
-
-  const acciones = h('div', { class: 'kit__item-acciones' });
-  if (it.listo && it.marcadoPor) {
-    acciones.append(distintivoAutor(it.marcadoPor));
-  }
-  acciones.append(
-    h('button', {
-      type: 'button',
-      class: 'btn-mini',
-      'data-accion': 'editar',
-      'data-id': it.id,
-    }, 'Editar'),
-    h('button', {
-      type: 'button',
-      class: 'btn-mini btn-mini--peligro',
-      'data-accion': 'eliminar',
-      'data-id': it.id,
-    }, 'Eliminar')
-  );
-  li.append(acciones);
-
-  return li;
 }
 
 /* ---------- Pintar -------------------------------------------- */
@@ -212,39 +280,48 @@ function pintar() {
 
   const raiz = h('section', { id: 'vista-kit', class: 'vista vista--kit' });
 
+  raiz.append(pintarBloqueRegistro());
+
   const totales = registro.items.length;
   const listos = registro.items.filter((x) => x.listo).length;
 
-  // Barra de progreso (solo si hay items).
+  // Progreso (solo si hay items).
   if (totales > 0) {
-    raiz.append(h('div', { class: 'kit__progreso' },
-      h('span', { class: 'kit__progreso-texto' },
-        `${listos} de ${totales} listos`),
-      h('div', { class: 'kit__barra' },
-        h('i', { style: `width: ${Math.round((listos / totales) * 100)}%` })
-      )
+    const pct = Math.round((listos / totales) * 100);
+    const barra = h('div', { class: 'kit-progreso__barra' });
+    barra.append(h('i', { style: `width: ${pct}%` }));
+
+    raiz.append(h('div', { class: 'kit-progreso' },
+      h('div', { class: 'kit-progreso__cab' },
+        h('div', { class: 'kit-progreso__num' },
+          String(listos),
+          h('small', {}, ` / ${totales}`)
+        ),
+        h('span', { class: 'kit-progreso__txt' }, 'listos para el viaje')
+      ),
+      barra
     ));
   }
-
-  raiz.append(pintarBloqueRegistro());
 
   if (totales === 0) {
     raiz.append(h('p', { class: 'vista__vacio' }, 'El kit está vacío. Añade el primer item.'));
   } else {
     const grupos = agruparPorCategoria(registro.items);
-    const contenedorGrupos = h('div', { class: 'kit__grupos' });
-
     for (const [categoria, items] of grupos) {
-      const seccion = h('section', { class: 'kit__grupo' });
-      seccion.append(h('h2', { class: 'kit__grupo-titulo' }, categoria));
-      const ul = h('ul', { class: 'kit__lista' });
+      const listosGrupo = items.filter((x) => x.listo).length;
+      const seccion = h('section', { class: 'kit-grupo' });
+      seccion.append(h('div', { class: 'kit-grupo__cab' },
+        h('span', { class: 'kit-grupo__nombre' }, categoria),
+        h('span', { class: 'kit-grupo__linea' }),
+        h('span', { class: 'kit-grupo__count' }, `${listosGrupo}/${items.length}`)
+      ));
+      const grid = h('div', { class: 'kit-grid' });
       for (const it of items) {
-        ul.append(pintarItem(it));
+        grid.append(pintarItem(it));
       }
-      seccion.append(ul);
-      contenedorGrupos.append(seccion);
+      seccion.append(grid);
+      raiz.append(seccion);
     }
-    raiz.append(contenedorGrupos);
   }
 
   cont.append(raiz);
@@ -286,6 +363,7 @@ async function manejarSubmit(ev) {
   const r = await repoKit.crear({
     categoria: fd.get('categoria'),
     item: fd.get('item'),
+    notas: fd.get('notas'),
   });
   if (r.exito) {
     registro.items = [...registro.items, r.datos];
@@ -298,57 +376,75 @@ async function manejarSubmit(ev) {
   }
 }
 
-/* ---------- Change -------------------------------------------- */
-
-async function manejarChange(ev) {
-  const check = ev.target.closest('input[data-accion="toggle"]');
-  if (!check) return;
-  const id = check.dataset.id;
-  const r = await repoKit.marcar(id, check.checked);
-  if (r.exito) {
-    const i = registro.items.findIndex((x) => x.id === id);
-    if (i >= 0) registro.items[i] = r.datos;
-    pintar();
-  } else {
-    pintarError(r.error);
-  }
-}
-
 /* ---------- Click --------------------------------------------- */
 
 async function manejarClick(ev) {
-  const boton = ev.target.closest('button[data-accion]');
-  if (!boton) return;
-  const accion = boton.dataset.accion;
-  const id = boton.dataset.id;
+  const btn = ev.target.closest('button[data-accion]');
+  if (btn) {
+    const accion = btn.dataset.accion;
+    const id = btn.dataset.id;
 
-  if (accion === 'abrir-formulario') {
-    registro.formularioAbierto = true;
-    pintar();
-    setTimeout(() => {
-      const input = registro.contenedor.querySelector('input[name="item"]');
-      if (input) input.focus();
-    }, 60);
-  } else if (accion === 'cerrar-formulario') {
-    registro.formularioAbierto = false;
-    pintar();
-  } else if (accion === 'editar') {
-    registro.editandoId = id;
-    pintar();
-  } else if (accion === 'eliminar') {
-    const ok = await mostrarConfirmacion(
-      'Eliminar item del kit',
-      '¿Seguro que quieres eliminar este item?',
-      { textoConfirmar: 'Eliminar' }
-    );
-    if (!ok) return;
-    const r = await repoKit.eliminar(id);
-    if (r.exito) {
-      registro.items = registro.items.filter((x) => x.id !== id);
+    if (accion === 'abrir-formulario') {
+      registro.formularioAbierto = true;
+      registro.abiertoId = null;
       pintar();
-    } else {
-      pintarError(r.error);
+      setTimeout(() => {
+        const input = registro.contenedor.querySelector('input[name="item"]');
+        if (input) input.focus();
+      }, 60);
+      return;
     }
+    if (accion === 'cerrar-formulario') {
+      registro.formularioAbierto = false;
+      pintar();
+      return;
+    }
+    if (accion === 'toggle-listo') {
+      const it = registro.items.find((x) => x.id === id);
+      if (!it) return;
+      const r = await repoKit.marcar(id, !it.listo);
+      if (r.exito) {
+        const i = registro.items.findIndex((x) => x.id === id);
+        if (i >= 0) registro.items[i] = r.datos;
+        pintar();
+      } else {
+        pintarError(r.error);
+      }
+      return;
+    }
+    if (accion === 'editar') {
+      registro.editandoId = id;
+      registro.abiertoId = null;
+      pintar();
+      return;
+    }
+    if (accion === 'eliminar') {
+      const ok = await mostrarConfirmacion(
+        'Eliminar item del kit',
+        '¿Seguro que quieres eliminar este item?',
+        { textoConfirmar: 'Eliminar' }
+      );
+      if (!ok) return;
+      const r = await repoKit.eliminar(id);
+      if (r.exito) {
+        registro.items = registro.items.filter((x) => x.id !== id);
+        if (registro.abiertoId === id) registro.abiertoId = null;
+        pintar();
+      } else {
+        pintarError(r.error);
+      }
+      return;
+    }
+  }
+
+  // Si no fue un botón, ver si fue la cabecera para expandir.
+  const cab = ev.target.closest('.kit-item__cab');
+  if (cab) {
+    const itemEl = cab.closest('.kit-item');
+    const id = itemEl.dataset.id;
+    registro.abiertoId = registro.abiertoId === id ? null : id;
+    registro.editandoId = null;
+    pintar();
   }
 }
 
@@ -359,10 +455,10 @@ export async function activar(contenedor) {
   registro.abortador = new AbortController();
   registro.formularioAbierto = false;
   registro.editandoId = null;
+  registro.abiertoId = null;
 
   const { signal } = registro.abortador;
   contenedor.addEventListener('submit', manejarSubmit, { signal });
-  contenedor.addEventListener('change', manejarChange, { signal });
   contenedor.addEventListener('click', manejarClick, { signal });
 
   registro.desuscribir = [
@@ -384,5 +480,6 @@ export function limpiar() {
   registro.items = [];
   registro.formularioAbierto = false;
   registro.editandoId = null;
+  registro.abiertoId = null;
   registro.contenedor = null;
 }

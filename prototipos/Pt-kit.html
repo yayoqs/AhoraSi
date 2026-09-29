@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ahora Sí — Prototipo Kit</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --papel: #F7F1E8;
+  --papel-2: #EFE7DA;
+  --papel-3: #FCF8F0;
+  --borde: #E2D7C5;
+  --borde-fuerte: #D2C4AC;
+  --tinta: #1F1B16;
+  --tinta-suave: #6B6155;
+  --tinta-tenue: #A89B87;
+  --terracota: #C9613B;
+  --mostaza: #D9A421;
+  --musgo: #5A6B3E;
+  --musgo-papel: #E4E9D8;
+  --rojo: #A03737;
+  --luci: #D89A9A;
+  --luci-papel: #F0E2E2;
+  --luci-tinta: #8A5757;
+  --yayo: #B8893C;
+  --yayo-papel: #EFE4CC;
+  --yayo-tinta: #6B4F1F;
+  --accent: var(--musgo);
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-full: 999px;
+  --sombra-1: 0 1px 2px rgba(31,27,22,.06);
+  --sombra-2: 0 12px 28px rgba(31,27,22,.10);
+  --fuente-titulo: 'Bricolage Grotesque', system-ui, sans-serif;
+  --fuente-cuerpo: 'Figtree', system-ui, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+h1,h2,h3,h4,p,ul,ol,li { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+button { background: none; border: none; cursor: pointer; font: inherit; color: inherit; }
+
+body {
+  font-family: var(--fuente-cuerpo);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--tinta);
+  background: radial-gradient(ellipse at top, #2C2620 0%, #13100D 100%);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  -webkit-font-smoothing: antialiased;
+}
+@media (max-width: 520px) { body { padding: 0; display: block; } }
+
+.nota-prototipo {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 100;
+  padding: 10px 14px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--r-md);
+  backdrop-filter: blur(12px);
+  font-size: 11px;
+  color: rgba(255,255,255,.7);
+  line-height: 1.55;
+  max-width: 260px;
+}
+.nota-prototipo b { color: #fff; font-weight: 600; }
+@media (max-width: 720px) { .nota-prototipo { display: none; } }
+
+.phone {
+  width: 390px;
+  height: 844px;
+  max-height: calc(100vh - 48px);
+  background: var(--papel);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 0 0 10px #0E0B08,
+    0 0 0 12px #2A2318,
+    0 30px 80px rgba(0,0,0,.55);
+}
+@media (max-width: 520px) {
+  .phone { width: 100%; height: 100dvh; max-height: none; border-radius: 0; box-shadow: none; }
+}
+
+.screen-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--papel);
+  display: flex;
+  flex-direction: column;
+}
+.screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+.topbar {
+  flex-shrink: 0;
+  padding: 16px 20px 14px;
+  background: var(--papel);
+}
+.topbar__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.topbar__eyebrow {
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.topbar__title {
+  font-family: var(--fuente-titulo);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--accent);
+}
+.topbar__btn {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  color: var(--tinta-suave);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.topbar__btn svg { width: 20px; height: 20px; }
+
+.chips-grupo {
+  display: flex;
+  gap: 6px;
+  padding: 0 20px 14px;
+  background: var(--papel);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.chips-grupo::-webkit-scrollbar { display: none; }
+.chip-grupo {
+  padding: 6px 14px;
+  border-radius: var(--r-full);
+  border: 1.5px solid var(--borde);
+  background: transparent;
+  color: var(--tinta-suave);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.chip-grupo.activo {
+  background: var(--tinta);
+  border-color: var(--tinta);
+  color: var(--papel);
+}
+
+.screen__body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 22px 20px 120px;
+}
+.screen__body::-webkit-scrollbar { width: 0; }
+
+.btn-agregar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px 24px;
+  border-radius: var(--r-md);
+  background: var(--accent);
+  color: var(--papel);
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 18px;
+}
+
+/* ============================================================
+   PROGRESO GRANDE
+   ============================================================ */
+.kit-progreso {
+  padding: 18px 20px;
+  background: var(--musgo-papel);
+  border: 1px solid color-mix(in oklab, var(--musgo) 25%, var(--borde));
+  border-radius: var(--r-lg);
+  margin-bottom: 22px;
+}
+.kit-progreso__cab {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.kit-progreso__num {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 32px;
+  letter-spacing: -0.04em;
+  color: var(--musgo);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.kit-progreso__num small {
+  font-size: 16px;
+  font-weight: 700;
+  opacity: .55;
+  letter-spacing: -0.02em;
+}
+.kit-progreso__txt {
+  font-size: 12px;
+  color: color-mix(in oklab, var(--musgo) 70%, var(--tinta));
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+.kit-progreso__barra {
+  height: 8px;
+  background: rgba(255,255,255,.55);
+  border-radius: var(--r-full);
+  overflow: hidden;
+}
+.kit-progreso__barra i {
+  display: block;
+  height: 100%;
+  background: var(--musgo);
+  border-radius: var(--r-full);
+  transition: width .4s cubic-bezier(.25,.9,.35,1);
+}
+
+/* ============================================================
+   GRUPOS
+   ============================================================ */
+.kit-grupo { margin-bottom: 22px; }
+.kit-grupo__cab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.kit-grupo__nombre {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--tinta);
+  letter-spacing: -0.01em;
+}
+.kit-grupo__linea {
+  flex: 1;
+  height: 1px;
+  background: var(--borde);
+}
+.kit-grupo__count {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tinta-tenue);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   ETIQUETA DE CASO
+   ============================================================ */
+.caso-label {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  background: color-mix(in oklab, var(--terracota) 12%, var(--papel-2));
+  color: var(--terracota);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+/* ============================================================
+   GRID DE KIT
+   ============================================================ */
+.kit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.kit-item {
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  transition: border-color .15s ease, background .15s ease;
+}
+.kit-item.is-listo {
+  background: color-mix(in oklab, var(--musgo) 5%, var(--papel-2));
+  border-color: color-mix(in oklab, var(--musgo) 20%, var(--borde));
+}
+.kit-item.is-abierto {
+  border-color: var(--musgo);
+  grid-column: 1 / -1;
+}
+
+.kit-item__cab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  min-height: 52px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.kit-item__check {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1.5px solid var(--borde-fuerte);
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  transition: background .2s ease, border-color .2s ease;
+}
+.kit-item__check svg {
+  width: 12px; height: 12px;
+  color: transparent;
+  transition: color .15s ease;
+}
+.kit-item.is-listo .kit-item__check {
+  background: var(--musgo);
+  border-color: var(--musgo);
+}
+.kit-item.is-listo .kit-item__check svg { color: var(--papel); }
+
+.kit-item__cuerpo-nombre {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.kit-item__nombre {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tinta);
+  line-height: 1.35;
+  word-break: break-word;
+  transition: color .2s ease;
+}
+.kit-item.is-listo .kit-item__nombre {
+  color: var(--tinta-tenue);
+  text-decoration: line-through;
+  text-decoration-color: var(--borde-fuerte);
+  text-decoration-thickness: 1.5px;
+}
+
+/* Preview de la nota (una línea con ellipsis). */
+.kit-item__preview {
+  font-size: 11.5px;
+  color: var(--tinta-tenue);
+  font-style: italic;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Chip "nota". */
+.kit-item__chip-nota {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: var(--r-full);
+  background: color-mix(in oklab, var(--mostaza) 20%, var(--papel-2));
+  color: #8A6D0F;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  align-self: flex-start;
+  margin-top: 1px;
+}
+
+/* Indicadores de autor: 3 estilos. */
+/* Estilo 1: solo la inicial. */
+.autor--ini {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-family: var(--fuente-titulo);
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--papel);
+  flex-shrink: 0;
+}
+.autor--ini.autor--yayo { background: var(--yayo); }
+.autor--ini.autor--luci { background: var(--luci); }
+
+/* Estilo 2: inicial + nombre. */
+.autor--nombre {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px 1px 1px;
+  border-radius: var(--r-full);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.autor--nombre .autor__ini {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--fuente-titulo);
+  font-size: 8.5px;
+  font-weight: 800;
+  color: var(--papel);
+}
+.autor--nombre.autor--yayo { background: var(--yayo-papel); color: var(--yayo-tinta); }
+.autor--nombre.autor--yayo .autor__ini { background: var(--yayo); }
+.autor--nombre.autor--luci { background: var(--luci-papel); color: var(--luci-tinta); }
+.autor--nombre.autor--luci .autor__ini { background: var(--luci); }
+
+/* Estilo 3: punto + inicial. */
+.autor--punto {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--fuente-titulo);
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.autor--punto .autor__punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.autor--punto.autor--yayo { color: var(--yayo-tinta); }
+.autor--punto.autor--yayo .autor__punto { background: var(--yayo); }
+.autor--punto.autor--luci { color: var(--luci-tinta); }
+.autor--punto.autor--luci .autor__punto { background: var(--luci); }
+
+/* Cuerpo del item (expandido). */
+.kit-item__cuerpo {
+  display: none;
+  padding: 0 12px 12px 12px;
+  border-top: 1px dashed var(--borde);
+}
+.kit-item.is-abierto .kit-item__cuerpo {
+  display: block;
+  padding-top: 10px;
+}
+
+.kit-item__nota-completa {
+  font-size: 12.5px;
+  color: var(--tinta-suave);
+  line-height: 1.55;
+  font-style: italic;
+  margin-bottom: 10px;
+  white-space: pre-wrap;
+}
+.kit-item__sin-nota {
+  font-size: 12px;
+  color: var(--tinta-tenue);
+  font-style: italic;
+  margin-bottom: 10px;
+}
+
+.kit-item__acciones {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.btn-mini {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  background: transparent;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  transition: all .15s ease;
+}
+.btn-mini:hover { background: var(--papel-3); color: var(--tinta); }
+.btn-mini--peligro:hover {
+  background: #FBE9E9;
+  color: var(--rojo);
+  border-color: #E3B6B6;
+}
+
+/* Tabbar */
+.tabbar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 78px;
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  background: rgba(247, 241, 232, .94);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--borde);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 50;
+}
+.tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--tinta-tenue);
+  opacity: .55;
+  padding: 4px;
+}
+.tabbar__item svg { width: 22px; height: 22px; }
+.tabbar__label { font-size: 10px; font-weight: 600; }
+.tabbar__item.activo { color: var(--accent); opacity: 1; }
+.tabbar__item.activo .tabbar__label { font-weight: 700; }
+</style>
+</head>
+<body>
+
+<aside class="nota-prototipo">
+  <b>Casos a comparar</b><br>
+  <br>
+  <b>Preview de nota:</b><br>
+  1. Sin preview<br>
+  2. Preview con ellipsis<br>
+  3. Chip "nota"<br>
+  <br>
+  <b>Indicador de autor:</b><br>
+  1. Solo inicial<br>
+  2. Inicial + nombre<br>
+  3. Punto + inicial<br>
+  <br>
+  Toca cada item para expandir.
+</aside>
+
+<div class="phone">
+  <main class="screen-area">
+    <section class="screen">
+
+      <header class="topbar">
+        <div class="topbar__row">
+          <div>
+            <p class="topbar__eyebrow">Afuera</p>
+            <h1 class="topbar__title">Kit</h1>
+          </div>
+          <button class="topbar__btn" aria-label="Opciones">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="5" cy="12" r="1.6"/>
+              <circle cx="12" cy="12" r="1.6"/>
+              <circle cx="19" cy="12" r="1.6"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <nav class="chips-grupo">
+        <button class="chip-grupo">Mapa</button>
+        <button class="chip-grupo activo">Kit</button>
+        <button class="chip-grupo">Fauna</button>
+        <button class="chip-grupo">Flora</button>
+      </nav>
+
+      <div class="screen__body">
+
+        <button class="btn-agregar">+ Añadir item</button>
+
+        <div class="kit-progreso">
+          <div class="kit-progreso__cab">
+            <div class="kit-progreso__num">4<small> / 8</small></div>
+            <span class="kit-progreso__txt">listos para el viaje</span>
+          </div>
+          <div class="kit-progreso__barra"><i style="width: 50%"></i></div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════
+             GRUPO DORMIR
+             ══════════════════════════════════════════════ -->
+        <div class="kit-grupo">
+          <div class="kit-grupo__cab">
+            <span class="kit-grupo__nombre">Dormir</span>
+            <span class="kit-grupo__linea"></span>
+            <span class="kit-grupo__count">2/3</span>
+          </div>
+
+          <div class="kit-grid">
+
+            <!-- Caso 1: listo, autor estilo 1 (solo inicial), sin nota -->
+            <div class="kit-item is-listo" data-caso="Listo · autor inicial · sin nota">
+              <div class="kit-item__cab">
+                <span class="kit-item__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <div class="kit-item__cuerpo-nombre">
+                  <span class="kit-item__nombre">Carpa 2p</span>
+                </div>
+                <span class="autor--ini autor--yayo">Y</span>
+              </div>
+              <div class="kit-item__cuerpo">
+                <p class="kit-item__sin-nota">Sin nota.</p>
+                <div class="kit-item__acciones">
+                  <button class="btn-mini">Editar</button>
+                  <button class="btn-mini btn-mini--peligro">Eliminar</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Caso 2: listo, autor estilo 2 (inicial + nombre), sin nota -->
+            <div class="kit-item is-listo" data-caso="Listo · autor nombre · sin nota">
+              <div class="kit-item__cab">
+                <span class="kit-item__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <div class="kit-item__cuerpo-nombre">
+                  <span class="kit-item__nombre">Sacos de dormir</span>
+                </div>
+                <span class="autor--nombre autor--luci"><span class="autor__ini">L</span>Luci</span>
+              </div>
+              <div class="kit-item__cuerpo">
+                <p class="kit-item__sin-nota">Sin nota.</p>
+                <div class="kit-item__acciones">
+                  <button class="btn-mini">Editar</button>
+                  <button class="btn-mini btn-mini--peligro">Eliminar</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Caso 3: pendiente, sin nota -->
+            <div class="kit-item" data-caso="Pendiente · sin nota">
+              <div class="kit-item__cab">
+                <span class="kit-item__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <div class="kit-item__cuerpo-nombre">
+                  <span class="kit-item__nombre">Aislantes</span>
+                </div>
+              </div>
+              <div class="kit-item__cuerpo">
+                <p class="kit-item__sin-nota">Sin nota.</p>
+                <div class="kit-item__acciones">
+                  <button class="btn-mini">Editar</button>
+                  <button class="btn-mini btn-mini--peligro">Eliminar</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════
+             GRUPO COMER
+             ══════════════════════════════════════════════ -->
+        <div class="kit-grupo">
+          <div class="kit-grupo__cab">
+            <span class="kit-grupo__nombre">Comer</span>
+            <span class="kit-grupo__linea"></span>
+            <span class="kit-grupo__count">1/3</span>
+          </div>
+
+          <div class="kit-grid">
+
+            <!-- Caso 4: pendiente, preview con ellipsis -->
+            <div class="kit-item" data-caso="Pendiente · preview ellipsis">
+              <div class="kit-item__cab">
+                <span class="kit-item__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <div class="kit-item__cuerpo-nombre">
+                  <span class="kit-item__nombre">Papas</span>
+                  <span class="kit-item__preview">2 kg, cocidas o molidas…</span>
+                </div>
+              </div>
+              <div class="kit-item__cuerpo">
+                <p class="kit-item__nota-completa">2 kg, cocidas o molidas. Comprar en la feria el mismo día.</p>
+                <div class="kit-item__acciones">
+                  <button class="btn-mini">Editar</button>
+                  <button class="btn-mini btn-mini--peligro">Eliminar</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Caso 5: pendiente, chip "nota" -->
+            <div class="kit-item" data-caso="Pendiente · chip nota">
+              <div class="kit-item__cab">
+                <span class="kit-item__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <div class="kit-item__cuerpo-nombre">
+                  <span class="kit-item__nombre">Fósforos</span>
+                  <span class="kit-item__chip-nota">nota</span>
+                </div>
+              </div>
+              <div class="kit-item__cuerpo">
+                <p class="kit-item__nota-completa">Los verdes del supermercado, no los de la feria.</p>
+                <div class="kit-item__acciones">
+                  <button class="btn-mini">Editar</button>
+                  <button class="btn-mini btn-mini--peligro">Eliminar</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Caso 6: pendiente, nota muy larga, preview con ellipsis -->
+            <div class="kit-item" data-caso="Pendiente · nota larga">
+              <div class="kit-item__cab">
+                <span class="kit-item__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <div class="kit-item__cuerpo-nombre">
+                  <span class="kit-item__nombre">Pan</span>
+                  <span class="kit-item__preview">Marraqueta, del día anterior…</span>
+                </div>
+              </div>
+              <div class="kit-item__cuerpo">
+                <p class="kit-item__nota-completa">Marraqueta, del día anterior si se puede. Comprar dos, una para el desayuno y otra para el almuerzo. Si no hay, hallulla.</p>
+                <div class="kit-item__acciones">
+                  <button class="btn-mini">Editar</button>
+                  <button class="btn-mini btn-mini--peligro">Eliminar</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════
+             GRUPO COCINA
+             ══════════════════════════════════════════════ -->
+        <div class="kit-grupo">
+          <div class="kit-grupo__cab">
+            <span class="kit-grupo__nombre">Cocina</span>
+            <span class="kit-grupo__linea"></span>
+            <span class="kit-grupo__count">1/2</span>
+          </div>
+
+          <div class="kit-grid">
+
+            <!-- Caso 7: listo, autor estilo 3 (punto + inicial), con nota corta -->
+            <div class="kit-item is-listo" data-caso="Listo · autor punto · nota corta">
+              <div class="kit-item__cab">
+                <span class="kit-item__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <div class="kit-item__cuerpo-nombre">
+                  <span class="kit-item__nombre">Café</span>
+                  <span class="kit-item__preview">De grano, para la prensa.</span>
+                </div>
+                <span class="autor--punto autor--yayo">
+                  <span class="autor__punto"></span>Y
+                </span>
+              </div>
+              <div class="kit-item__cuerpo">
+                <p class="kit-item__nota-completa">De grano, para la prensa. Ya está molido en casa.</p>
+                <div class="kit-item__acciones">
+                  <button class="btn-mini">Editar</button>
+                  <button class="btn-mini btn-mini--peligro">Eliminar</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Caso 8: pendiente, sin nada -->
+            <div class="kit-item" data-caso="Pendiente · sin nota">
+              <div class="kit-item__cab">
+                <span class="kit-item__check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+                </span>
+                <div class="kit-item__cuerpo-nombre">
+                  <span class="kit-item__nombre">Sal</span>
+                </div>
+              </div>
+              <div class="kit-item__cuerpo">
+                <p class="kit-item__sin-nota">Sin nota.</p>
+                <div class="kit-item__acciones">
+                  <button class="btn-mini">Editar</button>
+                  <button class="btn-mini btn-mini--peligro">Eliminar</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button class="tabbar__item" data-tab="nido">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+      </svg>
+      <span class="tabbar__label">Nido</span>
+    </button>
+    <button class="tabbar__item" data-tab="vida">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/>
+        <path d="M4 17a3 3 0 0 1 3-3h11"/>
+      </svg>
+      <span class="tabbar__label">Vida</span>
+    </button>
+    <button class="tabbar__item activo" data-tab="afuera">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 20h18L14 8l-3 5-2-3-6 10z"/>
+      </svg>
+      <span class="tabbar__label">Afuera</span>
+    </button>
+    <button class="tabbar__item" data-tab="juegos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+        <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/>
+      </svg>
+      <span class="tabbar__label">Juegos</span>
+    </button>
+    <button class="tabbar__item" data-tab="mas">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="5" cy="12" r="1.6"/>
+        <circle cx="12" cy="12" r="1.6"/>
+        <circle cx="19" cy="12" r="1.6"/>
+      </svg>
+      <span class="tabbar__label">Más</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  document.querySelectorAll('.kit-item__cab').forEach((cab) => {
+    cab.addEventListener('click', (ev) => {
+      const check = ev.target.closest('.kit-item__check');
+      const item = cab.closest('.kit-item');
+      if (check) {
+        item.classList.toggle('is-listo');
+        return;
+      }
+      item.classList.toggle('is-abierto');
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

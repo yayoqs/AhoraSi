@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ahora Sí — Prototipo Hitos 2</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --papel: #F7F1E8;
+  --papel-2: #EFE7DA;
+  --papel-3: #FCF8F0;
+  --borde: #E2D7C5;
+  --borde-fuerte: #D2C4AC;
+  --tinta: #1F1B16;
+  --tinta-suave: #6B6155;
+  --tinta-tenue: #A89B87;
+  --terracota: #C9613B;
+  --terracota-clara: #E8A17A;
+  --mostaza: #D9A421;
+  --musgo: #5A6B3E;
+  --azul-piedra: #4A6785;
+  --ciruela: #7A3E5C;
+  --gris-tipo: #8892A6;
+  --accent: var(--mostaza);
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-full: 999px;
+  --sombra-1: 0 1px 2px rgba(31,27,22,.06);
+  --fuente-titulo: 'Bricolage Grotesque', system-ui, sans-serif;
+  --fuente-cuerpo: 'Figtree', system-ui, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+h1,h2,h3,h4,p,ul,ol,li { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+button { background: none; border: none; cursor: pointer; font: inherit; color: inherit; }
+
+body {
+  font-family: var(--fuente-cuerpo);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--tinta);
+  background: radial-gradient(ellipse at top, #2C2620 0%, #13100D 100%);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  -webkit-font-smoothing: antialiased;
+}
+@media (max-width: 520px) { body { padding: 0; display: block; } }
+
+.proto-nav {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.proto-nav__label {
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+  font-weight: 600;
+}
+.proto-nav__links {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--r-full);
+  backdrop-filter: blur(12px);
+}
+.proto-nav__links button {
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,.5);
+  border-radius: var(--r-full);
+  transition: all .2s ease;
+}
+.proto-nav__links button:hover { color: rgba(255,255,255,.85); }
+.proto-nav__links button.is-active {
+  background: rgba(255,255,255,.14);
+  color: #fff;
+}
+@media (max-width: 720px) { .proto-nav { display: none; } }
+
+.phone {
+  width: 390px;
+  height: 844px;
+  max-height: calc(100vh - 48px);
+  background: var(--papel);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 0 0 10px #0E0B08,
+    0 0 0 12px #2A2318,
+    0 30px 80px rgba(0,0,0,.55);
+}
+@media (max-width: 520px) {
+  .phone { width: 100%; height: 100dvh; max-height: none; border-radius: 0; box-shadow: none; }
+}
+
+.screen-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--papel);
+  display: flex;
+  flex-direction: column;
+}
+.screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+.topbar {
+  flex-shrink: 0;
+  padding: 16px 20px 14px;
+  background: var(--papel);
+}
+.topbar__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.topbar__eyebrow {
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.topbar__title {
+  font-family: var(--fuente-titulo);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--accent);
+}
+.topbar__btn {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  color: var(--tinta-suave);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.topbar__btn svg { width: 20px; height: 20px; }
+
+.chips-grupo {
+  display: flex;
+  gap: 6px;
+  padding: 0 20px 14px;
+  background: var(--papel);
+}
+.chip-grupo {
+  padding: 6px 14px;
+  border-radius: var(--r-full);
+  border: 1.5px solid var(--borde);
+  background: transparent;
+  color: var(--tinta-suave);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.chip-grupo.activo {
+  background: var(--tinta);
+  border-color: var(--tinta);
+  color: var(--papel);
+}
+
+.screen__body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 22px 20px 120px;
+}
+.screen__body::-webkit-scrollbar { width: 0; }
+
+.btn-agregar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px 24px;
+  border-radius: var(--r-md);
+  background: var(--accent);
+  color: var(--papel);
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 20px;
+}
+
+.btn-mini {
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  background: transparent;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  transition: all .15s ease;
+  white-space: nowrap;
+}
+.btn-mini:hover { background: var(--papel-3); color: var(--tinta); }
+.btn-mini--peligro:hover {
+  background: #FBE9E9;
+  color: #A03737;
+  border-color: #E3B6B6;
+}
+
+/* ============================================================
+   COMPARTIDO — Timeline base
+   ============================================================ */
+.timeline {
+  position: relative;
+  padding-left: 58px;
+  margin-top: 8px;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 38px;
+  width: 1px;
+  background: var(--borde);
+}
+.hito {
+  position: relative;
+  padding-bottom: 22px;
+}
+.hito:last-child { padding-bottom: 0; }
+
+.hito__fecha-mini {
+  font-size: 11px;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.hito__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  color: var(--tinta);
+  line-height: 1.3;
+}
+.hito__acciones {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+.hito:hover .hito__acciones,
+.hito:focus-within .hito__acciones {
+  opacity: 1;
+}
+@media (hover: none) {
+  .hito__acciones { opacity: 1; }
+}
+
+/* ============================================================
+   VARIANTE C1 — Sobria: año gris, punto color
+   ============================================================ */
+.vC1 .hito__anio {
+  position: absolute;
+  left: -58px;
+  top: 0;
+  width: 30px;
+  text-align: right;
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: -0.01em;
+  color: var(--tinta-tenue);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  padding-top: 3px;
+}
+.vC1 .hito__marca {
+  position: absolute;
+  left: -25px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--borde);
+}
+.vC1 .hito--encuentro .hito__marca { background: var(--musgo); }
+.vC1 .hito--salida .hito__marca { background: var(--terracota); }
+.vC1 .hito--distancia .hito__marca { background: var(--gris-tipo); }
+.vC1 .hito--paso .hito__marca { background: var(--mostaza); }
+.vC1 .hito--otro .hito__marca { background: var(--azul-piedra); }
+
+/* ============================================================
+   VARIANTE C2 — Año color cuando cambia
+   ============================================================ */
+.vC2 .hito__anio {
+  position: absolute;
+  left: -58px;
+  top: 0;
+  width: 32px;
+  text-align: right;
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  padding-top: 1px;
+}
+.vC2 .hito--encuentro .hito__anio { color: var(--musgo); }
+.vC2 .hito--salida .hito__anio { color: var(--terracota); }
+.vC2 .hito--distancia .hito__anio { color: var(--gris-tipo); }
+.vC2 .hito--paso .hito__anio { color: var(--mostaza); }
+.vC2 .hito--otro .hito__anio { color: var(--azul-piedra); }
+
+.vC2 .hito__marca {
+  position: absolute;
+  left: -25px;
+  top: 4px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--borde);
+}
+.vC2 .hito--encuentro .hito__marca { background: var(--musgo); }
+.vC2 .hito--salida .hito__marca { background: var(--terracota); }
+.vC2 .hito--distancia .hito__marca { background: var(--gris-tipo); }
+.vC2 .hito--paso .hito__marca { background: var(--mostaza); }
+.vC2 .hito--otro .hito__marca { background: var(--azul-piedra); }
+
+/* ============================================================
+   VARIANTE C3 — Barra lateral, sin punto
+   ============================================================ */
+.vC3 .timeline {
+  padding-left: 24px;
+}
+.vC3 .timeline::before { display: none; }
+.vC3 .hito {
+  padding: 0 0 12px 14px;
+  border-left: 3px solid var(--borde);
+  padding-bottom: 22px;
+}
+.vC3 .hito--encuentro { border-left-color: var(--musgo); }
+.vC3 .hito--salida { border-left-color: var(--terracota); }
+.vC3 .hito--distancia { border-left-color: var(--gris-tipo); }
+.vC3 .hito--paso { border-left-color: var(--mostaza); }
+.vC3 .hito--otro { border-left-color: var(--azul-piedra); }
+
+.vC3 .hito__anio {
+  display: inline-block;
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: -0.01em;
+  color: var(--tinta-tenue);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  margin-bottom: 6px;
+  padding: 3px 8px;
+  border-radius: var(--r-full);
+  background: var(--papel-2);
+}
+.vC3 .hito__fecha-mini { margin-bottom: 4px; }
+
+/* Tabbar */
+.tabbar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 78px;
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  background: rgba(247, 241, 232, .94);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--borde);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 50;
+}
+.tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--tinta-tenue);
+  opacity: .55;
+  padding: 4px;
+}
+.tabbar__item svg { width: 22px; height: 22px; }
+.tabbar__label { font-size: 10px; font-weight: 600; }
+.tabbar__item.activo { color: var(--accent); opacity: 1; }
+.tabbar__item.activo .tabbar__label { font-weight: 700; }
+</style>
+</head>
+<body>
+
+<nav class="proto-nav">
+  <span class="proto-nav__label">Variante · Hitos (ronda 2)</span>
+  <div class="proto-nav__links" id="protoNav">
+    <button data-v="C1" class="is-active">C1 · Sobria</button>
+    <button data-v="C2">C2 · Año color</button>
+    <button data-v="C3">C3 · Barra lateral</button>
+  </div>
+</nav>
+
+<div class="phone">
+  <main class="screen-area">
+    <section class="screen">
+
+      <header class="topbar">
+        <div class="topbar__row">
+          <div>
+            <p class="topbar__eyebrow">Vida</p>
+            <h1 class="topbar__title">Hitos</h1>
+          </div>
+          <button class="topbar__btn" aria-label="Opciones">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="5" cy="12" r="1.6"/>
+              <circle cx="12" cy="12" r="1.6"/>
+              <circle cx="19" cy="12" r="1.6"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <nav class="chips-grupo">
+        <button class="chip-grupo">Recetas</button>
+        <button class="chip-grupo">Planes</button>
+        <button class="chip-grupo">Ideas</button>
+        <button class="chip-grupo activo">Hitos</button>
+      </nav>
+
+      <div class="screen__body">
+
+        <!-- ========== VARIANTE C1 — Sobria ========== -->
+        <div class="variant vC1" data-v="C1">
+          <button class="btn-agregar">+ Añadir hito</button>
+
+          <ol class="timeline">
+            <li class="hito hito--encuentro">
+              <div class="hito__anio">2026</div>
+              <span class="hito__marca"></span>
+              <p class="hito__fecha-mini">Ahora</p>
+              <h3 class="hito__titulo">Seguimos acá</h3>
+              <div class="hito__acciones">
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </li>
+
+            <li class="hito hito--paso">
+              <span class="hito__marca"></span>
+              <p class="hito__fecha-mini">Marzo</p>
+              <h3 class="hito__titulo">Primer ritmo de tumbé entre los dos</h3>
+              <div class="hito__acciones">
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </li>
+
+            <li class="hito hito--salida">
+              <div class="hito__anio">2024</div>
+              <span class="hito__marca"></span>
+              <p class="hito__fecha-mini">Noviembre</p>
+              <h3 class="hito__titulo">Primer viaje a las Termas</h3>
+              <div class="hito__acciones">
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </li>
+
+            <li class="hito hito--encuentro">
+              <span class="hito__marca"></span>
+              <p class="hito__fecha-mini">Mayo</p>
+              <h3 class="hito__titulo">Nos reencontramos en la marcha</h3>
+              <div class="hito__acciones">
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </li>
+
+            <li class="hito hito--distancia">
+              <div class="hito__anio">2023</div>
+              <span class="hito__marca"></span>
+              <p class="hito__fecha-mini">Agosto</p>
+              <h3 class="hito__titulo">Nos alejamos unos meses</h3>
+              <div class="hito__acciones">
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </li>
+
+            <li class="hito hito--encuentro">
+              <div class="hito__anio">2022</div>
+              <span class="hito__marca"></span>
+              <p class="hito__fecha-mini">Septiembre</p>
+              <h3 class="hito__titulo">Nos conocimos en la barbería</h3>
+              <div class="hito__acciones">
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </li>
+          </ol>
+        </div>
+
+        <!-- ========== VARIANTE C2 — Año color ========== -->
+        <div class="variant vC2" data-v="C2" hidden>
+          <button class="btn-agregar">+ Añadir hito</button>
+
+          <ol class="timeline">
+            <li class="hito hito--encuentro">
+              <div class="hito__anio">2026</div>
+              <span class="hito__marca"></span>
+              <p class="hito__fecha-mini">Ahora</p>
+              <h3 class="hito__titulo">Seguimos acá</h3>
+              <div class="hito__acciones">
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </li>
+
+            <li class="hito hito--paso">
+              <span class="hito__marca"></span>
+              <p class="hito__fecha-mini">Marzo</p>
+              <h3 class="hito__titulo">Primer ritmo de tumbé entre los dos</h3>
+              <div class="hito__acciones">
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </li>
+
+            <li class="hito hito--salida">
+              <div class="hito__anio">2024</div>
+              <span class="hito__marca"></span>
+              <p class="hito__fecha-mini">Noviembre</p>
+              <h3 class="hito__titulo">Primer viaje a las Termas</h3>
+              <div class="hito__acciones">
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </li>
+
+            <li class="hito hito--encuentro">
+              <span class="hito__marca"></span>
+              <p class="hito__fecha-mini">Mayo</p>
+              <h3 class="hito__titulo">Nos reencontramos en la marcha</h3>
+              <div class="hito__acciones">
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </li>
+
+            <li class="hito hito--distancia">
+              <div class="hito__anio">2023</div>
+              <span class="hito__marca"></span>
+              <p class="hito__fecha-mini">Agosto</p>
+              <h3 class="hito__titulo">Nos alejamos unos meses</h3>
+              <div class="hito__acciones">
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </li>
+
+            <li class="hito hito--encuentro">
+              <div class="hito__anio">2022</div>
+              <span class="hito__marca"></span>
+              <p class="hito__fecha-mini">Septiembre</p>
+              <h3 class="hito__titulo">Nos conocimos en la barbería</h3>
+              <div class="hito__acciones">
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </li>
+          </ol>
+        </div>
+
+        <!-- ========== VARIANTE C3 — Barra lateral ========== -->
+        <div class="variant vC3" data-v="C3" hidden>
+          <button class="btn-agregar">+ Añadir hito</button>
+
+          <ol class="timeline">
+            <li class="hito hito--encuentro">
+              <div class="hito__anio">2026</div>
+              <p class="hito__fecha-mini">Ahora</p>
+              <h3 class="hito__titulo">Seguimos acá</h3>
+              <div class="hito__acciones">
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </li>
+
+            <li class="hito hito--paso">
+              <p class="hito__fecha-mini">Marzo</p>
+              <h3 class="hito__titulo">Primer ritmo de tumbé entre los dos</h3>
+              <div class="hito__acciones">
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </li>
+
+            <li class="hito hito--salida">
+              <div class="hito__anio">2024</div>
+              <p class="hito__fecha-mini">Noviembre</p>
+              <h3 class="hito__titulo">Primer viaje a las Termas</h3>
+              <div class="hito__acciones">
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </li>
+
+            <li class="hito hito--encuentro">
+              <p class="hito__fecha-mini">Mayo</p>
+              <h3 class="hito__titulo">Nos reencontramos en la marcha</h3>
+              <div class="hito__acciones">
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </li>
+
+            <li class="hito hito--distancia">
+              <div class="hito__anio">2023</div>
+              <p class="hito__fecha-mini">Agosto</p>
+              <h3 class="hito__titulo">Nos alejamos unos meses</h3>
+              <div class="hito__acciones">
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </li>
+
+            <li class="hito hito--encuentro">
+              <div class="hito__anio">2022</div>
+              <p class="hito__fecha-mini">Septiembre</p>
+              <h3 class="hito__titulo">Nos conocimos en la barbería</h3>
+              <div class="hito__acciones">
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Eliminar</button>
+              </div>
+            </li>
+          </ol>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button class="tabbar__item" data-tab="nido">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+      </svg>
+      <span class="tabbar__label">Nido</span>
+    </button>
+    <button class="tabbar__item activo" data-tab="vida">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/>
+        <path d="M4 17a3 3 0 0 1 3-3h11"/>
+      </svg>
+      <span class="tabbar__label">Vida</span>
+    </button>
+    <button class="tabbar__item" data-tab="afuera">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 20h18L14 8l-3 5-2-3-6 10z"/>
+      </svg>
+      <span class="tabbar__label">Afuera</span>
+    </button>
+    <button class="tabbar__item" data-tab="juegos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+        <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/>
+      </svg>
+      <span class="tabbar__label">Juegos</span>
+    </button>
+    <button class="tabbar__item" data-tab="mas">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="5" cy="12" r="1.6"/>
+        <circle cx="12" cy="12" r="1.6"/>
+        <circle cx="19" cy="12" r="1.6"/>
+      </svg>
+      <span class="tabbar__label">Más</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const nav = document.getElementById('protoNav');
+  const variants = document.querySelectorAll('.variant');
+  nav.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button[data-v]');
+    if (!btn) return;
+    const v = btn.dataset.v;
+    nav.querySelectorAll('button').forEach((b) => {
+      b.classList.toggle('is-active', b.dataset.v === v);
+    });
+    variants.forEach((el) => {
+      el.hidden = el.dataset.v !== v;
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

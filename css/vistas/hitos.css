@@ -1,16 +1,20 @@
 /* ================================================================
    Ahora Sí — CSS MODULAR
    Archivo: css/vistas/hitos.css
-   Versión: 3.0.0
-   Propósito: Estilos de la vista de hitos en el nuevo lenguaje
-              visual. Línea de tiempo vertical con marca circular
-              terracota, hito cumplido con la marca rellena y el
-              título tachado.
-              v3.0.0: rediseño completo. Paleta papel/terracota.
-                      La vista ya no emite h1 ni lead (los muestra
-                      el shell).
+   Versión: 4.1.0
+   Propósito: Estilos de la vista de hitos. Línea biográfica
+              vertical, del más reciente al más viejo. Cada hito
+              tiene un punto con color elegido por el usuario.
+              El año solo aparece cuando cambia.
+              v4.1.0: se reemplaza el sistema de tipos por colores
+                      elegibles. Se agrega .color-picker con 6
+                      opciones. Sin distintivo de autor. El año
+                      va en gris tenue. Solo aparece cuando
+                      cambia. El punto toma el color del hito.
+              v4.0.0: rediseño a línea biográfica.
+              v3.0.0: rediseño al nuevo lenguaje visual.
               v2.0.0: secciones numeradas, selector raíz por ID.
-              v1.0.0: botón cumplido verde.
+              v1.0.0: versión inicial.
    ================================================================ */
 
 /* ═══════════════════════════════════════════════════════════════
@@ -24,7 +28,7 @@
   width: 100%;
   padding: 14px 24px;
   border-radius: var(--r-md);
-  background: var(--terracota);
+  background: var(--accent, var(--mostaza));
   color: var(--papel);
   font-weight: 700;
   font-size: 15px;
@@ -37,20 +41,22 @@
 #vista-hitos .btn-agregar-principal:active { transform: translateY(1px); }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 2 — FORMULARIO COLAPSABLE
+   SECCIÓN 2 — FORMULARIO
    ═══════════════════════════════════════════════════════════════ */
 
 #vista-hitos .form-inline {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   padding: 14px 16px;
   background: var(--papel-2);
   border: 1px dashed var(--borde-fuerte);
   border-radius: var(--r-md);
   margin-bottom: var(--sp-5);
 }
+
 #vista-hitos .form-inline input,
+#vista-hitos .form-inline select,
 #vista-hitos .form-inline textarea {
   padding: 10px 12px;
   background: var(--papel-3);
@@ -63,11 +69,26 @@
   font-family: var(--fuente-cuerpo);
 }
 #vista-hitos .form-inline input:focus,
+#vista-hitos .form-inline select:focus,
 #vista-hitos .form-inline textarea:focus {
   outline: none;
-  border-color: var(--terracota);
+  border-color: var(--accent, var(--mostaza));
   background: var(--papel-carta);
 }
+
+#vista-hitos .campo-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+#vista-hitos .campo-inline__etiqueta {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--tinta-tenue);
+}
+
 #vista-hitos .form-inline__fila {
   display: flex;
   gap: 8px;
@@ -85,14 +106,20 @@
   align-items: center;
   gap: 6px;
   justify-content: center;
+  border: 0;
 }
 #vista-hitos .btn:active { transform: scale(.97); }
 #vista-hitos .btn--primario {
-  background: var(--terracota);
+  background: var(--accent, var(--mostaza));
   color: var(--papel);
-  border: 0;
 }
-#vista-hitos .btn--primario:hover { filter: brightness(1.05); }
+#vista-hitos .btn--primario:hover:not(:disabled) { filter: brightness(1.05); }
+#vista-hitos .btn--primario:disabled {
+  background: color-mix(in oklab, var(--borde-fuerte) 80%, var(--papel-2));
+  color: var(--tinta-tenue);
+  cursor: not-allowed;
+  filter: none;
+}
 #vista-hitos .btn--secundario {
   background: transparent;
   color: var(--tinta-suave);
@@ -104,12 +131,50 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 3 — LÍNEA DE TIEMPO
+   SECCIÓN 3 — SELECTOR DE COLOR
+   Fila de 6 círculos. El activo tiene aro grueso.
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-hitos .color-picker {
+  display: flex;
+  gap: 8px;
+  padding: 4px 0;
+  flex-wrap: wrap;
+}
+
+#vista-hitos .color-picker__opcion {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: transform .15s ease, border-color .15s ease;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+#vista-hitos .color-picker__opcion:hover {
+  transform: scale(1.1);
+}
+#vista-hitos .color-picker__opcion.is-active {
+  border-color: var(--tinta);
+  box-shadow: 0 0 0 3px var(--papel-2), 0 0 0 4px var(--tinta-tenue);
+}
+
+#vista-hitos .color-picker__opcion--terracota { background: var(--terracota); }
+#vista-hitos .color-picker__opcion--musgo { background: var(--musgo); }
+#vista-hitos .color-picker__opcion--mostaza { background: var(--mostaza); }
+#vista-hitos .color-picker__opcion--azul { background: var(--azul-piedra); }
+#vista-hitos .color-picker__opcion--ciruela { background: var(--ciruela); }
+#vista-hitos .color-picker__opcion--gris { background: #8892A6; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 4 — LÍNEA DE TIEMPO
    ═══════════════════════════════════════════════════════════════ */
 
 #vista-hitos .linea-tiempo {
   list-style: none;
-  padding: 0 0 0 30px;
+  padding: 0 0 0 58px;
   margin: var(--sp-4) 0 var(--sp-6);
   position: relative;
 }
@@ -117,122 +182,114 @@
 #vista-hitos .linea-tiempo::before {
   content: "";
   position: absolute;
-  left: 9px;
+  left: 38px;
   top: 8px;
   bottom: 8px;
-  width: 2px;
-  background: color-mix(in oklab, var(--terracota) 30%, var(--borde));
+  width: 1px;
+  background: var(--borde);
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 4 — HITO
+   SECCIÓN 5 — HITO
    ═══════════════════════════════════════════════════════════════ */
 
 #vista-hitos .hito {
   position: relative;
   padding: 0 0 var(--sp-6);
 }
+#vista-hitos .hito:last-child { padding-bottom: 0; }
 
-#vista-hitos .hito:last-child {
-  padding-bottom: 0;
+/* Año a la izquierda del eje, en gris. */
+#vista-hitos .hito__anio {
+  position: absolute;
+  left: -58px;
+  top: 0;
+  width: 30px;
+  text-align: right;
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: -0.01em;
+  color: var(--tinta-tenue);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  padding-top: 3px;
 }
 
+/* Punto en el eje, con el color del hito. */
 #vista-hitos .hito__marca {
   position: absolute;
-  left: -30px;
-  top: 6px;
-  width: 20px;
-  height: 20px;
+  left: -25px;
+  top: 4px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
-  border: 2px solid var(--terracota);
-  background: var(--papel);
-  transition: background var(--t-media), border-color var(--t-media);
+  background: var(--borde);
 }
-
-#vista-hitos .hito--cumplido .hito__marca {
-  background: var(--terracota);
-  border-color: var(--terracota);
-}
+#vista-hitos .hito--terracota .hito__marca { background: var(--terracota); }
+#vista-hitos .hito--musgo .hito__marca { background: var(--musgo); }
+#vista-hitos .hito--mostaza .hito__marca { background: var(--mostaza); }
+#vista-hitos .hito--azul .hito__marca { background: var(--azul-piedra); }
+#vista-hitos .hito--ciruela .hito__marca { background: var(--ciruela); }
+#vista-hitos .hito--gris .hito__marca { background: #8892A6; }
 
 #vista-hitos .hito__cuerpo {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
-#vista-hitos .hito__cabecera {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  flex-wrap: wrap;
-  font-size: 12px;
-}
-
-#vista-hitos .hito__fecha {
+#vista-hitos .hito__fecha-mini {
   font-size: 11px;
-  font-weight: 700;
-  color: var(--terracota);
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  letter-spacing: .04em;
   text-transform: uppercase;
-  letter-spacing: .1em;
+  margin: 0;
 }
 
 #vista-hitos .hito__titulo {
   font-family: var(--fuente-titulo);
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--tinta);
-  letter-spacing: -.015em;
+  letter-spacing: -.01em;
   margin: 0;
-  line-height: 1.25;
+  line-height: 1.3;
 }
-
-#vista-hitos .hito--cumplido .hito__titulo {
-  color: var(--tinta-suave);
-  text-decoration: line-through;
-  text-decoration-thickness: 1px;
-  opacity: .75;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 5 — ACCIONES
-   ═══════════════════════════════════════════════════════════════ */
 
 #vista-hitos .hito__acciones {
   display: flex;
   gap: 6px;
-  margin-top: var(--sp-2);
-  flex-wrap: wrap;
+  margin-top: 8px;
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+#vista-hitos .hito:hover .hito__acciones,
+#vista-hitos .hito:focus-within .hito__acciones {
+  opacity: 1;
+}
+@media (hover: none) {
+  #vista-hitos .hito__acciones { opacity: 1; }
 }
 
-#vista-hitos .hito__acciones button {
-  padding: 6px 12px;
-  font-size: 11.5px;
+#vista-hitos .btn-mini {
+  padding: 5px 10px;
+  font-size: 11px;
   font-weight: 600;
-  border-radius: var(--r-full);
-  border: 1px solid var(--borde);
   color: var(--tinta-suave);
   background: transparent;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
   cursor: pointer;
   transition: background var(--t-rapida), color var(--t-rapida), border-color var(--t-rapida);
+  white-space: nowrap;
 }
-
-#vista-hitos .hito__acciones button:hover {
+#vista-hitos .btn-mini:hover {
   background: var(--papel-3);
   color: var(--tinta);
 }
-
-#vista-hitos .hito__acciones button[data-accion="toggle"][aria-pressed="true"] {
-  background: var(--musgo);
-  border-color: var(--musgo);
-  color: var(--papel);
-}
-
-#vista-hitos .hito__acciones button[data-accion="toggle"][aria-pressed="false"]:hover {
-  border-color: var(--musgo);
-  color: var(--musgo);
-}
-
-#vista-hitos .hito__acciones button[data-accion="eliminar"]:hover {
+#vista-hitos .btn-mini--peligro:hover {
   background: #FBE9E9;
   color: var(--rojo);
   border-color: #E3B6B6;
@@ -242,24 +299,14 @@
    SECCIÓN 6 — EDICIÓN INLINE
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-hitos .pieza-edit {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-3);
-  padding: 14px 16px;
-  background: var(--papel-2);
-  border: 1px dashed var(--borde-fuerte);
-  border-radius: var(--r-md);
-  list-style: none;
-}
-
 #vista-hitos .pieza-edit__cuerpo {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
-
-#vista-hitos .pieza-edit input {
+#vista-hitos .pieza-edit input,
+#vista-hitos .pieza-edit select,
+#vista-hitos .pieza-edit textarea {
   padding: 10px 12px;
   background: var(--papel-3);
   border: 1px solid var(--borde);
@@ -270,54 +317,23 @@
   width: 100%;
   font-family: var(--fuente-cuerpo);
 }
-#vista-hitos .pieza-edit input:focus {
+#vista-hitos .pieza-edit input:focus,
+#vista-hitos .pieza-edit select:focus,
+#vista-hitos .pieza-edit textarea:focus {
   outline: none;
-  border-color: var(--terracota);
+  border-color: var(--accent, var(--mostaza));
   background: var(--papel-carta);
 }
-
 #vista-hitos .pieza-edit__botones {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
+  margin-top: 4px;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 7 — DISTINTIVO DE AUTOR
-   ═══════════════════════════════════════════════════════════════ */
-
-#vista-hitos .autor {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 8px 2px 2px;
-  border-radius: var(--r-full);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-}
-#vista-hitos .autor__inicial {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 9px;
-  font-weight: 800;
-  color: var(--papel);
-  font-family: var(--fuente-titulo);
-}
-#vista-hitos .autor--luci { background: #F0E2E2; color: #8A5757; }
-#vista-hitos .autor--luci .autor__inicial { background: #D89A9A; }
-#vista-hitos .autor--yayo { background: #EFE4CC; color: #6B4F1F; }
-#vista-hitos .autor--yayo .autor__inicial { background: #B8893C; }
-#vista-hitos .autor--desconocido { background: var(--papel-2); color: var(--tinta-suave); }
-#vista-hitos .autor--desconocido .autor__inicial { background: var(--tinta-tenue); }
-
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 8 — VACÍO
+   SECCIÓN 7 — VACÍO
    ═══════════════════════════════════════════════════════════════ */
 
 #vista-hitos .vista__vacio {
@@ -328,16 +344,9 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 9 — RESPONSIVE
+   SECCIÓN 8 — RESPONSIVE
    ═══════════════════════════════════════════════════════════════ */
 
-@media (max-width: 560px) {
-  #vista-hitos .linea-tiempo {
-    padding-left: 22px;
-  }
-  #vista-hitos .hito__marca {
-    left: -22px;
-    width: 16px;
-    height: 16px;
-  }
+@media (max-width: 480px) {
+  #vista-hitos .color-picker__opcion { width: 28px; height: 28px; }
 }
