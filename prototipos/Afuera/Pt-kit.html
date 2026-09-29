@@ -3,34 +3,38 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Ahora Sí — Prototipo Kit</title>
+<title>Ahora Sí — Kit</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
 :root {
-  --papel: #F7F1E8;
-  --papel-2: #EFE7DA;
-  --papel-3: #FCF8F0;
-  --borde: #E2D7C5;
+  --papel:        #F7F1E8;
+  --papel-2:      #EFE7DA;
+  --papel-3:      #FCF8F0;
+  --borde:        #E2D7C5;
   --borde-fuerte: #D2C4AC;
-  --tinta: #1F1B16;
-  --tinta-suave: #6B6155;
-  --tinta-tenue: #A89B87;
+  --tinta:        #1F1B16;
+  --tinta-suave:  #6B6155;
+  --tinta-tenue:  #A89B87;
+
+  --musgo:        #5A6B3E;
+  --musgo-claro:  #8FA076;
+  --musgo-papel:  #E4E9D8;
+
   --terracota: #C9613B;
-  --mostaza: #D9A421;
-  --musgo: #5A6B3E;
-  --musgo-papel: #E4E9D8;
-  --rojo: #A03737;
+  --mostaza:   #D9A421;
+  --azul:      #4A6785;
+
   --luci: #D89A9A;
-  --luci-papel: #F0E2E2;
-  --luci-tinta: #8A5757;
   --yayo: #B8893C;
-  --yayo-papel: #EFE4CC;
-  --yayo-tinta: #6B4F1F;
+  --rojo: #A03737;
+
   --accent: var(--musgo);
+  --accent-papel: var(--musgo-papel);
+
   --r-sm: 8px;
   --r-md: 14px;
   --r-lg: 22px;
@@ -40,6 +44,7 @@
   --fuente-titulo: 'Bricolage Grotesque', system-ui, sans-serif;
   --fuente-cuerpo: 'Figtree', system-ui, sans-serif;
 }
+
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; height: 100%; }
 h1,h2,h3,h4,p,ul,ol,li { margin: 0; padding: 0; }
@@ -59,24 +64,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 @media (max-width: 520px) { body { padding: 0; display: block; } }
-
-.nota-prototipo {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  z-index: 100;
-  padding: 10px 14px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: var(--r-md);
-  backdrop-filter: blur(12px);
-  font-size: 11px;
-  color: rgba(255,255,255,.7);
-  line-height: 1.55;
-  max-width: 260px;
-}
-.nota-prototipo b { color: #fff; font-weight: 600; }
-@media (max-width: 720px) { .nota-prototipo { display: none; } }
 
 .phone {
   width: 390px;
@@ -107,9 +94,10 @@ body {
 }
 .screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 
+/* ── TOPBAR ── */
 .topbar {
   flex-shrink: 0;
-  padding: 16px 20px 14px;
+  padding: 16px 20px 12px;
   background: var(--papel);
 }
 .topbar__row {
@@ -124,7 +112,7 @@ body {
   text-transform: uppercase;
   color: var(--tinta-tenue);
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .topbar__title {
   font-family: var(--fuente-titulo);
@@ -146,56 +134,42 @@ body {
 }
 .topbar__btn svg { width: 20px; height: 20px; }
 
-.chips-grupo {
+/* ── CHIPS DE SUB-SECCIÓN ── */
+.subtabs {
   display: flex;
   gap: 6px;
-  padding: 0 20px 14px;
-  background: var(--papel);
+  padding: 0 20px 12px;
   overflow-x: auto;
   scrollbar-width: none;
+  background: var(--papel);
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--borde);
 }
-.chips-grupo::-webkit-scrollbar { display: none; }
-.chip-grupo {
-  padding: 6px 14px;
-  border-radius: var(--r-full);
-  border: 1.5px solid var(--borde);
-  background: transparent;
-  color: var(--tinta-suave);
+.subtabs::-webkit-scrollbar { display: none; }
+.subtab {
+  flex-shrink: 0;
+  padding: 7px 14px;
   font-size: 13px;
   font-weight: 600;
+  color: var(--tinta-suave);
+  border-radius: var(--r-full);
+  transition: all .2s ease;
   white-space: nowrap;
 }
-.chip-grupo.activo {
-  background: var(--tinta);
-  border-color: var(--tinta);
-  color: var(--papel);
-}
+.subtab:hover { background: var(--papel-2); color: var(--tinta); }
+.subtab.is-active { background: var(--tinta); color: var(--papel); }
 
+/* ── CUERPO ── */
 .screen__body {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 22px 20px 120px;
+  padding: 20px 20px 120px;
+  -webkit-overflow-scrolling: touch;
 }
 .screen__body::-webkit-scrollbar { width: 0; }
 
-.btn-agregar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding: 14px 24px;
-  border-radius: var(--r-md);
-  background: var(--accent);
-  color: var(--papel);
-  font-weight: 700;
-  font-size: 15px;
-  margin-bottom: 18px;
-}
-
-/* ============================================================
-   PROGRESO GRANDE
-   ============================================================ */
+/* ── PROGRESO ── */
 .kit-progreso {
   padding: 18px 20px;
   background: var(--musgo-papel);
@@ -228,7 +202,6 @@ body {
   font-size: 12px;
   color: color-mix(in oklab, var(--musgo) 70%, var(--tinta));
   font-weight: 600;
-  letter-spacing: .01em;
 }
 .kit-progreso__barra {
   height: 8px;
@@ -244,9 +217,7 @@ body {
   transition: width .4s cubic-bezier(.25,.9,.35,1);
 }
 
-/* ============================================================
-   GRUPOS
-   ============================================================ */
+/* ── GRUPOS ── */
 .kit-grupo { margin-bottom: 22px; }
 .kit-grupo__cab {
   display: flex;
@@ -261,11 +232,7 @@ body {
   color: var(--tinta);
   letter-spacing: -0.01em;
 }
-.kit-grupo__linea {
-  flex: 1;
-  height: 1px;
-  background: var(--borde);
-}
+.kit-grupo__linea { flex: 1; height: 1px; background: var(--borde); }
 .kit-grupo__count {
   font-size: 11px;
   font-weight: 600;
@@ -273,25 +240,7 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* ============================================================
-   ETIQUETA DE CASO
-   ============================================================ */
-.caso-label {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: var(--r-full);
-  background: color-mix(in oklab, var(--terracota) 12%, var(--papel-2));
-  color: var(--terracota);
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-
-/* ============================================================
-   GRID DE KIT
-   ============================================================ */
+/* ── GRID + ITEM ── */
 .kit-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -316,10 +265,10 @@ body {
 
 .kit-item__cab {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   padding: 12px;
-  min-height: 52px;
+  min-height: 58px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -333,6 +282,7 @@ body {
   display: grid;
   place-items: center;
   transition: background .2s ease, border-color .2s ease;
+  margin-top: 1px;
 }
 .kit-item__check svg {
   width: 12px; height: 12px;
@@ -350,13 +300,13 @@ body {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 .kit-item__nombre {
   font-size: 13px;
   font-weight: 500;
   color: var(--tinta);
-  line-height: 1.35;
+  line-height: 1.3;
   word-break: break-word;
   transition: color .2s ease;
 }
@@ -367,34 +317,19 @@ body {
   text-decoration-thickness: 1.5px;
 }
 
-/* Preview de la nota (una línea con ellipsis). */
+/* Preview a 2 líneas con clamp */
 .kit-item__preview {
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--tinta-tenue);
   font-style: italic;
   line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-/* Chip "nota". */
-.kit-item__chip-nota {
-  display: inline-block;
-  padding: 1px 6px;
-  border-radius: var(--r-full);
-  background: color-mix(in oklab, var(--mostaza) 20%, var(--papel-2));
-  color: #8A6D0F;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  align-self: flex-start;
-  margin-top: 1px;
-}
-
-/* Indicadores de autor: 3 estilos. */
-/* Estilo 1: solo la inicial. */
+/* Autor: solo inicial */
 .autor--ini {
   display: inline-grid;
   place-items: center;
@@ -406,69 +341,20 @@ body {
   font-weight: 800;
   color: var(--papel);
   flex-shrink: 0;
+  margin-top: 1px;
 }
 .autor--ini.autor--yayo { background: var(--yayo); }
 .autor--ini.autor--luci { background: var(--luci); }
 
-/* Estilo 2: inicial + nombre. */
-.autor--nombre {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 1px 6px 1px 1px;
-  border-radius: var(--r-full);
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  flex-shrink: 0;
-}
-.autor--nombre .autor__ini {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-family: var(--fuente-titulo);
-  font-size: 8.5px;
-  font-weight: 800;
-  color: var(--papel);
-}
-.autor--nombre.autor--yayo { background: var(--yayo-papel); color: var(--yayo-tinta); }
-.autor--nombre.autor--yayo .autor__ini { background: var(--yayo); }
-.autor--nombre.autor--luci { background: var(--luci-papel); color: var(--luci-tinta); }
-.autor--nombre.autor--luci .autor__ini { background: var(--luci); }
-
-/* Estilo 3: punto + inicial. */
-.autor--punto {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-family: var(--fuente-titulo);
-  font-size: 11px;
-  font-weight: 800;
-  flex-shrink: 0;
-}
-.autor--punto .autor__punto {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.autor--punto.autor--yayo { color: var(--yayo-tinta); }
-.autor--punto.autor--yayo .autor__punto { background: var(--yayo); }
-.autor--punto.autor--luci { color: var(--luci-tinta); }
-.autor--punto.autor--luci .autor__punto { background: var(--luci); }
-
-/* Cuerpo del item (expandido). */
+/* Cuerpo expandido */
 .kit-item__cuerpo {
   display: none;
   padding: 0 12px 12px 12px;
-  border-top: 1px dashed var(--borde);
 }
 .kit-item.is-abierto .kit-item__cuerpo {
   display: block;
   padding-top: 10px;
+  border-top: 1px dashed var(--borde);
 }
 
 .kit-item__nota-completa {
@@ -508,6 +394,25 @@ body {
   border-color: #E3B6B6;
 }
 
+/* FAB */
+.fab {
+  position: absolute;
+  bottom: 92px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-full);
+  background: var(--musgo);
+  color: var(--papel);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 12px 28px color-mix(in oklab, var(--musgo) 45%, transparent);
+  z-index: 40;
+  transition: transform .15s ease;
+}
+.fab:active { transform: scale(.9); }
+.fab svg { width: 24px; height: 24px; }
+
 /* Tabbar */
 .tabbar {
   position: absolute;
@@ -530,30 +435,38 @@ body {
   color: var(--tinta-tenue);
   opacity: .55;
   padding: 4px;
+  border-radius: var(--r-md);
+  transition: all .18s ease;
 }
 .tabbar__item svg { width: 22px; height: 22px; }
 .tabbar__label { font-size: 10px; font-weight: 600; }
-.tabbar__item.activo { color: var(--accent); opacity: 1; }
+.tabbar__item.activo { color: var(--musgo); opacity: 1; }
 .tabbar__item.activo .tabbar__label { font-weight: 700; }
+
+/* Toast */
+.toast {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  padding: 10px 18px;
+  background: var(--tinta);
+  color: var(--papel);
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+  z-index: 100;
+  box-shadow: var(--sombra-2);
+  white-space: nowrap;
+}
+.toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
-
-<aside class="nota-prototipo">
-  <b>Casos a comparar</b><br>
-  <br>
-  <b>Preview de nota:</b><br>
-  1. Sin preview<br>
-  2. Preview con ellipsis<br>
-  3. Chip "nota"<br>
-  <br>
-  <b>Indicador de autor:</b><br>
-  1. Solo inicial<br>
-  2. Inicial + nombre<br>
-  3. Punto + inicial<br>
-  <br>
-  Toca cada item para expandir.
-</aside>
 
 <div class="phone">
   <main class="screen-area">
@@ -575,16 +488,14 @@ body {
         </div>
       </header>
 
-      <nav class="chips-grupo">
-        <button class="chip-grupo">Mapa</button>
-        <button class="chip-grupo activo">Kit</button>
-        <button class="chip-grupo">Fauna</button>
-        <button class="chip-grupo">Flora</button>
+      <nav class="subtabs">
+        <button class="subtab" data-sub="mapa">Mapa</button>
+        <button class="subtab is-active" data-sub="kit">Kit</button>
+        <button class="subtab" data-sub="fauna">Fauna</button>
+        <button class="subtab" data-sub="flora">Flora</button>
       </nav>
 
       <div class="screen__body">
-
-        <button class="btn-agregar">+ Añadir item</button>
 
         <div class="kit-progreso">
           <div class="kit-progreso__cab">
@@ -594,20 +505,16 @@ body {
           <div class="kit-progreso__barra"><i style="width: 50%"></i></div>
         </div>
 
-        <!-- ══════════════════════════════════════════════
-             GRUPO DORMIR
-             ══════════════════════════════════════════════ -->
+        <!-- GRUPO DORMIR -->
         <div class="kit-grupo">
           <div class="kit-grupo__cab">
             <span class="kit-grupo__nombre">Dormir</span>
             <span class="kit-grupo__linea"></span>
             <span class="kit-grupo__count">2/3</span>
           </div>
-
           <div class="kit-grid">
 
-            <!-- Caso 1: listo, autor estilo 1 (solo inicial), sin nota -->
-            <div class="kit-item is-listo" data-caso="Listo · autor inicial · sin nota">
+            <div class="kit-item is-listo">
               <div class="kit-item__cab">
                 <span class="kit-item__check">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
@@ -626,8 +533,7 @@ body {
               </div>
             </div>
 
-            <!-- Caso 2: listo, autor estilo 2 (inicial + nombre), sin nota -->
-            <div class="kit-item is-listo" data-caso="Listo · autor nombre · sin nota">
+            <div class="kit-item is-listo">
               <div class="kit-item__cab">
                 <span class="kit-item__check">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
@@ -635,7 +541,7 @@ body {
                 <div class="kit-item__cuerpo-nombre">
                   <span class="kit-item__nombre">Sacos de dormir</span>
                 </div>
-                <span class="autor--nombre autor--luci"><span class="autor__ini">L</span>Luci</span>
+                <span class="autor--ini autor--luci">L</span>
               </div>
               <div class="kit-item__cuerpo">
                 <p class="kit-item__sin-nota">Sin nota.</p>
@@ -646,8 +552,7 @@ body {
               </div>
             </div>
 
-            <!-- Caso 3: pendiente, sin nota -->
-            <div class="kit-item" data-caso="Pendiente · sin nota">
+            <div class="kit-item">
               <div class="kit-item__cab">
                 <span class="kit-item__check">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
@@ -668,27 +573,23 @@ body {
           </div>
         </div>
 
-        <!-- ══════════════════════════════════════════════
-             GRUPO COMER
-             ══════════════════════════════════════════════ -->
+        <!-- GRUPO COMER -->
         <div class="kit-grupo">
           <div class="kit-grupo__cab">
             <span class="kit-grupo__nombre">Comer</span>
             <span class="kit-grupo__linea"></span>
             <span class="kit-grupo__count">1/3</span>
           </div>
-
           <div class="kit-grid">
 
-            <!-- Caso 4: pendiente, preview con ellipsis -->
-            <div class="kit-item" data-caso="Pendiente · preview ellipsis">
+            <div class="kit-item">
               <div class="kit-item__cab">
                 <span class="kit-item__check">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
                 </span>
                 <div class="kit-item__cuerpo-nombre">
                   <span class="kit-item__nombre">Papas</span>
-                  <span class="kit-item__preview">2 kg, cocidas o molidas…</span>
+                  <span class="kit-item__preview">2 kg, cocidas o molidas. Comprar en la feria el mismo día.</span>
                 </div>
               </div>
               <div class="kit-item__cuerpo">
@@ -700,15 +601,14 @@ body {
               </div>
             </div>
 
-            <!-- Caso 5: pendiente, chip "nota" -->
-            <div class="kit-item" data-caso="Pendiente · chip nota">
+            <div class="kit-item">
               <div class="kit-item__cab">
                 <span class="kit-item__check">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
                 </span>
                 <div class="kit-item__cuerpo-nombre">
                   <span class="kit-item__nombre">Fósforos</span>
-                  <span class="kit-item__chip-nota">nota</span>
+                  <span class="kit-item__preview">Los verdes del supermercado, no los de la feria.</span>
                 </div>
               </div>
               <div class="kit-item__cuerpo">
@@ -720,15 +620,14 @@ body {
               </div>
             </div>
 
-            <!-- Caso 6: pendiente, nota muy larga, preview con ellipsis -->
-            <div class="kit-item" data-caso="Pendiente · nota larga">
+            <div class="kit-item">
               <div class="kit-item__cab">
                 <span class="kit-item__check">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
                 </span>
                 <div class="kit-item__cuerpo-nombre">
                   <span class="kit-item__nombre">Pan</span>
-                  <span class="kit-item__preview">Marraqueta, del día anterior…</span>
+                  <span class="kit-item__preview">Marraqueta, del día anterior si se puede. Comprar dos, una para el desayuno y otra para el almuerzo.</span>
                 </div>
               </div>
               <div class="kit-item__cuerpo">
@@ -743,31 +642,25 @@ body {
           </div>
         </div>
 
-        <!-- ══════════════════════════════════════════════
-             GRUPO COCINA
-             ══════════════════════════════════════════════ -->
+        <!-- GRUPO COCINA -->
         <div class="kit-grupo">
           <div class="kit-grupo__cab">
             <span class="kit-grupo__nombre">Cocina</span>
             <span class="kit-grupo__linea"></span>
             <span class="kit-grupo__count">1/2</span>
           </div>
-
           <div class="kit-grid">
 
-            <!-- Caso 7: listo, autor estilo 3 (punto + inicial), con nota corta -->
-            <div class="kit-item is-listo" data-caso="Listo · autor punto · nota corta">
+            <div class="kit-item is-listo">
               <div class="kit-item__cab">
                 <span class="kit-item__check">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
                 </span>
                 <div class="kit-item__cuerpo-nombre">
                   <span class="kit-item__nombre">Café</span>
-                  <span class="kit-item__preview">De grano, para la prensa.</span>
+                  <span class="kit-item__preview">De grano, para la prensa. Ya está molido en casa.</span>
                 </div>
-                <span class="autor--punto autor--yayo">
-                  <span class="autor__punto"></span>Y
-                </span>
+                <span class="autor--ini autor--yayo">Y</span>
               </div>
               <div class="kit-item__cuerpo">
                 <p class="kit-item__nota-completa">De grano, para la prensa. Ya está molido en casa.</p>
@@ -778,8 +671,7 @@ body {
               </div>
             </div>
 
-            <!-- Caso 8: pendiente, sin nada -->
-            <div class="kit-item" data-caso="Pendiente · sin nota">
+            <div class="kit-item">
               <div class="kit-item__cab">
                 <span class="kit-item__check">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
@@ -801,8 +693,17 @@ body {
         </div>
 
       </div>
+
+      <button class="fab" id="fab" aria-label="Añadir item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+      </button>
+
     </section>
   </main>
+
+  <div class="toast" id="toast">Próximamente</div>
 
   <nav class="tabbar">
     <button class="tabbar__item" data-tab="nido">
@@ -845,17 +746,58 @@ body {
 (function () {
   'use strict';
 
+  // Expandir / contraer + toggle check
   document.querySelectorAll('.kit-item__cab').forEach((cab) => {
     cab.addEventListener('click', (ev) => {
       const check = ev.target.closest('.kit-item__check');
       const item = cab.closest('.kit-item');
       if (check) {
         item.classList.toggle('is-listo');
+        actualizarProgreso();
         return;
       }
       item.classList.toggle('is-abierto');
     });
   });
+
+  // Progreso dinámico (visual)
+  function actualizarProgreso() {
+    const items = document.querySelectorAll('.kit-item');
+    const listos = document.querySelectorAll('.kit-item.is-listo').length;
+    const total = items.length;
+    const pct = total > 0 ? Math.round((listos / total) * 100) : 0;
+    document.querySelector('.kit-progreso__num').innerHTML = `${listos}<small> / ${total}</small>`;
+    document.querySelector('.kit-progreso__barra i').style.width = pct + '%';
+  }
+
+  // Toast
+  const toast = document.getElementById('toast');
+  let toastTimer;
+  function mostrarToast(texto) {
+    toast.textContent = texto;
+    toast.classList.add('is-visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 1600);
+  }
+
+  // Subtabs
+  document.querySelectorAll('.subtab').forEach((t) => {
+    t.addEventListener('click', () => {
+      if (t.classList.contains('is-active')) return;
+      mostrarToast(t.textContent + ' — próximo paso');
+    });
+  });
+
+  // Tabbar
+  document.querySelectorAll('.tabbar__item').forEach((item) => {
+    item.addEventListener('click', () => {
+      if (item.dataset.tab === 'afuera') return;
+      mostrarToast('Próximamente');
+    });
+  });
+
+  // FAB
+  document.getElementById('fab').addEventListener('click', () => mostrarToast('Añadir item'));
 })();
 </script>
 

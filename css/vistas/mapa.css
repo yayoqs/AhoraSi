@@ -1,8 +1,21 @@
 /* ================================================================
    Ahora Sí — CSS MODULAR
    Archivo: css/vistas/mapa.css
-   Versión: 1.1.0
-   Propósito: Estilos específicos de la vista del mapa.
+   Versión: 2.0.0
+   Propósito: Estilos específicos de la vista del mapa. Migrados
+              a la paleta nueva (papel/terracota). Los estados de
+              los marcadores se mantienen semánticos: mostaza para
+              pendiente, musgo para visitado. El acento de la vista
+              (azul-piedra) se aplica a los botones y elementos
+              interactivos principales.
+              v2.0.0: migración completa a la paleta nueva. Se
+                      reemplazan --pcb2, --pcb3, --paper, --ink,
+                      --gold, --sky, --verde, --dim por los
+                      tokens nuevos. Los inputs y resultados del
+                      buscador ahora viven sobre papel claro en
+                      vez de sobre fondo oscuro. Los popups de
+                      Leaflet usan papel-2 con borde nuevo. Sin
+                      cambios en el JS.
               v1.1.0: se agregan estilos para el buscador de
                       direcciones y la lista de resultados.
               v1.0.0: versión inicial.
@@ -19,13 +32,14 @@
   border-radius: var(--r-md);
   overflow: hidden;
   margin: var(--sp-4) 0;
-  border: 1px solid rgba(238, 242, 232, .15);
-  background: var(--pcb3);
+  border: 1px solid var(--borde);
+  background: var(--papel-2);
 }
 
 #vista-mapa .leaflet-container {
-  background: var(--pcb3);
+  background: var(--papel-2);
   font-family: var(--fuente-cuerpo);
+  color: var(--tinta);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -41,27 +55,27 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 3px solid var(--ink);
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, .35);
+  border: 3px solid var(--tinta);
+  box-shadow: 0 0 0 2px rgba(31, 27, 22, .25);
   transition: transform var(--t-rapida);
 }
 .mapa-marcador:hover { transform: scale(1.15); }
 
-.mapa-marcador--pendiente { background: var(--gold); }
-.mapa-marcador--visitado { background: var(--verde); }
+.mapa-marcador--pendiente { background: var(--mostaza); }
+.mapa-marcador--visitado { background: var(--musgo); }
 
 /* ═══════════════════════════════════════════════════════════════
    SECCIÓN 3 — POPUP DE LEAFLET
    ═══════════════════════════════════════════════════════════════ */
 
 .leaflet-popup-content-wrapper {
-  background: var(--pcb2);
-  color: var(--paper);
+  background: var(--papel-2);
+  color: var(--tinta);
   border-radius: var(--r-md);
-  border: 1px solid rgba(238, 242, 232, .15);
-  box-shadow: var(--sombra-media);
+  border: 1px solid var(--borde);
+  box-shadow: var(--sombra-2);
 }
-.leaflet-popup-tip { background: var(--pcb2); }
+.leaflet-popup-tip { background: var(--papel-2); }
 .leaflet-popup-content {
   margin: 12px 14px;
   font-size: 13px;
@@ -75,40 +89,44 @@
   min-width: 180px;
 }
 .mapa-popup__nombre {
+  font-family: var(--fuente-titulo);
   font-size: 15px;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--tinta);
+  letter-spacing: -.01em;
 }
 .mapa-popup__region {
   font-size: 12px;
-  color: var(--sky);
+  color: var(--tinta-suave);
 }
 .mapa-popup__notas {
   margin: 0;
   font-size: 12px;
-  color: var(--dim);
+  color: var(--tinta-suave);
   white-space: pre-wrap;
+  font-style: italic;
 }
 .mapa-popup__fecha {
   font-size: 12px;
-  color: var(--verde);
+  color: var(--musgo);
+  font-weight: 600;
 }
 .mapa-popup__estado {
   align-self: flex-start;
   padding: 2px 8px;
-  border-radius: var(--r-pill);
+  border-radius: var(--r-full);
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .04em;
 }
 .mapa-popup__estado--visitado {
-  background: rgba(74, 222, 128, .2);
-  color: var(--verde);
+  background: color-mix(in oklab, var(--musgo) 18%, var(--papel-2));
+  color: var(--musgo);
 }
 .mapa-popup__estado--pendiente {
-  background: rgba(227, 188, 85, .2);
-  color: var(--gold);
+  background: color-mix(in oklab, var(--mostaza) 22%, var(--papel-2));
+  color: #8A6D0F;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -118,9 +136,9 @@
 #vista-mapa .mapa__progreso {
   display: inline-block;
   padding: 4px 12px;
-  border-radius: var(--r-pill);
-  background: rgba(227, 188, 85, .15);
-  color: var(--gold);
+  border-radius: var(--r-full);
+  background: color-mix(in oklab, var(--mostaza) 18%, var(--papel-2));
+  color: #8A6D0F;
   font-size: 13px;
   font-weight: 600;
   margin: 0 0 var(--sp-4);
@@ -141,7 +159,7 @@
 
 #vista-mapa .mapa__subtitulo {
   list-style: none;
-  color: var(--sky);
+  color: var(--tinta-tenue);
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -155,12 +173,13 @@
   gap: var(--sp-3);
   align-items: start;
   padding: var(--sp-4);
-  background: var(--pcb2);
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-left: 3px solid var(--borde-fuerte);
   border-radius: var(--r-md);
-  border-left: 3px solid rgba(238, 242, 232, .12);
   transition: border-color var(--t-rapida);
 }
-#vista-mapa .mapa__item:hover { border-left-color: var(--gold); }
+#vista-mapa .mapa__item:hover { border-left-color: var(--mostaza); }
 
 #vista-mapa .mapa__item-cabecera {
   display: flex;
@@ -169,18 +188,24 @@
   flex-wrap: wrap;
   margin-bottom: 4px;
 }
-#vista-mapa .mapa__item-cabecera strong { font-size: 15px; }
+#vista-mapa .mapa__item-cabecera strong {
+  font-family: var(--fuente-titulo);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--tinta);
+  letter-spacing: -.01em;
+}
 
 #vista-mapa .mapa__item-region {
   margin: 2px 0;
-  color: var(--sky);
+  color: var(--tinta-suave);
   font-size: 13px;
   font-weight: 500;
 }
 
 #vista-mapa .mapa__item-notas {
   margin: 6px 0 0;
-  color: var(--dim);
+  color: var(--tinta-suave);
   font-size: 14px;
   line-height: 1.55;
   white-space: pre-wrap;
@@ -198,19 +223,38 @@
 #vista-mapa .mapa__estado {
   display: inline-block;
   padding: 2px 10px;
-  border-radius: var(--r-pill);
+  border-radius: var(--r-full);
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .04em;
 }
 #vista-mapa .mapa__estado--pendiente {
-  background: rgba(227, 188, 85, .2);
-  color: var(--gold);
+  background: color-mix(in oklab, var(--mostaza) 22%, var(--papel-2));
+  color: #8A6D0F;
 }
 #vista-mapa .mapa__estado--visitado {
-  background: rgba(74, 222, 128, .2);
-  color: var(--verde);
+  background: color-mix(in oklab, var(--musgo) 18%, var(--papel-2));
+  color: var(--musgo);
+}
+
+/* Botones mini de la lista. */
+#vista-mapa .btn-mini {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  background: transparent;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background var(--t-rapida), color var(--t-rapida), border-color var(--t-rapida);
+  white-space: nowrap;
+}
+#vista-mapa .btn-mini:hover {
+  background: var(--papel-2);
+  color: var(--tinta);
+  border-color: var(--borde-fuerte);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -220,7 +264,7 @@
 #vista-mapa .mapa__ayuda {
   margin: 0;
   font-size: 12px;
-  color: var(--dim);
+  color: var(--tinta-suave);
   line-height: 1.5;
 }
 
@@ -235,6 +279,17 @@
   white-space: nowrap;
   padding: 10px 14px;
   font-size: 13px;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--borde-fuerte);
+  background: transparent;
+  color: var(--tinta-suave);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--t-rapida), color var(--t-rapida), background var(--t-rapida);
+}
+#vista-mapa .mapa__fila-coords .btn-secundario:hover {
+  border-color: var(--accent, var(--azul-piedra));
+  color: var(--accent, var(--azul-piedra));
 }
 
 #vista-mapa .mapa__fila-estado {
@@ -248,11 +303,142 @@
   flex-direction: column;
   gap: 4px;
   font-size: 12px;
-  color: var(--dim);
+  color: var(--tinta-suave);
   font-weight: 500;
 }
 
 #vista-mapa .mapa__form { max-width: 100%; }
+
+/* Formulario base sobre la paleta nueva. */
+#vista-mapa .vista__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  max-width: 100%;
+  margin-bottom: var(--sp-5);
+}
+#vista-mapa .vista__form input,
+#vista-mapa .vista__form select,
+#vista-mapa .vista__form textarea {
+  padding: 11px 14px;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--borde-fuerte);
+  background: var(--papel-3);
+  color: var(--tinta);
+  font-size: 15px;
+  font-family: inherit;
+  width: 100%;
+  transition: border-color var(--t-rapida), background var(--t-rapida);
+}
+#vista-mapa .vista__form input:focus,
+#vista-mapa .vista__form select:focus,
+#vista-mapa .vista__form textarea:focus {
+  border-color: var(--accent, var(--azul-piedra));
+  background: var(--papel);
+  outline: none;
+}
+#vista-mapa .vista__form textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: var(--fuente-cuerpo);
+}
+
+#vista-mapa .form-botones {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-top: var(--sp-2);
+}
+#vista-mapa .form-botones .btn-primario {
+  padding: 10px 22px;
+  border-radius: var(--r-md);
+  background: var(--accent, var(--azul-piedra));
+  color: var(--papel);
+  font-weight: 700;
+  font-size: 14px;
+  border: 0;
+  cursor: pointer;
+  transition: filter var(--t-rapida);
+}
+#vista-mapa .form-botones .btn-primario:hover { filter: brightness(1.05); }
+
+#vista-mapa .form-botones .btn-secundario {
+  padding: 10px 22px;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--tinta-suave);
+  border: 1.5px solid var(--borde-fuerte);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background var(--t-rapida), color var(--t-rapida);
+}
+#vista-mapa .form-botones .btn-secundario:hover {
+  background: var(--papel-2);
+  color: var(--tinta);
+}
+
+/* Botón "abrir formulario". */
+#vista-mapa .abrir-form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px 24px;
+  border-radius: var(--r-md);
+  background: var(--accent, var(--azul-piedra));
+  color: var(--papel);
+  font-weight: 700;
+  font-size: 15px;
+  border: 0;
+  cursor: pointer;
+  transition: filter var(--t-rapida), transform var(--t-rapida);
+}
+#vista-mapa .abrir-form:hover { filter: brightness(1.05); }
+#vista-mapa .abrir-form:active { transform: translateY(1px); }
+
+/* Edición inline. */
+#vista-mapa .pieza-edit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: 14px 16px;
+  background: var(--papel-2);
+  border: 1px dashed var(--borde-fuerte);
+  border-radius: var(--r-md);
+  list-style: none;
+}
+#vista-mapa .pieza-edit input,
+#vista-mapa .pieza-edit select,
+#vista-mapa .pieza-edit textarea {
+  padding: 10px 12px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: 14px;
+  color: var(--tinta);
+  width: 100%;
+  font-family: var(--fuente-cuerpo);
+}
+#vista-mapa .pieza-edit input:focus,
+#vista-mapa .pieza-edit select:focus,
+#vista-mapa .pieza-edit textarea:focus {
+  outline: none;
+  border-color: var(--accent, var(--azul-piedra));
+  background: var(--papel);
+}
+#vista-mapa .pieza-edit textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+#vista-mapa .pieza-edit__botones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
 
 /* ═══════════════════════════════════════════════════════════════
    SECCIÓN 7 — BUSCADOR DE DIRECCIONES
@@ -263,22 +449,23 @@
   flex-direction: column;
   gap: var(--sp-2);
   margin-bottom: var(--sp-3);
+  position: relative;
 }
 
 #vista-mapa .mapa__buscador input[type="search"] {
   width: 100%;
   padding: 11px 14px;
   border-radius: var(--r-md);
-  border: 1.5px solid rgba(141, 183, 216, .5);
-  background: rgba(141, 183, 216, .05);
-  color: var(--paper);
+  border: 1.5px solid var(--borde-fuerte);
+  background: var(--papel-3);
+  color: var(--tinta);
   font-size: 15px;
   font-family: inherit;
   transition: border-color var(--t-rapida), background var(--t-rapida);
 }
 #vista-mapa .mapa__buscador input[type="search"]:focus {
-  border-color: var(--sky);
-  background: rgba(141, 183, 216, .1);
+  border-color: var(--accent, var(--azul-piedra));
+  background: var(--papel);
   outline: none;
 }
 
@@ -287,7 +474,7 @@
   appearance: none;
   width: 16px;
   height: 16px;
-  background: rgba(238, 242, 232, .3);
+  background: var(--borde-fuerte);
   border-radius: 50%;
   cursor: pointer;
   margin-right: 2px;
@@ -297,9 +484,10 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  background: var(--pcb2);
+  background: var(--papel-3);
   border-radius: var(--r-md);
-  border: 1px solid rgba(238, 242, 232, .15);
+  border: 1px solid var(--borde);
+  box-shadow: var(--sombra-1);
   max-height: 260px;
   overflow-y: auto;
 }
@@ -309,14 +497,14 @@
   cursor: pointer;
   font-size: 13px;
   line-height: 1.4;
-  border-bottom: 1px solid rgba(238, 242, 232, .08);
+  border-bottom: 1px solid var(--borde);
   transition: background var(--t-rapida);
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 #vista-mapa .mapa__resultado:last-child { border-bottom: none; }
-#vista-mapa .mapa__resultado:hover { background: var(--pcb3); }
+#vista-mapa .mapa__resultado:hover { background: var(--papel-2); }
 
 #vista-mapa .mapa__resultado-cabecera {
   display: flex;
@@ -326,7 +514,7 @@
 }
 
 #vista-mapa .mapa__resultado strong {
-  color: var(--paper);
+  color: var(--tinta);
   font-size: 14px;
   font-weight: 600;
 }
@@ -334,9 +522,9 @@
 #vista-mapa .mapa__resultado-tipo {
   display: inline-block;
   padding: 2px 8px;
-  border-radius: var(--r-pill);
-  background: rgba(141, 183, 216, .18);
-  color: var(--sky);
+  border-radius: var(--r-full);
+  background: color-mix(in oklab, var(--azul-piedra) 15%, var(--papel-2));
+  color: #3D5876;
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
@@ -345,7 +533,7 @@
 }
 
 #vista-mapa .mapa__resultado-direccion {
-  color: var(--dim);
+  color: var(--tinta-suave);
   font-size: 12px;
   line-height: 1.4;
 }
@@ -353,13 +541,30 @@
 #vista-mapa .mapa__resultado-cargando {
   padding: 10px 14px;
   font-size: 13px;
-  color: var(--dim);
+  color: var(--tinta-tenue);
   font-style: italic;
   cursor: default;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 8 — RESPONSIVE
+   SECCIÓN 8 — VACÍO Y MENSAJES
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-mapa .vista__vacio {
+  color: var(--tinta-tenue);
+  font-style: italic;
+  padding: 20px 0;
+  text-align: center;
+  list-style: none;
+}
+
+#vista-mapa .vista__error,
+#vista-mapa .vista__ok {
+  margin-bottom: var(--sp-3);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 9 — RESPONSIVE
    ═══════════════════════════════════════════════════════════════ */
 
 @media (max-width: 640px) {

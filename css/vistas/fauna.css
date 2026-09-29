@@ -1,91 +1,733 @@
 /* ================================================================
    Ahora Sí — CSS MODULAR
    Archivo: css/vistas/fauna.css
-   Versión: 2.0.0
-   Propósito: Estilos específicos de la vista de fauna. Todo
-              encapsulado bajo #vista-fauna para ganar
-              especificidad y aislar del resto de las vistas.
-              Los estilos genéricos (bloque de registro colapsable,
-              captura de foto, botones primario/secundario) viven
-              en css/componentes.css.
-              v2.0.0: reescritura con el patrón de LaTaberna:
-                      secciones numeradas, selector raíz por ID.
-                      Se quitan los bloques que se movieron a
-                      componentes.css. Se elimina el prefijo
-                      .vista--fauna a favor de #vista-fauna.
-              v1.4.0: formulario colapsable, campos nuevos.
-              v1.3.0: galería y lightbox movidos a componentes.
-              v1.2.0: formulario con captura arriba.
+   Versión: 3.1.0
+   Propósito: estilos de la vista de fauna en formato bitácora.
+              v3.1.0: se reemplaza la sección de fotos por el
+                      sistema del componente galeria.js v2.0.0.
+                      La tarjeta usa el modo compacto (grid 4
+                      columnas, 3 fotos + slot). El slot es
+                      "+ Añadir" o se divide en "+N fotos" arriba
+                      y "+ Añadir" abajo. Se mantiene el modo
+                      detalle (todas las fotos con botón de
+                      eliminar y bloque de subida).
+              v3.0.0: rediseño bitácora.
+              v2.0.0: reescritura con el patrón de LaTaberna.
               v1.0.0: versión inicial.
    ================================================================ */
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 1 — ETIQUETA DE TIPO
-   Distintivo que aparece al lado del nombre del registro.
+   SECCIÓN 1 — LISTA Y TARJETA
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-fauna .tipo-etiqueta {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: var(--r-pill);
-  background: rgba(141, 183, 216, .2);
-  color: var(--sky);
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .04em;
+#vista-fauna .lista-registros {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 2 — META DEL REGISTRO
-   Línea secundaria con lugar y fecha.
-   ═══════════════════════════════════════════════════════════════ */
+#vista-fauna .registro {
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: border-color var(--t-rapida), background var(--t-rapida);
+  -webkit-tap-highlight-color: transparent;
+}
+#vista-fauna .registro:hover { border-color: var(--borde-fuerte); }
+#vista-fauna .registro:active { background: var(--papel-2); }
 
-#vista-fauna .vista__item .meta {
+#vista-fauna .registro__cab {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+#vista-fauna .registro__titulo-wrap { flex: 1; min-width: 0; }
+#vista-fauna .registro__nombre {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--tinta);
+}
+#vista-fauna .registro__nombre-propio {
+  font-family: var(--fuente-carta);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--musgo);
+  letter-spacing: -0.005em;
+  margin-top: 1px;
+  line-height: 1.3;
+}
+
+#vista-fauna .registro__autor {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-family: var(--fuente-titulo);
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--papel);
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+#vista-fauna .registro__autor.autor--luci { background: #D89A9A; }
+#vista-fauna .registro__autor.autor--yayo { background: #B8893C; }
+#vista-fauna .registro__autor.autor--desconocido { background: var(--tinta-tenue); }
+
+#vista-fauna .registro__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sp-2);
   align-items: center;
-  margin-top: var(--sp-2);
+  gap: 6px 8px;
+  font-size: 12px;
+  color: var(--tinta-suave);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+#vista-fauna .registro__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+#vista-fauna .registro__meta-sep { color: var(--tinta-tenue); }
+
+#vista-fauna .registro__notas {
+  font-family: var(--fuente-carta);
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--tinta-suave);
+  margin-top: 4px;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 3 — CAMPOS PROPIOS DE FAUNA
-   Nombre propio, pertenece a, notas.
+   SECCIÓN 2 — CHIPS
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-fauna .fauna__nombre-propio {
-  margin: 6px 0 0;
-  font-family: var(--fuente-titulo);
-  font-size: 16px;
+#vista-fauna .chip-tipo {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  font-size: 10px;
   font-weight: 700;
-  color: var(--gold);
-  letter-spacing: -.01em;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  background: var(--papel-2);
+  color: var(--tinta-suave);
+}
+#vista-fauna .chip-tipo--ave      { background: color-mix(in oklab, #4A6785 15%, var(--papel-2)); color: #3D5876; }
+#vista-fauna .chip-tipo--mamifero { background: color-mix(in oklab, #C9613B 15%, var(--papel-2)); color: #A5522C; }
+#vista-fauna .chip-tipo--reptil   { background: color-mix(in oklab, #D9A421 22%, var(--papel-2)); color: #8A6D0F; }
+#vista-fauna .chip-tipo--anfibio  { background: color-mix(in oklab, #5A6B3E 18%, var(--papel-2)); color: #5A6B3E; }
+#vista-fauna .chip-tipo--pez      { background: color-mix(in oklab, #8DB7D8 25%, var(--papel-2)); color: #4A6785; }
+#vista-fauna .chip-tipo--insecto  { background: color-mix(in oklab, #7A3E5C 15%, var(--papel-2)); color: #7A3E5C; }
+#vista-fauna .chip-tipo--otro     { background: var(--papel-2); color: var(--tinta-suave); }
+
+#vista-fauna .chip-pertenece {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  background: color-mix(in oklab, var(--musgo) 14%, var(--papel-2));
+  color: color-mix(in oklab, var(--musgo) 85%, var(--tinta));
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
 }
 
-#vista-fauna .fauna__pertenece {
-  margin: 2px 0 0;
-  color: var(--sky);
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 3 — GALERÍA (componente compartido)
+   Los modales y sheets viven fuera de #vista-fauna (se montan en
+   body), así que estas clases NO llevan prefijo de ID.
+   ═══════════════════════════════════════════════════════════════ */
+
+.galeria-wrap {
+  margin-top: 14px;
+}
+
+/* Modo vacío: botón "Añadir foto" como texto. */
+.galeria-wrap--vacia .galeria__solo-agregar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--tinta-tenue);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: color var(--t-rapida);
+}
+.galeria-wrap--vacia .galeria__solo-agregar:hover { color: var(--musgo); }
+.galeria-wrap--vacia .galeria__solo-agregar svg { width: 15px; height: 15px; }
+
+/* Grid. */
+.galeria {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+}
+.galeria--compacta {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Item de foto. */
+.galeria__item {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  cursor: pointer;
+  border: 0;
+  padding: 0;
+  display: block;
+  background: var(--papel-2);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--t-rapida);
+}
+.galeria__item:active { transform: scale(.97); }
+
+.galeria__foto {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Botón de eliminar en modo detalle. */
+.galeria__eliminar {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(20, 16, 12, .75);
+  color: var(--papel);
+  font-size: 16px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background var(--t-rapida);
+  user-select: none;
+}
+.galeria__eliminar:hover { background: var(--rojo); }
+
+/* Slot "+ Añadir". */
+.galeria__agregar {
+  aspect-ratio: 1 / 1;
+  border-radius: var(--r-md);
+  border: 1.5px dashed var(--borde-fuerte);
+  background: transparent;
+  color: var(--tinta-tenue);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 4px;
+  transition: border-color var(--t-rapida), color var(--t-rapida), transform var(--t-rapida);
+  -webkit-tap-highlight-color: transparent;
+  font-family: var(--fuente-cuerpo);
+}
+.galeria__agregar:hover { border-color: var(--musgo); color: var(--musgo); }
+.galeria__agregar:active { transform: scale(.96); }
+.galeria__agregar svg { width: 20px; height: 20px; }
+.galeria__agregar span {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+
+/* Slot dividido: +N arriba, + Añadir abajo. */
+.galeria__dividido {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.galeria__dividido > * {
+  flex: 1;
+  border-radius: var(--r-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 0;
+  padding: 2px;
+  transition: background var(--t-rapida), border-color var(--t-rapida), color var(--t-rapida), transform var(--t-rapida);
+  -webkit-tap-highlight-color: transparent;
+}
+.galeria__dividido > *:active { transform: scale(.96); }
+
+.galeria__mas {
+  background: var(--papel-2);
+  border: 1px solid var(--borde) !important;
+  color: var(--tinta);
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 17px;
+  line-height: 1;
+  gap: 2px;
+}
+.galeria__mas:hover { background: color-mix(in oklab, var(--musgo) 10%, var(--papel-2)); }
+.galeria__mas small {
+  font-family: var(--fuente-cuerpo);
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--tinta-tenue);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.galeria__dividido .galeria__agregar {
+  aspect-ratio: auto;
+  gap: 2px;
+}
+.galeria__dividido .galeria__agregar svg { width: 16px; height: 16px; }
+.galeria__dividido .galeria__agregar span { font-size: 9.5px; }
+
+/* Modo detalle: bloque de subida (Galería/Cámara). */
+.galeria__acciones {
+  aspect-ratio: 1 / 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+  justify-content: center;
+}
+.galeria__archivo {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+.galeria__boton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+  flex: 1;
+  border-radius: var(--r-md);
+  border: 1.5px dashed var(--borde-fuerte);
+  background: transparent;
+  color: var(--tinta-tenue);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  padding: 6px;
+  transition: border-color var(--t-rapida), color var(--t-rapida);
+}
+.galeria__boton:hover { border-color: var(--musgo); color: var(--musgo); }
+.galeria__boton--camara {
+  border-color: color-mix(in oklab, var(--terracota) 40%, var(--borde));
+  color: var(--terracota);
+}
+.galeria__boton--camara:hover {
+  border-color: var(--terracota);
+  color: var(--terracota);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 4 — SHEET (modal inferior, montado en body)
+   ═══════════════════════════════════════════════════════════════ */
+
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(20, 16, 12, .55);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s ease;
+}
+.sheet.is-open { opacity: 1; pointer-events: auto; }
+
+.sheet__panel {
+  width: 100%;
+  max-width: 620px;
+  max-height: 92vh;
+  background: var(--papel);
+  border-radius: 22px 22px 0 0;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform .32s cubic-bezier(.32, .72, 0, 1);
+  overflow: hidden;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -12px 40px rgba(31, 27, 22, .18);
+}
+.sheet.is-open .sheet__panel { transform: translateY(0); }
+
+@media (min-width: 640px) {
+  .sheet { align-items: center; padding: 20px; }
+  .sheet__panel { border-radius: var(--r-lg); max-height: 88vh; }
+  .sheet__panel { transform: translateY(20px); }
+  .sheet.is-open .sheet__panel { transform: translateY(0); }
+}
+
+.sheet__handle {
+  width: 40px;
+  height: 4px;
+  background: var(--borde-fuerte);
+  border-radius: var(--r-full);
+  margin: 10px auto 4px;
+  flex-shrink: 0;
+}
+@media (min-width: 640px) { .sheet__handle { display: none; } }
+
+.sheet__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 20px 14px;
+  border-bottom: 1px solid var(--borde);
+  flex-shrink: 0;
+}
+.sheet__head-title { flex: 1; min-width: 0; }
+.sheet__eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--musgo);
+  margin-bottom: 2px;
+}
+.sheet__title {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  color: var(--tinta);
+  word-wrap: break-word;
+  margin: 0;
+}
+.sheet__cerrar {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-full);
+  background: var(--papel-2);
+  color: var(--tinta-suave);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 0;
+}
+.sheet__cerrar:active { transform: scale(.92); }
+.sheet__cerrar svg { width: 16px; height: 16px; }
+
+.sheet__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 20px 20px;
+}
+.sheet__body::-webkit-scrollbar { width: 0; }
+
+.sheet__foot {
+  display: flex;
+  gap: 8px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--borde);
+  background: var(--papel);
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 5 — DETALLE
+   ═══════════════════════════════════════════════════════════════ */
+
+.detalle__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--borde);
+}
+
+.detalle__info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.detalle__info-item { display: flex; flex-direction: column; gap: 3px; }
+.detalle__info-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+}
+.detalle__info-valor {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--tinta);
+}
+
+.detalle__seccion { margin-bottom: 20px; }
+.detalle__seccion:last-child { margin-bottom: 0; }
+.detalle__seccion-title {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--musgo);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.detalle__seccion-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--borde);
+}
+
+.detalle__nota {
+  padding: 14px 16px;
+  background: var(--papel-3);
+  border-left: 3px solid var(--musgo);
+  border-radius: var(--r-sm);
+  font-family: var(--fuente-carta);
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--tinta-suave);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 6 — FORMULARIO
+   ═══════════════════════════════════════════════════════════════ */
+
+.fcampo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.fcampo label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+}
+.fcampo input,
+.fcampo select,
+.fcampo textarea {
+  padding: 11px 13px;
+  border: 1px solid var(--borde-fuerte);
+  background: var(--papel-3);
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: 14.5px;
+  color: var(--tinta);
+  width: 100%;
+  font-family: inherit;
+}
+.fcampo input:focus,
+.fcampo select:focus,
+.fcampo textarea:focus {
+  outline: none;
+  border-color: var(--musgo);
+  background: var(--papel);
+}
+.fcampo textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.55;
+  font-family: var(--fuente-carta);
+  font-size: 15px;
+}
+.fcampo--dos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.fcampo--dos > * { margin-bottom: 0; }
+
+.form-foto-fila {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.form-foto-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: var(--papel-3);
+  border: 1.5px dashed var(--borde-fuerte);
+  border-radius: var(--r-sm);
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--t-rapida), color var(--t-rapida);
+}
+.form-foto-btn:hover { border-color: var(--musgo); color: var(--musgo); }
+.form-foto-btn svg { width: 16px; height: 16px; }
+
+.form-foto-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
+  margin-bottom: 14px;
+  width: 100%;
+}
+.form-foto-preview__thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #C7BE9F 0%, #8FA076 100%);
+  color: rgba(255,255,255,.7);
+}
+.form-foto-preview__thumb svg { width: 20px; height: 20px; }
+.form-foto-preview__texto {
+  flex: 1;
   font-size: 13px;
   font-weight: 500;
+  color: var(--tinta);
 }
-
-#vista-fauna .fauna__notas {
-  margin: 8px 0 0;
-  color: var(--dim);
-  font-size: 14px;
-  line-height: 1.55;
-  white-space: pre-wrap;
-  font-style: italic;
+.form-foto-preview__quitar {
+  padding: 6px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--rojo);
+  border: 1px solid color-mix(in oklab, var(--rojo) 30%, var(--borde));
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 4 — FORMULARIO (ajustes locales)
-   El formulario base vive en componentes.css. Acá solo
-   ajustamos el ancho en fauna.
+   SECCIÓN 7 — BOTONES DEL SHEET
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-fauna .vista__form {
-  max-width: 100%;
-  gap: var(--sp-3);
+.sheet .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 16px;
+  border-radius: var(--r-md);
+  font-weight: 600;
+  font-size: 14px;
+  transition: background var(--t-rapida), color var(--t-rapida), filter var(--t-rapida), transform var(--t-rapida);
+  min-height: 46px;
+  cursor: pointer;
+  flex: 1;
 }
+.sheet .btn:active { transform: scale(.97); }
+.sheet .btn--primario { background: var(--musgo); color: var(--papel); border: 0; }
+.sheet .btn--primario:hover { filter: brightness(1.05); }
+.sheet .btn--secundario {
+  background: transparent;
+  color: var(--tinta-suave);
+  border: 1px solid var(--borde-fuerte);
+}
+.sheet .btn--secundario:hover { background: var(--papel-2); color: var(--tinta); }
+.sheet .btn--peligro {
+  background: transparent;
+  color: var(--rojo);
+  border: 1px solid color-mix(in oklab, var(--rojo) 40%, var(--borde-fuerte));
+  flex: 0 0 auto;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+.sheet .btn--peligro:hover { background: #FBE9E9; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 8 — VACÍO
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-fauna .vista__vacio {
+  color: var(--tinta-tenue);
+  font-style: italic;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 9 — LIGHTBOX (montado en body)
+   ═══════════════════════════════════════════════════════════════ */
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(20, 16, 12, .92);
+  opacity: 0;
+  transition: opacity .18s ease;
+}
+.lightbox--visible { opacity: 1; }
+
+.lightbox__imagen {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: var(--r-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, .5);
+}
+
+.lightbox__cerrar {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(20, 16, 12, .85);
+  color: var(--papel);
+  font-size: 22px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--t-rapida);
+  cursor: pointer;
+}
+.lightbox__cerrar:hover { background: var(--rojo); }

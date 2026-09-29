@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ahora Sí — Juegos</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --papel:        #F7F1E8;
+  --papel-2:      #EFE7DA;
+  --papel-3:      #FCF8F0;
+  --borde:        #E2D7C5;
+  --borde-fuerte: #D2C4AC;
+  --tinta:        #1F1B16;
+  --tinta-suave:  #6B6155;
+  --tinta-tenue:  #A89B87;
+
+  --terracota: #C9613B;
+  --mostaza:   #D9A421;
+  --musgo:     #5A6B3E;
+  --azul:      #4A6785;
+  --ciruela:   #7A3E5C;
+
+  --rojo: #A03737;
+  --luci: #D89A9A;
+  --yayo: #B8893C;
+  --ambos: #7A8B6B;
+
+  --accent: var(--ciruela);
+
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-full: 999px;
+  --sombra-1: 0 1px 2px rgba(31,27,22,.06);
+  --sombra-2: 0 12px 28px rgba(31,27,22,.10);
+  --fuente-titulo: 'Bricolage Grotesque', system-ui, sans-serif;
+  --fuente-cuerpo: 'Figtree', system-ui, sans-serif;
+  --fuente-carta:  'Fraunces', Georgia, serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+h1,h2,h3,h4,p,ul,ol,li { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+button { background: none; border: none; cursor: pointer; font: inherit; color: inherit; }
+img { display: block; max-width: 100%; }
+
+body {
+  font-family: var(--fuente-cuerpo);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--tinta);
+  background: radial-gradient(ellipse at top, #2C2620 0%, #13100D 100%);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  -webkit-font-smoothing: antialiased;
+}
+@media (max-width: 520px) { body { padding: 0; display: block; } }
+
+.phone {
+  width: 390px;
+  height: 844px;
+  max-height: calc(100vh - 48px);
+  background: var(--papel);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 0 0 10px #0E0B08,
+    0 0 0 12px #2A2318,
+    0 30px 80px rgba(0,0,0,.55);
+}
+@media (max-width: 520px) {
+  .phone { width: 100%; height: 100dvh; max-height: none; border-radius: 0; box-shadow: none; }
+}
+
+.screen-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--papel);
+  display: flex;
+  flex-direction: column;
+}
+.screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+/* ── TOPBAR ── */
+.topbar {
+  flex-shrink: 0;
+  padding: 16px 20px 12px;
+  background: var(--papel);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  position: relative;
+  z-index: 5;
+}
+.topbar__izq { flex: 1; min-width: 0; display: flex; align-items: flex-start; gap: 10px; }
+.topbar__volver {
+  width: 32px; height: 32px;
+  border-radius: var(--r-full);
+  background: var(--papel-2);
+  color: var(--tinta-suave);
+  display: none;
+  place-items: center;
+  flex-shrink: 0;
+  margin-top: 4px;
+  transition: all .15s ease;
+}
+.topbar__volver:hover { background: var(--papel-3); color: var(--tinta); }
+.topbar__volver.is-visible { display: grid; }
+.topbar__volver svg { width: 15px; height: 15px; }
+.topbar__eyebrow {
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.topbar__title {
+  font-family: var(--fuente-titulo);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--accent);
+  transition: color .25s ease;
+}
+.topbar__btn {
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  border-radius: var(--r-full);
+  color: var(--tinta-suave);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ── SUBTABS (solo 3) ── */
+.subtabs {
+  display: flex;
+  gap: 6px;
+  padding: 0 20px 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--papel);
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--borde);
+  position: relative;
+  z-index: 4;
+}
+.subtabs::-webkit-scrollbar { display: none; }
+.subtab {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  border-radius: var(--r-full);
+  transition: all .2s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.subtab:hover { background: var(--papel-2); color: var(--tinta); }
+.subtab.is-active { background: var(--tinta); color: var(--papel); }
+.subtab__badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--papel-2);
+  color: var(--tinta-suave);
+  font-variant-numeric: tabular-nums;
+}
+.subtab.is-active .subtab__badge {
+  background: rgba(247,241,232,.22);
+  color: var(--papel);
+}
+
+/* ── CUERPO ── */
+.screen__body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px 20px 120px;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+.screen__body::-webkit-scrollbar { width: 0; }
+
+.panel { display: none; }
+.panel.is-active { display: block; }
+
+/* Animación de entrada */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.panel.is-active > * { animation: fadeUp .35s cubic-bezier(.25,.9,.35,1) backwards; }
+.panel.is-active > *:nth-child(1) { animation-delay: .02s; }
+.panel.is-active > *:nth-child(2) { animation-delay: .06s; }
+.panel.is-active > *:nth-child(3) { animation-delay: .10s; }
+
+/* ══════════════════════════════════════════════
+   SERIES
+   ══════════════════════════════════════════════ */
+.series-progreso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--papel-2);
+  border-radius: var(--r-md);
+  margin-bottom: 12px;
+}
+.series-progreso__izq {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.series-progreso__num {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.03em;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.series-progreso__txt {
+  font-size: 12.5px;
+  color: var(--tinta-suave);
+  font-weight: 500;
+}
+.series-toggle {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--papel-3);
+  border-radius: var(--r-full);
+}
+.series-toggle button {
+  padding: 5px 12px;
+  border-radius: var(--r-full);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  transition: all .15s ease;
+}
+.series-toggle button.is-active {
+  background: var(--tinta);
+  color: var(--papel);
+}
+
+.serie-caja {
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-left: 4px solid var(--borde-fuerte);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  transition: all .15s ease;
+}
+.serie-caja--vista { border-left-color: var(--musgo); }
+.serie-caja--viendo { border-left-color: var(--azul); }
+.serie-caja--pendiente { border-left-color: var(--mostaza); }
+.serie-caja--abandonada { border-left-color: var(--rojo); opacity: .7; }
+
+.serie-caja__fila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.serie-caja__num {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.04em;
+  color: var(--accent);
+  min-width: 34px;
+  text-align: center;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.serie-caja__num--vacio {
+  color: var(--tinta-tenue);
+  font-weight: 500;
+  font-size: 18px;
+}
+.serie-caja__cuerpo { flex: 1; min-width: 0; }
+.serie-caja__titulo {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--tinta);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.serie-caja__meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 11px;
+  color: var(--tinta-suave);
+}
+.btn-cap {
+  padding: 6px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  background: color-mix(in oklab, var(--azul) 12%, var(--papel-2));
+  color: var(--azul);
+  border: 1px solid color-mix(in oklab, var(--azul) 30%, var(--borde));
+  border-radius: 6px;
+  flex-shrink: 0;
+  font-family: var(--fuente-titulo);
+}
+
+/* ══════════════════════════════════════════════
+   PERCUSIÓN — modo oscuro local
+   ══════════════════════════════════════════════ */
+.perc-aviso {
+  padding: 12px 14px;
+  background: var(--papel-2);
+  border-radius: var(--r-md);
+  font-size: 12.5px;
+  color: var(--tinta-suave);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.perc-caja {
+  background: #1a1410;
+  border-radius: var(--r-lg);
+  padding: 20px 18px;
+  --pd-texto: #F2E6D0;
+  --pd-texto-suave: #B8A888;
+  --pd-texto-tenue: #6E5F48;
+  --pd-papel: #241C14;
+  --pd-papel-2: #2E2419;
+  --pd-borde: rgba(242,230,208,.10);
+}
+.perc-caja * { color: var(--pd-texto); }
+
+.perc-modo {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--pd-papel);
+  border-radius: var(--r-full);
+  margin-bottom: 18px;
+}
+.perc-modo button {
+  flex: 1;
+  padding: 9px;
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pd-texto-suave);
+  transition: all .2s ease;
+}
+.perc-modo button.is-active {
+  background: var(--mostaza);
+  color: #1a1410;
+}
+
+.perc-grilla {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.perc-voz { display: flex; align-items: center; gap: 8px; }
+.perc-voz__label {
+  width: 62px;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--pd-texto-suave);
+  line-height: 1.2;
+}
+.perc-voz__label b {
+  display: block;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 11.5px;
+  color: var(--pd-texto);
+  margin-bottom: 1px;
+}
+.perc-pasos {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 3px;
+}
+.perc-celda {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: var(--pd-papel-2);
+  border: 1px solid rgba(242,230,208,.05);
+  transition: all .12s ease;
+}
+.perc-celda--marca { background: rgba(242,230,208,.08); }
+.perc-celda--n1 { background: color-mix(in oklab, var(--mostaza) 40%, var(--pd-papel-2)); }
+.perc-celda--n2 { background: color-mix(in oklab, var(--mostaza) 70%, var(--pd-papel-2)); }
+.perc-celda--n3 { background: var(--mostaza); }
+.perc-celda:active { transform: scale(.85); }
+
+.perc-controles {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: var(--pd-papel);
+  border: 1px solid rgba(242,230,208,.07);
+  border-radius: var(--r-md);
+  margin-bottom: 12px;
+}
+.perc-play {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-full);
+  background: var(--mostaza);
+  color: #1a1410 !important;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  box-shadow: 0 6px 16px rgba(217,164,33,.3);
+}
+.perc-play:active { transform: scale(.9); }
+.perc-play svg { width: 20px; height: 20px; }
+.perc-slider {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.perc-slider__label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--pd-texto-tenue);
+}
+.perc-slider__fila {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.perc-slider__input {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  background: var(--pd-papel-2);
+  border-radius: 2px;
+  outline: none;
+}
+.perc-slider__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: var(--mostaza);
+  cursor: pointer;
+}
+.perc-slider__valor {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--pd-texto);
+  min-width: 36px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.perc-acciones {
+  display: flex;
+  gap: 6px;
+}
+.perc-acciones button {
+  flex: 1;
+  padding: 10px;
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--pd-papel);
+  color: var(--pd-texto-suave);
+  border: 1px solid rgba(242,230,208,.08);
+  min-height: 40px;
+}
+.perc-acciones button:hover { background: var(--pd-papel-2); }
+.perc-acciones button.principal {
+  background: var(--mostaza);
+  color: #1a1410;
+  border-color: var(--mostaza);
+}
+
+/* ══════════════════════════════════════════════
+   JUEGOS — HUB
+   ══════════════════════════════════════════════ */
+.hub-lead {
+  font-size: 13.5px;
+  color: var(--tinta-suave);
+  line-height: 1.55;
+  margin-bottom: 18px;
+}
+
+.hub {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.hub-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  text-align: left;
+  transition: all .15s ease;
+  cursor: pointer;
+  min-height: 110px;
+  position: relative;
+  overflow: hidden;
+}
+.hub-card:active { transform: scale(.97); }
+.hub-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--tema);
+}
+.hub-card--chiste      { --tema: var(--mostaza); }
+.hub-card--reto        { --tema: var(--azul); }
+.hub-card--penitencia  { --tema: var(--terracota); }
+.hub-card--pregunta    { --tema: var(--musgo); }
+.hub-card--apuesta     { --tema: var(--ciruela); }
+.hub-card--ancho { grid-column: 1 / -1; }
+
+.hub-card__emoji {
+  font-size: 24px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.hub-card__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--tinta);
+}
+.hub-card__cuenta {
+  font-size: 11px;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  margin-top: auto;
+}
+.hub-card__pendientes {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  background: color-mix(in oklab, var(--tema) 15%, var(--papel-2));
+  color: var(--tema);
+  font-size: 10.5px;
+  font-weight: 700;
+  margin-top: 6px;
+  align-self: flex-start;
+}
+
+/* ══════════════════════════════════════════════
+   JUEGOS — SUB-VISTA (dentro de un mini-juego)
+   ══════════════════════════════════════════════ */
+.subjuego__lead {
+  font-size: 13.5px;
+  color: var(--tinta-suave);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+
+.lista-item {
+  padding: 14px 16px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-left: 4px solid var(--borde-fuerte);
+  border-radius: var(--r-md);
+  margin-bottom: 10px;
+}
+.lista-item--propuesto { border-left-color: var(--mostaza); }
+.lista-item--aceptado { border-left-color: var(--azul); }
+.lista-item--cumplido { border-left-color: var(--musgo); }
+.lista-item--cumplida { border-left-color: var(--musgo); }
+.lista-item--pendiente { border-left-color: var(--mostaza); }
+.lista-item--rechazado { border-left-color: var(--tinta-tenue); opacity: .75; }
+.lista-item--resuelta { border-left-color: var(--musgo); }
+
+.lista-item__cab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.lista-item__texto {
+  font-family: var(--fuente-carta);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--tinta);
+  letter-spacing: -0.005em;
+}
+.lista-item__contexto {
+  font-size: 13px;
+  color: var(--tinta-suave);
+  font-style: italic;
+  line-height: 1.5;
+  margin-top: 4px;
+}
+.lista-item__resultado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: color-mix(in oklab, var(--musgo) 12%, var(--papel-2));
+  border-radius: var(--r-full);
+  font-size: 12px;
+  color: var(--tinta-suave);
+  margin-top: 8px;
+}
+.lista-item__ganador { color: var(--musgo); font-weight: 700; }
+
+.lista-item__acciones {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--borde);
+}
+
+/* Chiste / pregunta destacada */
+.dicho {
+  padding: 24px 20px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  font-family: var(--fuente-carta);
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--tinta);
+  font-style: italic;
+  text-align: center;
+  margin-bottom: 12px;
+  position: relative;
+}
+.dicho--chiste {
+  background: linear-gradient(160deg,
+    color-mix(in oklab, var(--mostaza) 10%, var(--papel-3)) 0%,
+    var(--papel-3) 100%);
+  border-color: color-mix(in oklab, var(--mostaza) 30%, var(--borde));
+}
+.dicho--pregunta {
+  background: linear-gradient(160deg,
+    color-mix(in oklab, var(--musgo) 8%, var(--papel-3)) 0%,
+    var(--papel-3) 100%);
+  border-color: color-mix(in oklab, var(--musgo) 25%, var(--borde));
+}
+.dicho__eyebrow {
+  display: block;
+  font-family: var(--fuente-titulo);
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  margin-bottom: 12px;
+}
+
+.acciones-centro {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+/* ── Autores y estados ── */
+.autor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px 2px 2px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.autor__ini {
+  width: 16px; height: 16px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 9px; font-weight: 800;
+  color: var(--papel);
+  font-family: var(--fuente-titulo);
+}
+.autor--luci { background: #F0E2E2; color: #8A5757; }
+.autor--luci .autor__ini { background: var(--luci); }
+.autor--yayo { background: #EFE4CC; color: #6B4F1F; }
+.autor--yayo .autor__ini { background: var(--yayo); }
+.autor--ambos { background: #E2E7DA; color: #4A5C3B; }
+.autor--ambos .autor__ini { background: var(--ambos); }
+
+.estado-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.estado-chip--propuesto { background: color-mix(in oklab, var(--mostaza) 22%, var(--papel-2)); color: #8A6D0F; }
+.estado-chip--aceptado  { background: color-mix(in oklab, var(--azul) 18%, var(--papel-2)); color: #3D5876; }
+.estado-chip--cumplido  { background: color-mix(in oklab, var(--musgo) 18%, var(--papel-2)); color: var(--musgo); }
+.estado-chip--cumplida  { background: color-mix(in oklab, var(--musgo) 18%, var(--papel-2)); color: var(--musgo); }
+.estado-chip--pendiente { background: color-mix(in oklab, var(--mostaza) 22%, var(--papel-2)); color: #8A6D0F; }
+.estado-chip--rechazado { background: var(--papel-2); color: var(--tinta-tenue); }
+.estado-chip--resuelta  { background: color-mix(in oklab, var(--musgo) 18%, var(--papel-2)); color: var(--musgo); }
+
+/* ── Botones ── */
+.btn-mini {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  background: transparent;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  transition: all .15s ease;
+  white-space: nowrap;
+  min-height: 30px;
+}
+.btn-mini:hover { background: var(--papel-2); color: var(--tinta); }
+.btn-mini--ok {
+  color: var(--musgo);
+  border-color: color-mix(in oklab, var(--musgo) 40%, var(--borde));
+}
+.btn-mini--ok:hover { background: color-mix(in oklab, var(--musgo) 12%, transparent); }
+.btn-mini--peligro:hover { background: #FBE9E9; color: var(--rojo); border-color: #E3B6B6; }
+
+.btn-agregar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: var(--r-md);
+  background: var(--tema-actual, var(--accent));
+  color: var(--papel);
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 16px;
+  transition: filter .15s ease, transform .1s ease;
+}
+.btn-agregar:hover { filter: brightness(1.05); }
+.btn-agregar:active { transform: translateY(1px); }
+
+/* ── Formulario inline ── */
+.form-linea {
+  background: var(--papel-2);
+  border: 1px dashed var(--borde-fuerte);
+  border-radius: var(--r-md);
+  padding: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.form-linea textarea,
+.form-linea input {
+  flex: 1;
+  padding: 10px 12px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--tinta);
+  resize: none;
+  min-height: 40px;
+  max-height: 120px;
+  line-height: 1.4;
+  width: 100%;
+  font-family: var(--fuente-cuerpo);
+}
+.form-linea textarea:focus,
+.form-linea input:focus { outline: none; border-color: var(--tema-actual, var(--accent)); }
+.form-linea button {
+  padding: 10px 14px;
+  background: var(--tema-actual, var(--accent));
+  color: var(--papel);
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 40px;
+  flex-shrink: 0;
+}
+
+/* ── Tabbar ── */
+.tabbar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 78px;
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  background: rgba(247, 241, 232, .94);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--borde);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 50;
+}
+.tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--tinta-tenue);
+  opacity: .55;
+  padding: 4px;
+  border-radius: var(--r-md);
+  transition: all .18s ease;
+}
+.tabbar__item svg { width: 22px; height: 22px; }
+.tabbar__label { font-size: 10px; font-weight: 600; }
+.tabbar__item.activo { color: var(--accent); opacity: 1; }
+.tabbar__item.activo .tabbar__label { font-weight: 700; }
+
+/* ── Toast ── */
+.toast {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  padding: 10px 18px;
+  background: var(--tinta);
+  color: var(--papel);
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+  z-index: 1200;
+  box-shadow: var(--sombra-2);
+  white-space: nowrap;
+}
+.toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── Debug nav ── */
+.debug-nav {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.debug-nav__label {
+  font-size: 9px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+  font-weight: 700;
+}
+.debug-nav__btns {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 4px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--r-md);
+  backdrop-filter: blur(12px);
+}
+.debug-nav__btns button {
+  padding: 7px 12px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: rgba(255,255,255,.55);
+  border-radius: 6px;
+  text-align: left;
+  transition: all .15s ease;
+}
+.debug-nav__btns button.is-active { background: rgba(255,255,255,.15); color: #fff; }
+@media (max-width: 720px) { .debug-nav { display: none; } }
+</style>
+</head>
+
+<body>
+
+<nav class="debug-nav">
+  <span class="debug-nav__label">Navegar · Juegos</span>
+  <div class="debug-nav__btns" id="debugNav">
+    <button data-panel="series" class="is-active">Series</button>
+    <button data-panel="percusion">Percusión</button>
+    <button data-panel="juegos">Juegos (hub)</button>
+    <button data-panel="chistes">↳ Chistes</button>
+    <button data-panel="retos">↳ Retos</button>
+    <button data-panel="penitencias">↳ Penitencias</button>
+    <button data-panel="preguntas">↳ Preguntas</button>
+    <button data-panel="apuestas">↳ Apuestas</button>
+  </div>
+</nav>
+
+<div class="phone">
+  <main class="screen-area">
+    <section class="screen">
+
+      <header class="topbar">
+        <div class="topbar__izq">
+          <button class="topbar__volver" id="btnVolver" aria-label="Volver">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 6l-6 6 6 6"/>
+            </svg>
+          </button>
+          <div>
+            <p class="topbar__eyebrow" id="topbarEyebrow">Juegos · Series</p>
+            <h1 class="topbar__title" id="topbarTitle">Series</h1>
+          </div>
+        </div>
+        <button class="topbar__btn" aria-label="Opciones">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="5" cy="12" r="1.6"/>
+            <circle cx="12" cy="12" r="1.6"/>
+            <circle cx="19" cy="12" r="1.6"/>
+          </svg>
+        </button>
+      </header>
+
+      <nav class="subtabs" id="subtabs">
+        <button class="subtab is-active" data-panel="series">Series</button>
+        <button class="subtab" data-panel="percusion">Percusión</button>
+        <button class="subtab" data-panel="juegos">
+          Juegos
+          <span class="subtab__badge">5</span>
+        </button>
+      </nav>
+
+      <div class="screen__body" id="scrollArea">
+
+        <!-- ══════════════════════════════════════════
+             SERIES
+             ══════════════════════════════════════════ -->
+        <div class="panel is-active" data-panel="series">
+
+          <div class="series-progreso">
+            <div class="series-progreso__izq">
+              <span class="series-progreso__num">12 / 28</span>
+              <span class="series-progreso__txt">vistas</span>
+            </div>
+            <div class="series-toggle">
+              <button class="is-active">Tarjeta</button>
+              <button>Ranking</button>
+            </div>
+          </div>
+
+          <article class="serie-caja serie-caja--vista">
+            <div class="serie-caja__fila">
+              <span class="serie-caja__num">10</span>
+              <div class="serie-caja__cuerpo">
+                <div class="serie-caja__titulo">Severance</div>
+                <div class="serie-caja__meta">
+                  <span class="autor autor--luci"><span class="autor__ini">L</span>Luci</span>
+                  <span>Apple TV</span>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="serie-caja serie-caja--vista">
+            <div class="serie-caja__fila">
+              <span class="serie-caja__num">9</span>
+              <div class="serie-caja__cuerpo">
+                <div class="serie-caja__titulo">The Bear</div>
+                <div class="serie-caja__meta">
+                  <span class="autor autor--yayo"><span class="autor__ini">Y</span>Yayo</span>
+                  <span>Disney+</span>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="serie-caja serie-caja--viendo">
+            <div class="serie-caja__fila">
+              <span class="serie-caja__num serie-caja__num--vacio">—</span>
+              <div class="serie-caja__cuerpo">
+                <div class="serie-caja__titulo">Shogun</div>
+                <div class="serie-caja__meta">
+                  <span class="autor autor--ambos"><span class="autor__ini">L</span>Los dos</span>
+                  <span>Viendo · T1 E4</span>
+                </div>
+              </div>
+              <button class="btn-cap">+1</button>
+            </div>
+          </article>
+
+          <article class="serie-caja serie-caja--pendiente">
+            <div class="serie-caja__fila">
+              <span class="serie-caja__num serie-caja__num--vacio">—</span>
+              <div class="serie-caja__cuerpo">
+                <div class="serie-caja__titulo">Cien años de soledad</div>
+                <div class="serie-caja__meta">
+                  <span class="autor autor--yayo"><span class="autor__ini">Y</span>Yayo</span>
+                  <span>Netflix</span>
+                </div>
+              </div>
+            </div>
+          </article>
+
+        </div>
+
+        <!-- ══════════════════════════════════════════
+             PERCUSIÓN
+             ══════════════════════════════════════════ -->
+        <div class="panel" data-panel="percusion">
+
+          <p class="perc-aviso">
+            Arma un ritmo. Toca una celda para cambiar su fuerza. La zona de juego se ve oscura para sentir el instrumento.
+          </p>
+
+          <div class="perc-caja">
+
+            <div class="perc-modo">
+              <button class="is-active" data-modo="simple">Simple</button>
+              <button data-modo="extendido">Extendido</button>
+            </div>
+
+            <div class="perc-grilla">
+
+              <div class="perc-voz">
+                <div class="perc-voz__label"><b>Bombo</b>gordo</div>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda"></button>
+                </div>
+              </div>
+
+              <div class="perc-voz">
+                <div class="perc-voz__label"><b>Caja</b>seca</div>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n3"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n3"></button>
+                  <button class="perc-celda"></button>
+                </div>
+              </div>
+
+              <div class="perc-voz">
+                <div class="perc-voz__label"><b>HH</b>cerrado</div>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca perc-celda--n2"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda perc-celda--marca perc-celda--n2"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                </div>
+              </div>
+
+              <div class="perc-voz">
+                <div class="perc-voz__label"><b>Clap</b>&nbsp;</div>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="perc-controles">
+              <button class="perc-play">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </button>
+              <div class="perc-slider">
+                <span class="perc-slider__label">Tempo</span>
+                <div class="perc-slider__fila">
+                  <input class="perc-slider__input" type="range" min="60" max="160" value="90">
+                  <span class="perc-slider__valor">90</span>
+                </div>
+                <span class="perc-slider__label" style="margin-top: 4px;">Swing</span>
+                <div class="perc-slider__fila">
+                  <input class="perc-slider__input" type="range" min="0" max="50" value="8">
+                  <span class="perc-slider__valor">8%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="perc-acciones">
+              <button>Reset</button>
+              <button>Limpiar</button>
+              <button class="principal">Guardar</button>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- ══════════════════════════════════════════
+             JUEGOS — HUB
+             ══════════════════════════════════════════ -->
+        <div class="panel" data-panel="juegos">
+
+          <p class="hub-lead">
+            Cinco mini-cosas entre los dos. Entra a cualquiera cuando quieras.
+          </p>
+
+          <div class="hub">
+
+            <button class="hub-card hub-card--chiste" data-ir="chistes">
+              <span class="hub-card__emoji">😄</span>
+              <span class="hub-card__titulo">Chistes</span>
+              <span class="hub-card__cuenta">4 guardados</span>
+            </button>
+
+            <button class="hub-card hub-card--reto" data-ir="retos">
+              <span class="hub-card__emoji">🎯</span>
+              <span class="hub-card__titulo">Retos</span>
+              <span class="hub-card__cuenta">3 activos</span>
+              <span class="hub-card__pendientes">2 pendientes</span>
+            </button>
+
+            <button class="hub-card hub-card--penitencia" data-ir="penitencias">
+              <span class="hub-card__emoji">✋</span>
+              <span class="hub-card__titulo">Penitencias</span>
+              <span class="hub-card__cuenta">2 registradas</span>
+              <span class="hub-card__pendientes">1 pendiente</span>
+            </button>
+
+            <button class="hub-card hub-card--pregunta" data-ir="preguntas">
+              <span class="hub-card__emoji">💭</span>
+              <span class="hub-card__titulo">Preguntas</span>
+              <span class="hub-card__cuenta">7 guardadas</span>
+            </button>
+
+            <button class="hub-card hub-card--apuesta hub-card--ancho" data-ir="apuestas">
+              <span class="hub-card__emoji">🎲</span>
+              <span class="hub-card__titulo">Apuestas</span>
+              <span class="hub-card__cuenta">2 registradas · 1 sin resolver</span>
+            </button>
+
+          </div>
+
+        </div>
+
+        <!-- ══════════════════════════════════════════
+             SUB-JUEGOS
+             ══════════════════════════════════════════ -->
+
+        <!-- CHISTES -->
+        <div class="panel" data-panel="chistes">
+          <div class="dicho dicho--chiste">
+            <span class="dicho__eyebrow">Del sombrero</span>
+            ¿Qué le dijo un jardinero a otro?<br>Nos vemos cuando podamos.
+          </div>
+
+          <div class="acciones-centro">
+            <button class="btn-mini">Otro chiste</button>
+          </div>
+
+          <div class="form-linea">
+            <textarea placeholder="¿Sabes uno? Cuéntalo aquí. Mientras más fome, mejor." maxlength="500"></textarea>
+            <button>Agregar</button>
+          </div>
+        </div>
+
+        <!-- RETOS -->
+        <div class="panel" data-panel="retos">
+          <p class="subjuego__lead">Cosas que se tiran entre los dos. Proponer, aceptar, cumplir o dejar pasar.</p>
+
+          <button class="btn-agregar" style="--tema-actual: var(--azul);">+ Nuevo reto</button>
+
+          <article class="lista-item lista-item--propuesto">
+            <div class="lista-item__cab">
+              <span class="estado-chip estado-chip--propuesto">Propuesto</span>
+              <span class="autor autor--luci"><span class="autor__ini">L</span>Luci</span>
+              <span style="color:var(--tinta-tenue);font-size:12px;">→</span>
+              <span class="autor autor--yayo"><span class="autor__ini">Y</span>Yayo</span>
+            </div>
+            <p class="lista-item__texto">Aprender a hacer malabares con tres pelotas</p>
+            <p class="lista-item__contexto">Sin caídas que terminen en llanto.</p>
+            <div class="lista-item__acciones">
+              <button class="btn-mini btn-mini--ok">Aceptar</button>
+              <button class="btn-mini">Rechazar</button>
+              <button class="btn-mini btn-mini--peligro" style="margin-left: auto;">Quitar</button>
+            </div>
+          </article>
+
+          <article class="lista-item lista-item--aceptado">
+            <div class="lista-item__cab">
+              <span class="estado-chip estado-chip--aceptado">Aceptado</span>
+              <span class="autor autor--yayo"><span class="autor__ini">Y</span>Yayo</span>
+              <span style="color:var(--tinta-tenue);font-size:12px;">→</span>
+              <span class="autor autor--luci"><span class="autor__ini">L</span>Luci</span>
+            </div>
+            <p class="lista-item__texto">Cocinar algo que nunca hayamos hecho</p>
+            <p class="lista-item__contexto">Sin receta. Sin googlear. Solo improvisar.</p>
+            <div class="lista-item__acciones">
+              <button class="btn-mini btn-mini--ok">Marcar cumplido</button>
+              <button class="btn-mini btn-mini--peligro" style="margin-left: auto;">Quitar</button>
+            </div>
+          </article>
+        </div>
+
+        <!-- PENITENCIAS -->
+        <div class="panel" data-panel="penitencias">
+          <p class="subjuego__lead">Cosas que uno le debe al otro. Se asignan, se cumplen, se agradecen.</p>
+
+          <button class="btn-agregar" style="--tema-actual: var(--terracota);">+ Nueva penitencia</button>
+
+          <article class="lista-item lista-item--pendiente">
+            <div class="lista-item__cab">
+              <span class="estado-chip estado-chip--pendiente">Pendiente</span>
+              <span class="autor autor--luci"><span class="autor__ini">L</span>Luci</span>
+              <span style="color:var(--tinta-tenue);font-size:12px;">→</span>
+              <span class="autor autor--yayo"><span class="autor__ini">Y</span>Yayo</span>
+            </div>
+            <p class="lista-item__texto">Hacer el desayuno el domingo</p>
+            <p class="lista-item__contexto">Por llegar tarde al cumpleaños de su mamá.</p>
+            <div class="lista-item__acciones">
+              <button class="btn-mini btn-mini--ok">Marcar cumplida</button>
+              <button class="btn-mini btn-mini--peligro" style="margin-left: auto;">Quitar</button>
+            </div>
+          </article>
+
+          <article class="lista-item lista-item--cumplida">
+            <div class="lista-item__cab">
+              <span class="estado-chip estado-chip--cumplida">Cumplida</span>
+              <span class="autor autor--yayo"><span class="autor__ini">Y</span>Yayo</span>
+              <span style="color:var(--tinta-tenue);font-size:12px;">→</span>
+              <span class="autor autor--luci"><span class="autor__ini">L</span>Luci</span>
+            </div>
+            <p class="lista-item__texto">Elegir la película del viernes, buena</p>
+            <p class="lista-item__contexto">Y sin trampa.</p>
+            <div class="lista-item__acciones">
+              <button class="btn-mini btn-mini--peligro" style="margin-left: auto;">Quitar</button>
+            </div>
+          </article>
+        </div>
+
+        <!-- PREGUNTAS -->
+        <div class="panel" data-panel="preguntas">
+          <div class="dicho dicho--pregunta">
+            <span class="dicho__eyebrow">Al azar</span>
+            ¿Cuál es el mejor día que recuerdas de este último año?
+          </div>
+
+          <div class="acciones-centro">
+            <button class="btn-mini">Siguiente</button>
+            <button class="btn-mini">Al azar</button>
+          </div>
+
+          <div class="form-linea">
+            <textarea placeholder="Agregar pregunta nueva" maxlength="300"></textarea>
+            <button style="background: var(--musgo);">Agregar</button>
+          </div>
+        </div>
+
+        <!-- APUESTAS -->
+        <div class="panel" data-panel="apuestas">
+          <p class="subjuego__lead">Cosas que apuestan entre los dos. Con o sin empate.</p>
+
+          <button class="btn-agregar" style="--tema-actual: var(--ciruela);">+ Nueva apuesta</button>
+
+          <article class="lista-item lista-item--pendiente">
+            <div class="lista-item__cab">
+              <span class="estado-chip estado-chip--pendiente">Pendiente</span>
+              <span class="autor autor--luci"><span class="autor__ini">L</span>Luci</span>
+              <span style="color:var(--tinta-tenue);font-size:12px;">vs</span>
+              <span class="autor autor--yayo"><span class="autor__ini">Y</span>Yayo</span>
+            </div>
+            <p class="lista-item__texto">Mañana llueve antes del mediodía</p>
+            <div class="lista-item__acciones">
+              <button class="btn-mini btn-mini--ok">Ganó Luci</button>
+              <button class="btn-mini btn-mini--ok">Ganó Yayo</button>
+              <button class="btn-mini">Empate</button>
+              <button class="btn-mini btn-mini--peligro" style="margin-left: auto;">Quitar</button>
+            </div>
+          </article>
+
+          <article class="lista-item lista-item--resuelta">
+            <div class="lista-item__cab">
+              <span class="estado-chip estado-chip--resuelta">Resuelta</span>
+              <span class="autor autor--yayo"><span class="autor__ini">Y</span>Yayo</span>
+              <span style="color:var(--tinta-tenue);font-size:12px;">vs</span>
+              <span class="autor autor--luci"><span class="autor__ini">L</span>Luci</span>
+            </div>
+            <p class="lista-item__texto">El partido termina 2 a 1</p>
+            <div class="lista-item__resultado">
+              <span>Ganó</span>
+              <span class="lista-item__ganador">Luci</span>
+            </div>
+            <div class="lista-item__acciones">
+              <button class="btn-mini btn-mini--peligro" style="margin-left: auto;">Quitar</button>
+            </div>
+          </article>
+        </div>
+
+      </div>
+
+    </section>
+  </main>
+
+  <div class="toast" id="toast">Listo</div>
+
+  <nav class="tabbar">
+    <button class="tabbar__item" data-tab="nido">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+      </svg>
+      <span class="tabbar__label">Nido</span>
+    </button>
+    <button class="tabbar__item" data-tab="vida">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/>
+        <path d="M4 17a3 3 0 0 1 3-3h11"/>
+      </svg>
+      <span class="tabbar__label">Vida</span>
+    </button>
+    <button class="tabbar__item" data-tab="afuera">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 20h18L14 8l-3 5-2-3-6 10z"/>
+      </svg>
+      <span class="tabbar__label">Afuera</span>
+    </button>
+    <button class="tabbar__item activo" data-tab="juegos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+        <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/>
+      </svg>
+      <span class="tabbar__label">Juegos</span>
+    </button>
+    <button class="tabbar__item" data-tab="mas">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="5" cy="12" r="1.6"/>
+        <circle cx="12" cy="12" r="1.6"/>
+        <circle cx="19" cy="12" r="1.6"/>
+      </svg>
+      <span class="tabbar__label">Más</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const ACENTOS = {
+    series:      { color: '#7A3E5C', titulo: 'Series' },
+    percusion:   { color: '#D9A421', titulo: 'Percusión' },
+    juegos:      { color: '#7A3E5C', titulo: 'Juegos' },
+    chistes:     { color: '#D9A421', titulo: 'Chistes' },
+    retos:       { color: '#4A6785', titulo: 'Retos' },
+    penitencias: { color: '#C9613B', titulo: 'Penitencias' },
+    preguntas:   { color: '#5A6B3E', titulo: 'Preguntas' },
+    apuestas:    { color: '#7A3E5C', titulo: 'Apuestas' },
+  };
+
+  // Paneles que son sub-juegos (dentro del hub de Juegos)
+  const SUBJUEGOS = new Set(['chistes', 'retos', 'penitencias', 'preguntas', 'apuestas']);
+  // Paneles de primer nivel (tabs visibles en la barra superior)
+  const NIVEL1 = new Set(['series', 'percusion', 'juegos']);
+
+  const panels = document.querySelectorAll('.panel');
+  const subtabs = document.querySelectorAll('.subtab');
+  const debugBtns = document.querySelectorAll('#debugNav button');
+  const topbarEyebrow = document.getElementById('topbarEyebrow');
+  const topbarTitle = document.getElementById('topbarTitle');
+  const btnVolver = document.getElementById('btnVolver');
+  const scrollArea = document.getElementById('scrollArea');
+
+  function mostrar(nombre) {
+    panels.forEach((p) => p.classList.toggle('is-active', p.dataset.panel === nombre));
+
+    // Subtabs solo marcan las de primer nivel
+    subtabs.forEach((t) => {
+      t.classList.toggle('is-active', t.dataset.panel === nombre);
+    });
+
+    debugBtns.forEach((b) => {
+      b.classList.toggle('is-active', b.dataset.panel === nombre);
+    });
+
+    // Topbar
+    const a = ACENTOS[nombre];
+    document.documentElement.style.setProperty('--accent', a.color);
+
+    if (SUBJUEGOS.has(nombre)) {
+      // Estamos en un sub-juego → eyebrow dice "Juegos · X" y aparece back
+      topbarEyebrow.textContent = 'Juegos · ' + a.titulo;
+      topbarTitle.textContent = a.titulo;
+      btnVolver.classList.add('is-visible');
+    } else {
+      topbarEyebrow.textContent = 'Juegos · ' + a.titulo;
+      topbarTitle.textContent = a.titulo;
+      btnVolver.classList.remove('is-visible');
+    }
+
+    scrollArea.scrollTop = 0;
+  }
+
+  // Subtabs (solo nivel 1)
+  subtabs.forEach((t) => {
+    t.addEventListener('click', () => mostrar(t.dataset.panel));
+  });
+
+  // Debug nav (todos, incluyendo sub-juegos)
+  debugBtns.forEach((b) => {
+    b.addEventListener('click', () => mostrar(b.dataset.panel));
+  });
+
+  // Cards del hub de Juegos
+  document.querySelectorAll('.hub-card[data-ir]').forEach((c) => {
+    c.addEventListener('click', () => mostrar(c.dataset.ir));
+  });
+
+  // Botón volver desde un sub-juego
+  btnVolver.addEventListener('click', () => mostrar('juegos'));
+
+  // Percusión: celdas ciclan nivel
+  document.querySelectorAll('.perc-celda').forEach((celda) => {
+    celda.addEventListener('click', () => {
+      const clases = ['perc-celda--n1', 'perc-celda--n2', 'perc-celda--n3'];
+      const actual = clases.findIndex((c) => celda.classList.contains(c));
+      celda.classList.remove(...clases);
+      if (actual === -1) celda.classList.add('perc-celda--n1');
+      else if (actual < 2) celda.classList.add(clases[actual + 1]);
+    });
+  });
+
+  // Percusión: modo
+  document.querySelectorAll('.perc-modo button').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.perc-modo button').forEach((b) => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+    });
+  });
+
+  // Series: toggle vista
+  document.querySelectorAll('.series-toggle button').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.series-toggle button').forEach((b) => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+    });
+  });
+
+  // Toast
+  const toast = document.getElementById('toast');
+  let toastTimer;
+  function mostrarToast(texto) {
+    toast.textContent = texto;
+    toast.classList.add('is-visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 1600);
+  }
+
+  // Tabbar
+  document.querySelectorAll('.tabbar__item').forEach((item) => {
+    item.addEventListener('click', () => {
+      if (item.dataset.tab === 'juegos') return;
+      mostrarToast('Próximamente');
+    });
+  });
+
+  // Init
+  mostrar('series');
+})();
+</script>
+
+</body>
+</html>

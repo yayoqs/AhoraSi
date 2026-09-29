@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ahora Sí — Fauna & Flora</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --papel:        #F7F1E8;
+  --papel-2:      #EFE7DA;
+  --papel-3:      #FCF8F0;
+  --borde:        #E2D7C5;
+  --borde-fuerte: #D2C4AC;
+  --tinta:        #1F1B16;
+  --tinta-suave:  #6B6155;
+  --tinta-tenue:  #A89B87;
+
+  --musgo:        #5A6B3E;
+  --musgo-papel:  #E4E9D8;
+
+  --rojo: #A03737;
+  --luci: #D89A9A;
+  --yayo: #B8893C;
+  --ambos: #7A8B6B;
+
+  --accent: var(--musgo);
+
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-full: 999px;
+  --sombra-1: 0 1px 2px rgba(31,27,22,.06);
+  --sombra-2: 0 12px 28px rgba(31,27,22,.10);
+  --fuente-titulo: 'Bricolage Grotesque', system-ui, sans-serif;
+  --fuente-cuerpo: 'Figtree', system-ui, sans-serif;
+  --fuente-carta:  'Fraunces', Georgia, serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+h1,h2,h3,h4,p,ul,ol,li { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+button { background: none; border: none; cursor: pointer; font: inherit; color: inherit; }
+img { display: block; max-width: 100%; }
+
+body {
+  font-family: var(--fuente-cuerpo);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--tinta);
+  background: radial-gradient(ellipse at top, #2C2620 0%, #13100D 100%);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  -webkit-font-smoothing: antialiased;
+}
+@media (max-width: 520px) { body { padding: 0; display: block; } }
+
+.phone {
+  width: 390px;
+  height: 844px;
+  max-height: calc(100vh - 48px);
+  background: var(--papel);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 0 0 10px #0E0B08,
+    0 0 0 12px #2A2318,
+    0 30px 80px rgba(0,0,0,.55);
+}
+@media (max-width: 520px) {
+  .phone { width: 100%; height: 100dvh; max-height: none; border-radius: 0; box-shadow: none; }
+}
+
+.screen-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--papel);
+  display: flex;
+  flex-direction: column;
+}
+.screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+/* TOPBAR */
+.topbar {
+  flex-shrink: 0;
+  padding: 16px 20px 12px;
+  background: var(--papel);
+}
+.topbar__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.topbar__eyebrow {
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.topbar__title {
+  font-family: var(--fuente-titulo);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--accent);
+}
+.topbar__btn {
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  border-radius: var(--r-full);
+  color: var(--tinta-suave);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.topbar__btn svg { width: 20px; height: 20px; }
+
+/* SUBTABS */
+.subtabs {
+  display: flex;
+  gap: 6px;
+  padding: 0 20px 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--papel);
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--borde);
+}
+.subtabs::-webkit-scrollbar { display: none; }
+.subtab {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  border-radius: var(--r-full);
+  transition: all .2s ease;
+  white-space: nowrap;
+}
+.subtab:hover { background: var(--papel-2); color: var(--tinta); }
+.subtab.is-active { background: var(--tinta); color: var(--papel); }
+
+/* CUERPO */
+.screen__body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px 20px 120px;
+  -webkit-overflow-scrolling: touch;
+}
+.screen__body::-webkit-scrollbar { width: 0; }
+
+.panel { display: none; }
+.panel.is-active { display: block; }
+
+/* ══════════════════════════════════════════════════════
+   TARJETA DE REGISTRO — texto protagonista, foto al pie
+   ══════════════════════════════════════════════════════ */
+.registro {
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  padding: 16px 18px;
+  margin-bottom: 10px;
+  transition: border-color .15s ease, background .15s ease;
+}
+.registro:hover { border-color: var(--borde-fuerte); }
+.registro:active { background: var(--papel-2); }
+
+.registro__cab {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.registro__titulo-wrap { flex: 1; min-width: 0; }
+.registro__nombre {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--tinta);
+}
+.registro__nombre-propio {
+  font-family: var(--fuente-carta);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--musgo);
+  letter-spacing: -0.005em;
+  margin-top: 1px;
+  line-height: 1.3;
+}
+.registro__autor {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-family: var(--fuente-titulo);
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--papel);
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.registro__autor.autor--luci { background: var(--luci); }
+.registro__autor.autor--yayo { background: var(--yayo); }
+.registro__autor.autor--ambos { background: var(--ambos); }
+
+/* Línea de meta: lugar · fecha · tipo · pertenece */
+.registro__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  font-size: 12px;
+  color: var(--tinta-suave);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+.registro__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.registro__meta-sep { color: var(--tinta-tenue); }
+
+.chip-tipo {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  background: var(--papel-2);
+  color: var(--tinta-suave);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.chip-pertenece {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  background: color-mix(in oklab, var(--musgo) 14%, var(--papel-2));
+  color: color-mix(in oklab, var(--musgo) 85%, var(--tinta));
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+/* Notas */
+.registro__notas {
+  font-family: var(--fuente-carta);
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--tinta-suave);
+  margin-top: 4px;
+}
+
+/* Miniaturas de fotos al pie */
+.registro__fotos {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.miniatura {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  transition: transform .12s ease;
+  display: grid;
+  place-items: center;
+  color: rgba(255,255,255,.7);
+}
+.miniatura:hover { transform: scale(1.03); }
+.miniatura:active { transform: scale(.96); }
+.miniatura svg { width: 20px; height: 20px; }
+
+/* Fondos simulados para miniaturas */
+.f--mamifero { background: linear-gradient(135deg, #C7BE9F 0%, #8FA076 100%); }
+.f--ave      { background: linear-gradient(135deg, #A8C0D6 0%, #4A6785 100%); }
+.f--reptil   { background: linear-gradient(135deg, #D3B88E 0%, #8F7A4B 100%); }
+.f--arbol    { background: linear-gradient(135deg, #8FA076 0%, #3F4C2B 100%); }
+.f--flor     { background: linear-gradient(135deg, #E8A9C4 0%, #A03737 100%); }
+.f--helecho  { background: linear-gradient(135deg, #7FA688 0%, #3F5A44 100%); }
+.f--musgo    { background: linear-gradient(135deg, #A8BFA3 0%, #5A6B3E 100%); }
+
+/* Contador +fotos */
+.miniatura--mas {
+  background: var(--papel-2);
+  color: var(--tinta-suave);
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 13px;
+  border: 1px solid var(--borde);
+}
+.miniatura--agregar {
+  background: transparent;
+  border: 1.5px dashed var(--borde-fuerte);
+  color: var(--tinta-tenue);
+}
+.miniatura--agregar:hover {
+  border-color: var(--musgo);
+  color: var(--musgo);
+}
+
+/* Acciones */
+.registro__acciones {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--borde);
+}
+.btn-mini {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  background: transparent;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  transition: all .15s ease;
+}
+.btn-mini:hover { background: var(--papel-3); color: var(--tinta); }
+.btn-mini--peligro:hover { background: #FBE9E9; color: var(--rojo); border-color: #E3B6B6; }
+
+/* FAB */
+.fab {
+  position: absolute;
+  bottom: 92px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-full);
+  background: var(--musgo);
+  color: var(--papel);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 12px 28px color-mix(in oklab, var(--musgo) 45%, transparent);
+  z-index: 40;
+  transition: transform .15s ease;
+}
+.fab:active { transform: scale(.9); }
+.fab svg { width: 24px; height: 24px; }
+
+/* SHEET */
+.sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(20, 16, 12, .55);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s ease;
+}
+.sheet.is-open { opacity: 1; pointer-events: auto; }
+.sheet__panel {
+  width: 100%;
+  max-height: 92%;
+  background: var(--papel);
+  border-radius: 22px 22px 0 0;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform .32s cubic-bezier(.32,.72,0,1);
+  overflow: hidden;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.sheet.is-open .sheet__panel { transform: translateY(0); }
+.sheet__handle {
+  width: 40px; height: 4px;
+  background: var(--borde-fuerte);
+  border-radius: var(--r-full);
+  margin: 10px auto 4px;
+  flex-shrink: 0;
+}
+.sheet__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 20px 14px;
+  border-bottom: 1px solid var(--borde);
+  flex-shrink: 0;
+}
+.sheet__head-title { flex: 1; min-width: 0; }
+.sheet__eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 2px;
+}
+.sheet__title {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  color: var(--tinta);
+  word-wrap: break-word;
+}
+.sheet__cerrar {
+  width: 34px; height: 34px;
+  border-radius: var(--r-full);
+  background: var(--papel-2);
+  color: var(--tinta-suave);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.sheet__cerrar:active { transform: scale(.92); }
+.sheet__cerrar svg { width: 16px; height: 16px; }
+.sheet__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 20px 20px;
+}
+.sheet__body::-webkit-scrollbar { width: 0; }
+.sheet__foot {
+  display: flex;
+  gap: 8px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--borde);
+  background: var(--papel);
+  flex-shrink: 0;
+}
+.sheet__foot .btn { flex: 1; }
+
+/* BOTONES */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 16px;
+  border-radius: var(--r-md);
+  font-weight: 600;
+  font-size: 14px;
+  transition: all .15s ease;
+  min-height: 46px;
+}
+.btn:active { transform: scale(.97); }
+.btn--primario { background: var(--accent); color: var(--papel); }
+.btn--secundario {
+  background: transparent;
+  color: var(--tinta-suave);
+  border: 1px solid var(--borde-fuerte);
+}
+.btn--peligro {
+  background: transparent;
+  color: var(--rojo);
+  border: 1px solid color-mix(in oklab, var(--rojo) 40%, var(--borde-fuerte));
+  flex: 0 0 auto;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+/* DETALLE */
+.detalle__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--borde);
+}
+.detalle__info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.detalle__info-item { display: flex; flex-direction: column; gap: 3px; }
+.detalle__info-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+}
+.detalle__info-valor {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--tinta);
+}
+.detalle__seccion { margin-bottom: 20px; }
+.detalle__seccion-title {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.detalle__seccion-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--borde);
+}
+.detalle__nota {
+  padding: 14px 16px;
+  background: var(--papel-3);
+  border-left: 3px solid var(--musgo);
+  border-radius: var(--r-sm);
+  font-family: var(--fuente-carta);
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--tinta-suave);
+}
+.detalle__galeria {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.detalle__galeria .miniatura {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+/* FORM */
+.fcampo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.fcampo label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+}
+.fcampo input,
+.fcampo select,
+.fcampo textarea {
+  padding: 11px 13px;
+  border: 1px solid var(--borde-fuerte);
+  background: var(--papel-3);
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: 14.5px;
+  color: var(--tinta);
+  width: 100%;
+  font-family: inherit;
+}
+.fcampo input:focus,
+.fcampo select:focus,
+.fcampo textarea:focus {
+  outline: none;
+  border-color: var(--musgo);
+  background: var(--papel);
+}
+.fcampo textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.55;
+  font-family: var(--fuente-carta);
+  font-size: 15px;
+}
+.fcampo--dos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.fcampo--dos > * { margin-bottom: 0; }
+
+/* Foto en el formulario: fila simple de botones */
+.form-foto-fila {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.form-foto-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: var(--papel-3);
+  border: 1.5px dashed var(--borde-fuerte);
+  border-radius: var(--r-sm);
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.form-foto-btn:hover {
+  border-color: var(--musgo);
+  color: var(--musgo);
+}
+.form-foto-btn svg { width: 16px; height: 16px; }
+
+.form-foto-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
+  margin-bottom: 14px;
+}
+.form-foto-preview__thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #C7BE9F 0%, #8FA076 100%);
+  color: rgba(255,255,255,.7);
+}
+.form-foto-preview__thumb svg { width: 20px; height: 20px; }
+.form-foto-preview__texto {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tinta);
+}
+.form-foto-preview__quitar {
+  padding: 6px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--rojo);
+  border: 1px solid color-mix(in oklab, var(--rojo) 30%, var(--borde));
+  border-radius: 6px;
+}
+
+/* LIGHTBOX */
+.lightbox {
+  position: absolute;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(10,8,5,.96);
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
+}
+.lightbox.is-open { opacity: 1; pointer-events: auto; }
+.lightbox__foto {
+  width: 320px;
+  height: 240px;
+  border-radius: var(--r-md);
+  display: grid;
+  place-items: center;
+  color: rgba(255,255,255,.4);
+}
+.lightbox__foto svg { width: 60px; height: 60px; }
+.lightbox__cerrar {
+  position: absolute;
+  top: 20px; right: 20px;
+  width: 40px; height: 40px;
+  border-radius: var(--r-full);
+  background: rgba(255,255,255,.1);
+  color: #fff;
+  display: grid;
+  place-items: center;
+}
+.lightbox__cerrar svg { width: 20px; height: 20px; }
+
+/* TABBAR */
+.tabbar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 78px;
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  background: rgba(247, 241, 232, .94);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--borde);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 50;
+}
+.tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--tinta-tenue);
+  opacity: .55;
+  padding: 4px;
+  border-radius: var(--r-md);
+}
+.tabbar__item svg { width: 22px; height: 22px; }
+.tabbar__label { font-size: 10px; font-weight: 600; }
+.tabbar__item.activo { color: var(--musgo); opacity: 1; }
+.tabbar__item.activo .tabbar__label { font-weight: 700; }
+
+/* TOAST */
+.toast {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  padding: 10px 18px;
+  background: var(--tinta);
+  color: var(--papel);
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+  z-index: 1200;
+  box-shadow: var(--sombra-2);
+  white-space: nowrap;
+}
+.toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* DEBUG NAV */
+.debug-nav {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.debug-nav__label {
+  font-size: 9px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+  font-weight: 700;
+}
+.debug-nav__btns {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--r-full);
+  backdrop-filter: blur(12px);
+}
+.debug-nav__btns button {
+  padding: 6px 12px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: rgba(255,255,255,.55);
+  border-radius: var(--r-full);
+  transition: all .15s ease;
+}
+.debug-nav__btns button.is-active {
+  background: rgba(255,255,255,.15);
+  color: #fff;
+}
+@media (max-width: 720px) { .debug-nav { display: none; } }
+</style>
+</head>
+
+<body>
+
+<nav class="debug-nav">
+  <span class="debug-nav__label">Probar · Afuera</span>
+  <div class="debug-nav__btns">
+    <button data-ver="fauna" class="is-active">Fauna</button>
+    <button data-ver="flora">Flora</button>
+  </div>
+</nav>
+
+<div class="phone">
+  <main class="screen-area">
+    <section class="screen">
+
+      <header class="topbar">
+        <div class="topbar__row">
+          <div>
+            <p class="topbar__eyebrow">Afuera</p>
+            <h1 class="topbar__title" id="topbarTitle">Fauna</h1>
+          </div>
+          <button class="topbar__btn" aria-label="Opciones">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="5" cy="12" r="1.6"/>
+              <circle cx="12" cy="12" r="1.6"/>
+              <circle cx="19" cy="12" r="1.6"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <nav class="subtabs">
+        <button class="subtab">Mapa</button>
+        <button class="subtab">Kit</button>
+        <button class="subtab is-active" id="tabFauna">Fauna</button>
+        <button class="subtab" id="tabFlora">Flora</button>
+      </nav>
+
+      <div class="screen__body">
+        <div class="panel is-active" data-panel="fauna">
+          <div id="listaFauna"></div>
+        </div>
+        <div class="panel" data-panel="flora">
+          <div id="listaFlora"></div>
+        </div>
+      </div>
+
+      <button class="fab" id="fab" aria-label="Nuevo registro">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+      </button>
+
+    </section>
+  </main>
+
+  <div class="toast" id="toast">Listo</div>
+
+  <nav class="tabbar">
+    <button class="tabbar__item" data-tab="nido">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+      </svg>
+      <span class="tabbar__label">Nido</span>
+    </button>
+    <button class="tabbar__item" data-tab="vida">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/>
+        <path d="M4 17a3 3 0 0 1 3-3h11"/>
+      </svg>
+      <span class="tabbar__label">Vida</span>
+    </button>
+    <button class="tabbar__item activo" data-tab="afuera">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 20h18L14 8l-3 5-2-3-6 10z"/>
+      </svg>
+      <span class="tabbar__label">Afuera</span>
+    </button>
+    <button class="tabbar__item" data-tab="juegos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+        <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/>
+      </svg>
+      <span class="tabbar__label">Juegos</span>
+    </button>
+    <button class="tabbar__item" data-tab="mas">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="5" cy="12" r="1.6"/>
+        <circle cx="12" cy="12" r="1.6"/>
+        <circle cx="19" cy="12" r="1.6"/>
+      </svg>
+      <span class="tabbar__label">Más</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const FOTO_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 3l-2 3H3v15h18V6h-4l-2-3H9zm3 6a5 5 0 1 1 0 10 5 5 0 0 1 0-10z"/></svg>';
+
+  const FAUNA = [
+    {
+      id: 'f1', nombre: 'Perro quiltro', nombrePropio: 'Milo',
+      tipo: 'mamifero', tipoLabel: 'Mamífero',
+      perteneceA: 'Doméstico',
+      lugar: 'Casa de la abuela, Chillán', fecha: '12 mar 2025',
+      notas: 'Nos siguió todo el camino de vuelta. Duerme en el porche, no entra a la casa ni aunque llueva.',
+      creadoPor: 'luci', fotos: 3, fotoClase: 'f--mamifero',
+    },
+    {
+      id: 'f2', nombre: 'Chincol', nombrePropio: null,
+      tipo: 'ave', tipoLabel: 'Ave',
+      perteneceA: 'Silvestre',
+      lugar: 'Sendero a las Termas', fecha: '10 mar 2025',
+      notas: 'Cantaba al amanecer. Se quedó quieto como diez segundos antes de irse.',
+      creadoPor: 'yayo', fotos: 1, fotoClase: 'f--ave',
+    },
+    {
+      id: 'f3', nombre: 'Caballo overo', nombrePropio: null,
+      tipo: 'mamifero', tipoLabel: 'Mamífero',
+      perteneceA: 'De un vecino',
+      lugar: 'Camino a Pinto', fecha: '3 mar 2025',
+      notas: null,
+      creadoPor: 'ambos', fotos: 0, fotoClase: 'f--mamifero',
+    },
+    {
+      id: 'f4', nombre: 'Lagartija', nombrePropio: null,
+      tipo: 'reptil', tipoLabel: 'Reptil',
+      perteneceA: 'Silvestre',
+      lugar: 'Piedras cerca del río', fecha: '28 feb 2025',
+      notas: 'Tomando sol. Se quedó mirándonos un rato antes de esconderse.',
+      creadoPor: 'luci', fotos: 2, fotoClase: 'f--reptil',
+    },
+  ];
+
+  const FLORA = [
+    {
+      id: 'fl1', nombre: 'Quillay',
+      tipo: 'arbol', tipoLabel: 'Árbol',
+      lugar: 'Cerro Cayumanque', fecha: '5 mar 2025',
+      creadoPor: 'yayo', fotos: 2, fotoClase: 'f--arbol',
+    },
+    {
+      id: 'fl2', nombre: 'Rosa mosqueta',
+      tipo: 'flor', tipoLabel: 'Flor',
+      lugar: 'Borde del camino', fecha: '1 mar 2025',
+      creadoPor: 'luci', fotos: 1, fotoClase: 'f--flor',
+    },
+    {
+      id: 'fl3', nombre: 'Helecho',
+      tipo: 'helecho', tipoLabel: 'Helecho',
+      lugar: 'Bosque nativo', fecha: '20 feb 2025',
+      creadoPor: 'ambos', fotos: 0, fotoClase: 'f--helecho',
+    },
+    {
+      id: 'fl4', nombre: 'Musgo de turbera',
+      tipo: 'musgo', tipoLabel: 'Musgo',
+      lugar: 'Sector húmedo', fecha: '15 feb 2025',
+      creadoPor: 'yayo', fotos: 0, fotoClase: 'f--musgo',
+    },
+  ];
+
+  function autor(id) {
+    if (id === 'luci') return '<span class="registro__autor autor--luci">L</span>';
+    if (id === 'yayo') return '<span class="registro__autor autor--yayo">Y</span>';
+    return '<span class="registro__autor autor--ambos">L</span>';
+  }
+
+  function pintarFauna() {
+    const cont = document.getElementById('listaFauna');
+    cont.innerHTML = FAUNA.map((r) => `
+      <article class="registro" data-tipo="fauna" data-id="${r.id}">
+        <div class="registro__cab">
+          <div class="registro__titulo-wrap">
+            <div class="registro__nombre">${r.nombre}</div>
+            ${r.nombrePropio ? `<div class="registro__nombre-propio">${r.nombrePropio}</div>` : ''}
+          </div>
+          ${autor(r.creadoPor)}
+        </div>
+
+        <div class="registro__meta">
+          <span class="chip-tipo">${r.tipoLabel}</span>
+          ${r.perteneceA ? `<span class="chip-pertenece">${r.perteneceA}</span>` : ''}
+          <span class="registro__meta-sep">·</span>
+          <span class="registro__meta-item">${r.lugar}</span>
+          <span class="registro__meta-sep">·</span>
+          <span class="registro__meta-item">${r.fecha}</span>
+        </div>
+
+        ${r.notas ? `<p class="registro__notas">${r.notas}</p>` : ''}
+
+        ${pintarFotos(r)}
+
+        <div class="registro__acciones">
+          <button class="btn-mini" data-accion="editar">Editar</button>
+          <button class="btn-mini btn-mini--peligro" data-accion="eliminar">Eliminar</button>
+        </div>
+      </article>
+    `).join('');
+  }
+
+  function pintarFlora() {
+    const cont = document.getElementById('listaFlora');
+    cont.innerHTML = FLORA.map((r) => `
+      <article class="registro" data-tipo="flora" data-id="${r.id}">
+        <div class="registro__cab">
+          <div class="registro__titulo-wrap">
+            <div class="registro__nombre">${r.nombre}</div>
+          </div>
+          ${autor(r.creadoPor)}
+        </div>
+
+        <div class="registro__meta">
+          <span class="chip-tipo">${r.tipoLabel}</span>
+          <span class="registro__meta-sep">·</span>
+          <span class="registro__meta-item">${r.lugar}</span>
+          <span class="registro__meta-sep">·</span>
+          <span class="registro__meta-item">${r.fecha}</span>
+        </div>
+
+        ${pintarFotos(r)}
+
+        <div class="registro__acciones">
+          <button class="btn-mini" data-accion="editar">Editar</button>
+          <button class="btn-mini btn-mini--peligro" data-accion="eliminar">Eliminar</button>
+        </div>
+      </article>
+    `).join('');
+  }
+
+  function pintarFotos(r) {
+    const miniaturas = [];
+    const maxVisibles = 3;
+
+    if (r.fotos > 0) {
+      for (let i = 0; i < Math.min(r.fotos, maxVisibles); i++) {
+        miniaturas.push(`
+          <div class="miniatura ${r.fotoClase}" data-galeria="${r.id}" data-idx="${i}">
+            ${FOTO_ICON}
+          </div>
+        `);
+      }
+      if (r.fotos > maxVisibles) {
+        miniaturas.push(`<div class="miniatura miniatura--mas">+${r.fotos - maxVisibles}</div>`);
+      }
+    }
+
+    // Botón de agregar foto siempre visible
+    miniaturas.push(`
+      <button class="miniatura miniatura--agregar" data-accion="agregar-foto" data-id="${r.id}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+      </button>
+    `);
+
+    return `<div class="registro__fotos">${miniaturas.join('')}</div>`;
+  }
+
+  /* SHEET */
+  let sheetActivo = null;
+  function cerrarSheet() {
+    if (!sheetActivo) return;
+    const s = sheetActivo;
+    s.classList.remove('is-open');
+    sheetActivo = null;
+    setTimeout(() => { if (s.parentNode) s.remove(); }, 320);
+  }
+  function abrirSheet({ eyebrow, titulo, cuerpo, foot }) {
+    cerrarSheet();
+    const sheet = document.createElement('div');
+    sheet.className = 'sheet';
+    sheet.innerHTML = `
+      <div class="sheet__panel">
+        <div class="sheet__handle"></div>
+        <div class="sheet__head">
+          <div class="sheet__head-title">
+            <p class="sheet__eyebrow">${eyebrow || ''}</p>
+            <h2 class="sheet__title">${titulo}</h2>
+          </div>
+          <button class="sheet__cerrar" data-cerrar>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+              <path d="M6 6l12 12M18 6l-12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="sheet__body">${cuerpo}</div>
+        ${foot ? `<div class="sheet__foot">${foot}</div>` : ''}
+      </div>
+    `;
+    document.querySelector('.phone').appendChild(sheet);
+    requestAnimationFrame(() => sheet.classList.add('is-open'));
+    sheetActivo = sheet;
+    sheet.addEventListener('click', (e) => { if (e.target === sheet) cerrarSheet(); });
+    sheet.querySelectorAll('[data-cerrar]').forEach((b) => b.addEventListener('click', cerrarSheet));
+    return sheet;
+  }
+
+  /* DETALLE */
+  function abrirDetalle(tipo, id) {
+    const r = (tipo === 'fauna' ? FAUNA : FLORA).find((x) => x.id === id);
+    if (!r) return;
+
+    const cuerpo = `
+      <div class="detalle__meta">
+        ${autor(r.creadoPor)}
+        <span class="chip-tipo">${r.tipoLabel}</span>
+        ${r.perteneceA ? `<span class="chip-pertenece">${r.perteneceA}</span>` : ''}
+      </div>
+
+      <div class="detalle__info">
+        <div class="detalle__info-item">
+          <span class="detalle__info-label">Lugar</span>
+          <span class="detalle__info-valor">${r.lugar}</span>
+        </div>
+        <div class="detalle__info-item">
+          <span class="detalle__info-label">Fecha</span>
+          <span class="detalle__info-valor">${r.fecha}</span>
+        </div>
+      </div>
+
+      ${r.notas ? `
+        <div class="detalle__seccion">
+          <h3 class="detalle__seccion-title">Notas de campo</h3>
+          <div class="detalle__nota">${r.notas}</div>
+        </div>
+      ` : ''}
+
+      <div class="detalle__seccion">
+        <h3 class="detalle__seccion-title">Fotos · ${r.fotos}</h3>
+        ${r.fotos === 0
+          ? '<p style="color: var(--tinta-tenue); font-style: italic; font-size: 13px;">Sin fotos todavía.</p>'
+          : `<div class="detalle__galeria">
+              ${Array.from({ length: r.fotos }, (_, i) => `
+                <div class="miniatura ${r.fotoClase}" data-galeria="${r.id}" data-idx="${i}" style="opacity: ${1 - i * 0.12};">${FOTO_ICON}</div>
+              `).join('')}
+            </div>`
+        }
+      </div>
+    `;
+
+    const foot = `
+      <button class="btn btn--peligro" data-eliminar>Eliminar</button>
+      <button class="btn btn--secundario" data-cerrar>Cerrar</button>
+      <button class="btn btn--primario" data-editar>Editar</button>
+    `;
+
+    const sheet = abrirSheet({
+      eyebrow: tipo === 'fauna' ? 'Fauna' : 'Flora',
+      titulo: r.nombre + (r.nombrePropio ? ' · ' + r.nombrePropio : ''),
+      cuerpo,
+      foot,
+    });
+
+    sheet.querySelectorAll('[data-galeria]').forEach((item) => {
+      item.addEventListener('click', () => abrirLightbox(r));
+    });
+    sheet.querySelector('[data-editar]')?.addEventListener('click', () => {
+      cerrarSheet();
+      setTimeout(() => abrirFormulario(tipo, r), 200);
+    });
+    sheet.querySelector('[data-eliminar]')?.addEventListener('click', () => {
+      cerrarSheet();
+      setTimeout(() => mostrarToast('Eliminaría el registro'), 200);
+    });
+  }
+
+  /* LIGHTBOX */
+  function abrirLightbox(r) {
+    const lb = document.createElement('div');
+    lb.className = 'lightbox';
+    lb.innerHTML = `
+      <button class="lightbox__cerrar" data-cerrar>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+          <path d="M6 6l12 12M18 6l-12 12"/>
+        </svg>
+      </button>
+      <div class="lightbox__foto ${r.fotoClase}">${FOTO_ICON}</div>
+    `;
+    document.querySelector('.phone').appendChild(lb);
+    requestAnimationFrame(() => lb.classList.add('is-open'));
+    lb.addEventListener('click', (e) => {
+      if (e.target === lb || e.target.closest('[data-cerrar]')) {
+        lb.classList.remove('is-open');
+        setTimeout(() => lb.remove(), 250);
+      }
+    });
+  }
+
+  /* FORM */
+  function abrirFormulario(tipo, r) {
+    const editando = !!r;
+    const esFauna = tipo === 'fauna';
+
+    const tipos = esFauna
+      ? [['ave','Ave'],['mamifero','Mamífero'],['reptil','Reptil'],['anfibio','Anfibio'],['pez','Pez'],['insecto','Insecto'],['otro','Otro']]
+      : [['arbol','Árbol'],['arbusto','Arbusto'],['hierba','Hierba'],['flor','Flor'],['helecho','Helecho'],['musgo','Musgo'],['hongo','Hongo'],['otro','Otro']];
+
+    const cuerpo = `
+      <div class="form-foto-fila">
+        <button type="button" class="form-foto-btn" id="btnGaleria">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="8.5" cy="9.5" r="1.5"/>
+            <path d="M21 15l-5-5L5 21"/>
+          </svg>
+          Galería
+        </button>
+        <button type="button" class="form-foto-btn" id="btnCamara">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 3l-2 3H3v15h18V6h-4l-2-3H9z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+          Cámara
+        </button>
+      </div>
+
+      <div class="fcampo">
+        <label>Especie</label>
+        <input type="text" id="inpNombre" value="${editando ? r.nombre : ''}" placeholder="${esFauna ? 'Chincol, Perro, Caballo…' : 'Quillay, Rosa, Helecho…'}" maxlength="100">
+      </div>
+
+      ${esFauna ? `
+        <div class="fcampo">
+          <label>Nombre propio (si tiene)</label>
+          <input type="text" id="inpPropio" value="${editando && r.nombrePropio ? r.nombrePropio : ''}" placeholder="Milo, Luna, Relámpago…" maxlength="100">
+        </div>
+      ` : ''}
+
+      <div class="fcampo">
+        <label>Tipo</label>
+        <select id="inpTipo">
+          ${tipos.map(([val, label]) =>
+            `<option value="${val}"${editando && r.tipo === val ? ' selected' : ''}>${label}</option>`
+          ).join('')}
+        </select>
+      </div>
+
+      ${esFauna ? `
+        <div class="fcampo">
+          <label>Pertenece a</label>
+          <input type="text" id="inpPertenece" value="${editando ? r.perteneceA : ''}" placeholder="Silvestre, Doméstico, De un vecino…" list="sugerencias-pertenece" maxlength="100">
+          <datalist id="sugerencias-pertenece">
+            <option value="Silvestre"></option>
+            <option value="Doméstico"></option>
+            <option value="De un familiar"></option>
+            <option value="De un vecino"></option>
+            <option value="De un conocido"></option>
+          </datalist>
+        </div>
+      ` : ''}
+
+      <div class="fcampo--dos">
+        <div class="fcampo">
+          <label>Lugar</label>
+          <input type="text" id="inpLugar" value="${editando ? r.lugar : ''}" placeholder="Sendero, cerro, casa…" maxlength="200">
+        </div>
+        <div class="fcampo">
+          <label>Fecha</label>
+          <input type="date" id="inpFecha">
+        </div>
+      </div>
+
+      ${esFauna ? `
+        <div class="fcampo">
+          <label>Notas de campo</label>
+          <textarea id="inpNotas" placeholder="¿Qué hacía? ¿Cómo era el lugar? ¿Algo que quieras recordar?" maxlength="500">${editando && r.notas ? r.notas : ''}</textarea>
+        </div>
+      ` : ''}
+    `;
+
+    const foot = `
+      <button class="btn btn--secundario" data-cerrar>Cancelar</button>
+      <button class="btn btn--primario" id="btnGuardar">${editando ? 'Guardar' : 'Registrar'}</button>
+    `;
+
+    const sheet = abrirSheet({
+      eyebrow: esFauna ? 'Fauna' : 'Flora',
+      titulo: editando ? 'Editar registro' : 'Nuevo registro',
+      cuerpo,
+      foot,
+    });
+
+    let fotoPendiente = null;
+    function pintarPreview() {
+      const existente = sheet.querySelector('.form-foto-preview');
+      const fila = sheet.querySelector('.form-foto-fila');
+      if (!existente && !fila) return;
+      if (fotoPendiente) {
+        const div = document.createElement('div');
+        div.className = 'form-foto-preview';
+        div.innerHTML = `
+          <div class="form-foto-preview__thumb">${FOTO_ICON}</div>
+          <span class="form-foto-preview__texto">${fotoPendiente}</span>
+          <button type="button" class="form-foto-preview__quitar">Quitar</button>
+        `;
+        (existente || fila).replaceWith(div);
+        div.querySelector('.form-foto-preview__quitar').addEventListener('click', () => {
+          fotoPendiente = null;
+          const filaNueva = document.createElement('div');
+          filaNueva.className = 'form-foto-fila';
+          filaNueva.innerHTML = `
+            <button type="button" class="form-foto-btn" id="btnGaleria">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="9.5" r="1.5"/>
+                <path d="M21 15l-5-5L5 21"/>
+              </svg>
+              Galería
+            </button>
+            <button type="button" class="form-foto-btn" id="btnCamara">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 3l-2 3H3v15h18V6h-4l-2-3H9z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+              Cámara
+            </button>
+          `;
+          div.replaceWith(filaNueva);
+          conectarBotones(filaNueva);
+        });
+      }
+    }
+
+    function conectarBotones(cont) {
+      cont.querySelector('#btnGaleria')?.addEventListener('click', () => {
+        fotoPendiente = 'foto.jpg';
+        pintarPreview();
+      });
+      cont.querySelector('#btnCamara')?.addEventListener('click', () => {
+        fotoPendiente = 'camara.jpg';
+        pintarPreview();
+      });
+    }
+    conectarBotones(sheet);
+
+    sheet.querySelector('#btnGuardar').addEventListener('click', () => {
+      const nombre = sheet.querySelector('#inpNombre').value.trim();
+      if (!nombre) { mostrarToast('Falta la especie'); return; }
+      cerrarSheet();
+      mostrarToast(editando ? 'Guardado' : 'Registrado');
+    });
+  }
+
+  /* EVENTOS */
+  document.addEventListener('click', (e) => {
+    // Click en miniatura o botón de foto dentro de la tarjeta
+    const accionFoto = e.target.closest('[data-accion="agregar-foto"]');
+    if (accionFoto) {
+      e.stopPropagation();
+      mostrarToast('Agregar foto');
+      return;
+    }
+    const mini = e.target.closest('.miniatura[data-galeria]');
+    if (mini) {
+      e.stopPropagation();
+      const tipo = mini.closest('.panel').dataset.panel;
+      const id = mini.dataset.galeria;
+      const r = (tipo === 'fauna' ? FAUNA : FLORA).find((x) => x.id === id);
+      if (r) abrirLightbox(r);
+      return;
+    }
+
+    // Botones de la tarjeta
+    const acc = e.target.closest('[data-accion]');
+    if (acc) {
+      const tipo = acc.closest('.registro')?.dataset.tipo;
+      const id = acc.closest('.registro')?.dataset.id;
+      if (!tipo) return;
+      if (acc.dataset.accion === 'editar') {
+        const r = (tipo === 'fauna' ? FAUNA : FLORA).find((x) => x.id === id);
+        if (r) abrirFormulario(tipo, r);
+        return;
+      }
+      if (acc.dataset.accion === 'eliminar') {
+        mostrarToast('Eliminaría el registro');
+        return;
+      }
+    }
+
+    // Click en tarjeta → detalle
+    const reg = e.target.closest('.registro');
+    if (reg) {
+      abrirDetalle(reg.dataset.tipo, reg.dataset.id);
+    }
+  });
+
+  document.getElementById('fab').addEventListener('click', () => {
+    const activo = document.querySelector('.panel.is-active').dataset.panel;
+    abrirFormulario(activo, null);
+  });
+
+  function cambiarVista(ver) {
+    document.querySelectorAll('.panel').forEach((p) => {
+      p.classList.toggle('is-active', p.dataset.panel === ver);
+    });
+    document.querySelectorAll('.subtab').forEach((t) => {
+      const coincide = (ver === 'fauna' && t.id === 'tabFauna') || (ver === 'flora' && t.id === 'tabFlora');
+      t.classList.toggle('is-active', coincide);
+    });
+    document.getElementById('topbarTitle').textContent = ver === 'fauna' ? 'Fauna' : 'Flora';
+    document.querySelectorAll('.debug-nav__btns button').forEach((b) => {
+      b.classList.toggle('is-active', b.dataset.ver === ver);
+    });
+    document.querySelector('.screen__body').scrollTop = 0;
+  }
+
+  document.getElementById('tabFauna').addEventListener('click', () => cambiarVista('fauna'));
+  document.getElementById('tabFlora').addEventListener('click', () => cambiarVista('flora'));
+  document.querySelectorAll('.debug-nav__btns button').forEach((b) => {
+    b.addEventListener('click', () => cambiarVista(b.dataset.ver));
+  });
+
+  document.querySelectorAll('.subtab').forEach((t) => {
+    if (t.id === 'tabFauna' || t.id === 'tabFlora') return;
+    t.addEventListener('click', () => mostrarToast(t.textContent + ' — próximamente'));
+  });
+
+  document.querySelectorAll('.tabbar__item').forEach((item) => {
+    item.addEventListener('click', () => {
+      if (item.dataset.tab === 'afuera') return;
+      mostrarToast('Próximamente');
+    });
+  });
+
+  const toast = document.getElementById('toast');
+  let toastTimer;
+  function mostrarToast(texto) {
+    toast.textContent = texto;
+    toast.classList.add('is-visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 1600);
+  }
+
+  pintarFauna();
+  pintarFlora();
+})();
+</script>
+
+</body>
+</html>

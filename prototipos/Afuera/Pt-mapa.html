@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ahora Sí — Mapa</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<style>
+:root {
+  --papel:        #F7F1E8;
+  --papel-2:      #EFE7DA;
+  --papel-3:      #FCF8F0;
+  --borde:        #E2D7C5;
+  --borde-fuerte: #D2C4AC;
+  --tinta:        #1F1B16;
+  --tinta-suave:  #6B6155;
+  --tinta-tenue:  #A89B87;
+
+  --musgo:        #5A6B3E;
+  --musgo-papel:  #E4E9D8;
+  --mostaza:      #D9A421;
+  --mostaza-papel:#F8EDD0;
+
+  --rojo: #A03737;
+
+  --accent: var(--musgo);
+
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-full: 999px;
+  --sombra-1: 0 1px 2px rgba(31,27,22,.06);
+  --sombra-2: 0 12px 28px rgba(31,27,22,.10);
+  --fuente-titulo: 'Bricolage Grotesque', system-ui, sans-serif;
+  --fuente-cuerpo: 'Figtree', system-ui, sans-serif;
+  --fuente-carta:  'Fraunces', Georgia, serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+h1,h2,h3,h4,p,ul,ol,li { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+button { background: none; border: none; cursor: pointer; font: inherit; color: inherit; }
+img { display: block; max-width: 100%; }
+
+body {
+  font-family: var(--fuente-cuerpo);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--tinta);
+  background: radial-gradient(ellipse at top, #2C2620 0%, #13100D 100%);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  -webkit-font-smoothing: antialiased;
+}
+@media (max-width: 520px) { body { padding: 0; display: block; } }
+
+.phone {
+  width: 390px;
+  height: 844px;
+  max-height: calc(100vh - 48px);
+  background: var(--papel);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 0 0 10px #0E0B08,
+    0 0 0 12px #2A2318,
+    0 30px 80px rgba(0,0,0,.55);
+}
+@media (max-width: 520px) {
+  .phone { width: 100%; height: 100dvh; max-height: none; border-radius: 0; box-shadow: none; }
+}
+
+.screen-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--papel);
+  display: flex;
+  flex-direction: column;
+}
+.screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+/* TOPBAR */
+.topbar {
+  flex-shrink: 0;
+  padding: 16px 20px 12px;
+  background: var(--papel);
+  position: relative;
+  z-index: 10;
+}
+.topbar__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.topbar__eyebrow {
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.topbar__title {
+  font-family: var(--fuente-titulo);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--accent);
+}
+.topbar__btn {
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  border-radius: var(--r-full);
+  color: var(--tinta-suave);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.topbar__btn svg { width: 20px; height: 20px; }
+
+/* SUBTABS */
+.subtabs {
+  display: flex;
+  gap: 6px;
+  padding: 0 20px 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--papel);
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--borde);
+}
+.subtabs::-webkit-scrollbar { display: none; }
+.subtab {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  border-radius: var(--r-full);
+  transition: all .2s ease;
+  white-space: nowrap;
+}
+.subtab:hover { background: var(--papel-2); color: var(--tinta); }
+.subtab.is-active { background: var(--tinta); color: var(--papel); }
+
+/* CUERPO */
+.screen__body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 0 120px;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+.screen__body::-webkit-scrollbar { width: 0; }
+
+/* MAPA */
+.mapa__lienzo {
+  height: 280px;
+  width: 100%;
+  background: var(--papel-2);
+  position: relative;
+  z-index: 1;
+}
+/* Quitar los controles feos de Leaflet en zoom */
+.mapa__lienzo .leaflet-control-attribution {
+  font-size: 9px !important;
+  background: rgba(247,241,232,.85) !important;
+  color: var(--tinta-tenue) !important;
+}
+.mapa__lienzo .leaflet-control-zoom {
+  border: none !important;
+  box-shadow: var(--sombra-1) !important;
+}
+.mapa__lienzo .leaflet-control-zoom a {
+  background: var(--papel) !important;
+  color: var(--tinta-suave) !important;
+  border: 1px solid var(--borde) !important;
+  font-family: var(--fuente-titulo) !important;
+  font-weight: 700 !important;
+}
+.mapa__lienzo .leaflet-control-zoom a:hover {
+  background: var(--papel-2) !important;
+  color: var(--tinta) !important;
+}
+
+/* Popup de Leaflet */
+.leaflet-popup-content-wrapper {
+  background: var(--papel) !important;
+  border-radius: var(--r-md) !important;
+  box-shadow: var(--sombra-2) !important;
+  border: 1px solid var(--borde) !important;
+}
+.leaflet-popup-content {
+  margin: 12px 14px !important;
+  font-family: var(--fuente-cuerpo) !important;
+  font-size: 13px !important;
+  color: var(--tinta) !important;
+}
+.leaflet-popup-tip {
+  background: var(--papel) !important;
+  border: 1px solid var(--borde) !important;
+}
+.leaflet-popup-close-button {
+  color: var(--tinta-tenue) !important;
+}
+.mapa-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+}
+.mapa-popup__nombre {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--tinta);
+  line-height: 1.25;
+}
+.mapa-popup__region {
+  font-size: 11px;
+  color: var(--tinta-suave);
+}
+.mapa-popup__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  align-self: flex-start;
+  margin-top: 4px;
+}
+.mapa-popup__estado--visitado {
+  background: var(--musgo-papel);
+  color: var(--musgo);
+}
+.mapa-popup__estado--pendiente {
+  background: var(--mostaza-papel);
+  color: #8A6D0F;
+}
+.mapa-popup__link {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--musgo);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  margin-top: 4px;
+  align-self: flex-start;
+}
+
+/* Marcador custom */
+.mapa-marcador {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid var(--papel);
+  box-shadow: 0 2px 6px rgba(31,27,22,.25);
+  transition: transform .15s ease;
+}
+.mapa-marcador--visitado { background: var(--musgo); }
+.mapa-marcador--pendiente { background: var(--mostaza); }
+.mapa-marcador:hover { transform: scale(1.15); }
+
+/* LISTA */
+.mapa__contenido {
+  padding: 16px 20px 0;
+}
+
+.mapa__progreso {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--papel-2);
+  border-radius: var(--r-md);
+  margin-bottom: 14px;
+}
+.mapa__progreso-num {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.03em;
+  color: var(--musgo);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.mapa__progreso-txt {
+  font-size: 12.5px;
+  color: var(--tinta-suave);
+  font-weight: 500;
+}
+
+/* Chips filtro */
+.mapa__filtros {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.mapa__filtros::-webkit-scrollbar { display: none; }
+.chip-filtro {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-full);
+  transition: all .15s ease;
+  white-space: nowrap;
+}
+.chip-filtro:hover { background: var(--papel-3); }
+.chip-filtro.is-active {
+  background: var(--tinta);
+  color: var(--papel);
+  border-color: var(--tinta);
+}
+
+/* Items de lugar */
+.lugar {
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-left: 3px solid var(--borde-fuerte);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  transition: all .15s ease;
+  cursor: pointer;
+}
+.lugar:hover { border-color: var(--borde-fuerte); }
+.lugar:active { background: var(--papel-2); }
+.lugar--visitado { border-left-color: var(--musgo); }
+.lugar--pendiente { border-left-color: var(--mostaza); }
+
+.lugar__cab {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.lugar__nombre {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--tinta);
+  flex: 1;
+  min-width: 0;
+}
+.chip-estado {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border-radius: var(--r-full);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.chip-estado--visitado {
+  background: var(--musgo-papel);
+  color: var(--musgo);
+}
+.chip-estado--pendiente {
+  background: var(--mostaza-papel);
+  color: #8A6D0F;
+}
+
+.lugar__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  font-size: 12px;
+  color: var(--tinta-suave);
+  line-height: 1.4;
+}
+.lugar__meta-sep { color: var(--tinta-tenue); }
+.lugar__notas {
+  font-family: var(--fuente-carta);
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--tinta-suave);
+  margin-top: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* FAB */
+.fab {
+  position: absolute;
+  bottom: 92px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-full);
+  background: var(--musgo);
+  color: var(--papel);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 12px 28px color-mix(in oklab, var(--musgo) 45%, transparent);
+  z-index: 40;
+  transition: transform .15s ease;
+}
+.fab:active { transform: scale(.9); }
+.fab svg { width: 24px; height: 24px; }
+
+/* SHEET */
+.sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(20, 16, 12, .55);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s ease;
+}
+.sheet.is-open { opacity: 1; pointer-events: auto; }
+.sheet__panel {
+  width: 100%;
+  max-height: 92%;
+  background: var(--papel);
+  border-radius: 22px 22px 0 0;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform .32s cubic-bezier(.32,.72,0,1);
+  overflow: hidden;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.sheet.is-open .sheet__panel { transform: translateY(0); }
+.sheet__handle {
+  width: 40px; height: 4px;
+  background: var(--borde-fuerte);
+  border-radius: var(--r-full);
+  margin: 10px auto 4px;
+  flex-shrink: 0;
+}
+.sheet__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 20px 14px;
+  border-bottom: 1px solid var(--borde);
+  flex-shrink: 0;
+}
+.sheet__head-title { flex: 1; min-width: 0; }
+.sheet__eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 2px;
+}
+.sheet__title {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  color: var(--tinta);
+  word-wrap: break-word;
+}
+.sheet__cerrar {
+  width: 34px; height: 34px;
+  border-radius: var(--r-full);
+  background: var(--papel-2);
+  color: var(--tinta-suave);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.sheet__cerrar:active { transform: scale(.92); }
+.sheet__cerrar svg { width: 16px; height: 16px; }
+.sheet__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 20px 20px;
+}
+.sheet__body::-webkit-scrollbar { width: 0; }
+.sheet__foot {
+  display: flex;
+  gap: 8px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--borde);
+  background: var(--papel);
+  flex-shrink: 0;
+}
+.sheet__foot .btn { flex: 1; }
+
+/* BOTONES */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 16px;
+  border-radius: var(--r-md);
+  font-weight: 600;
+  font-size: 14px;
+  transition: all .15s ease;
+  min-height: 46px;
+}
+.btn:active { transform: scale(.97); }
+.btn--primario { background: var(--accent); color: var(--papel); }
+.btn--secundario {
+  background: transparent;
+  color: var(--tinta-suave);
+  border: 1px solid var(--borde-fuerte);
+}
+.btn--peligro {
+  background: transparent;
+  color: var(--rojo);
+  border: 1px solid color-mix(in oklab, var(--rojo) 40%, var(--borde-fuerte));
+  flex: 0 0 auto;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+/* DETALLE */
+.detalle__info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--borde);
+}
+.detalle__info-item { display: flex; flex-direction: column; gap: 3px; }
+.detalle__info-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+}
+.detalle__info-valor {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--tinta);
+}
+.detalle__coords {
+  font-family: var(--fuente-titulo);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tinta-suave);
+  font-variant-numeric: tabular-nums;
+}
+.detalle__notas {
+  padding: 14px 16px;
+  background: var(--papel-3);
+  border-left: 3px solid var(--musgo);
+  border-radius: var(--r-sm);
+  font-family: var(--fuente-carta);
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--tinta-suave);
+}
+
+/* FORM */
+.fcampo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.fcampo label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+}
+.fcampo input,
+.fcampo select,
+.fcampo textarea {
+  padding: 11px 13px;
+  border: 1px solid var(--borde-fuerte);
+  background: var(--papel-3);
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: 14.5px;
+  color: var(--tinta);
+  width: 100%;
+  font-family: inherit;
+}
+.fcampo input:focus,
+.fcampo select:focus,
+.fcampo textarea:focus {
+  outline: none;
+  border-color: var(--musgo);
+  background: var(--papel);
+}
+.fcampo textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.55;
+  font-family: var(--fuente-carta);
+  font-size: 15px;
+}
+.fcampo--dos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.fcampo--dos > * { margin-bottom: 0; }
+
+/* Buscador con resultados */
+.buscador {
+  position: relative;
+}
+.buscador input {
+  padding-left: 38px;
+}
+.buscador__icono {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--tinta-tenue);
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+.buscador__resultados {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
+  box-shadow: var(--sombra-2);
+  z-index: 20;
+  max-height: 240px;
+  overflow-y: auto;
+  display: none;
+}
+.buscador__resultados.is-visible { display: block; }
+.buscador__item {
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--borde);
+  font-size: 13px;
+}
+.buscador__item:last-child { border-bottom: none; }
+.buscador__item:hover { background: var(--papel-2); }
+.buscador__item-titulo {
+  font-weight: 600;
+  color: var(--tinta);
+  margin-bottom: 2px;
+}
+.buscador__item-sub {
+  font-size: 11.5px;
+  color: var(--tinta-suave);
+}
+.buscador__item-tipo {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: var(--r-full);
+  background: var(--papel-2);
+  color: var(--tinta-suave);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* Coords fields */
+.coords-grupo {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 6px;
+  align-items: end;
+}
+.btn-ubicacion {
+  padding: 11px 12px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 42px;
+}
+.btn-ubicacion:hover { background: var(--papel-3); color: var(--tinta); }
+.btn-ubicacion svg { width: 14px; height: 14px; }
+
+/* Selector de estado en el form */
+.estado-toggle {
+  display: flex;
+  gap: 6px;
+}
+.estado-toggle button {
+  flex: 1;
+  padding: 11px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--borde-fuerte);
+  background: var(--papel-3);
+  color: var(--tinta-suave);
+  font-size: 13px;
+  font-weight: 600;
+  transition: all .15s ease;
+}
+.estado-toggle button.is-active[data-estado="pendiente"] {
+  background: var(--mostaza-papel);
+  color: #8A6D0F;
+  border-color: var(--mostaza);
+}
+.estado-toggle button.is-active[data-estado="visitado"] {
+  background: var(--musgo-papel);
+  color: var(--musgo);
+  border-color: var(--musgo);
+}
+
+/* TABBAR */
+.tabbar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 78px;
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  background: rgba(247, 241, 232, .94);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--borde);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 50;
+}
+.tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--tinta-tenue);
+  opacity: .55;
+  padding: 4px;
+  border-radius: var(--r-md);
+}
+.tabbar__item svg { width: 22px; height: 22px; }
+.tabbar__label { font-size: 10px; font-weight: 600; }
+.tabbar__item.activo { color: var(--musgo); opacity: 1; }
+.tabbar__item.activo .tabbar__label { font-weight: 700; }
+
+/* TOAST */
+.toast {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  padding: 10px 18px;
+  background: var(--tinta);
+  color: var(--papel);
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+  z-index: 1200;
+  box-shadow: var(--sombra-2);
+  white-space: nowrap;
+}
+.toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+
+<body>
+
+<div class="phone">
+  <main class="screen-area">
+    <section class="screen">
+
+      <header class="topbar">
+        <div class="topbar__row">
+          <div>
+            <p class="topbar__eyebrow">Afuera</p>
+            <h1 class="topbar__title">Mapa</h1>
+          </div>
+          <button class="topbar__btn" aria-label="Opciones">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="5" cy="12" r="1.6"/>
+              <circle cx="12" cy="12" r="1.6"/>
+              <circle cx="19" cy="12" r="1.6"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <nav class="subtabs">
+        <button class="subtab is-active">Mapa</button>
+        <button class="subtab">Kit</button>
+        <button class="subtab">Fauna</button>
+        <button class="subtab">Flora</button>
+      </nav>
+
+      <div class="screen__body">
+
+        <!-- MAPA -->
+        <div class="mapa__lienzo" id="mapa"></div>
+
+        <div class="mapa__contenido">
+
+          <div class="mapa__progreso">
+            <span class="mapa__progreso-num" id="progNum">0 / 0</span>
+            <span class="mapa__progreso-txt">visitados</span>
+          </div>
+
+          <div class="mapa__filtros">
+            <button class="chip-filtro is-active" data-filtro="todos">Todos</button>
+            <button class="chip-filtro" data-filtro="pendiente">Pendientes</button>
+            <button class="chip-filtro" data-filtro="visitado">Visitados</button>
+          </div>
+
+          <div id="listaLugares"></div>
+
+        </div>
+
+      </div>
+
+      <button class="fab" id="fab" aria-label="Nuevo lugar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+      </button>
+
+    </section>
+  </main>
+
+  <div class="toast" id="toast">Listo</div>
+
+  <nav class="tabbar">
+    <button class="tabbar__item" data-tab="nido">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+      </svg>
+      <span class="tabbar__label">Nido</span>
+    </button>
+    <button class="tabbar__item" data-tab="vida">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/>
+        <path d="M4 17a3 3 0 0 1 3-3h11"/>
+      </svg>
+      <span class="tabbar__label">Vida</span>
+    </button>
+    <button class="tabbar__item activo" data-tab="afuera">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 20h18L14 8l-3 5-2-3-6 10z"/>
+      </svg>
+      <span class="tabbar__label">Afuera</span>
+    </button>
+    <button class="tabbar__item" data-tab="juegos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+        <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/>
+      </svg>
+      <span class="tabbar__label">Juegos</span>
+    </button>
+    <button class="tabbar__item" data-tab="mas">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="5" cy="12" r="1.6"/>
+        <circle cx="12" cy="12" r="1.6"/>
+        <circle cx="19" cy="12" r="1.6"/>
+      </svg>
+      <span class="tabbar__label">Más</span>
+    </button>
+  </nav>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ════════════════════════════════════════════════════
+     DATOS MOCK
+     ════════════════════════════════════════════════════ */
+  const LUGARES = [
+    {
+      id: 'l1',
+      nombre: 'Termas de Chillán',
+      lat: -36.9019, lng: -71.4111,
+      region: 'Región de Ñuble',
+      estado: 'visitado',
+      fechaVisita: '14 sep 2024',
+      notas: 'Nos quedamos hasta que cerraron. El agua a 40°, el aire a 8°.',
+    },
+    {
+      id: 'l2',
+      nombre: 'Cerro Cayumanque',
+      lat: -36.7, lng: -72.5,
+      region: 'Región de Ñuble',
+      estado: 'visitado',
+      fechaVisita: '3 nov 2024',
+      notas: 'Subimos al amanecer. Bosque nativo todo el camino.',
+    },
+    {
+      id: 'l3',
+      nombre: 'Pinto',
+      lat: -36.7036, lng: -71.8917,
+      region: 'Región de Ñuble',
+      estado: 'pendiente',
+      fechaVisita: null,
+      notas: 'Pueblo chico, dicen que se come muy bien.',
+    },
+    {
+      id: 'l4',
+      nombre: 'Salto del Laja',
+      lat: -37.2072, lng: -72.3883,
+      region: 'Región del Biobío',
+      estado: 'pendiente',
+      fechaVisita: null,
+      notas: null,
+    },
+    {
+      id: 'l5',
+      nombre: 'Nevados de Chillán',
+      lat: -36.8633, lng: -71.4069,
+      region: 'Región de Ñuble',
+      estado: 'pendiente',
+      fechaVisita: null,
+      notas: 'Ir en invierno, con nieve. Ver si llegamos arriba.',
+    },
+    {
+      id: 'l6',
+      nombre: 'Laguna del Laja',
+      lat: -37.35, lng: -71.35,
+      region: 'Región del Biobío',
+      estado: 'visitado',
+      fechaVisita: '20 ene 2025',
+      notas: 'Un día perfecto. Nos quedamos hasta que bajó el sol.',
+    },
+  ];
+
+  /* ════════════════════════════════════════════════════
+     ESTADO
+     ════════════════════════════════════════════════════ */
+  let filtroActivo = 'todos';
+  let mapa, capaMarcadores;
+
+  /* ════════════════════════════════════════════════════
+     MAPA
+     ════════════════════════════════════════════════════ */
+  function inicializarMapa() {
+    mapa = L.map('mapa', {
+      center: [-36.75, -71.9],
+      zoom: 8,
+      zoomControl: true,
+      attributionControl: true,
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap · © CARTO',
+      maxZoom: 19,
+      subdomains: 'abcd',
+    }).addTo(mapa);
+
+    capaMarcadores = L.layerGroup().addTo(mapa);
+    pintarMarcadores();
+  }
+
+  function crearIcono(estado) {
+    return L.divIcon({
+      className: '',
+      html: `<div class="mapa-marcador mapa-marcador--${estado}"></div>`,
+      iconSize: [22, 22],
+      iconAnchor: [11, 11],
+      popupAnchor: [0, -14],
+    });
+  }
+
+  function pintarMarcadores() {
+    capaMarcadores.clearLayers();
+    const lista = lugaresFiltrados();
+
+    lista.forEach((l) => {
+      const marcador = L.marker([l.lat, l.lng], {
+        icon: crearIcono(l.estado),
+        title: l.nombre,
+      });
+
+      const popup = `
+        <div class="mapa-popup">
+          <strong class="mapa-popup__nombre">${l.nombre}</strong>
+          ${l.region ? `<span class="mapa-popup__region">${l.region}</span>` : ''}
+          <span class="mapa-popup__estado mapa-popup__estado--${l.estado}">${l.estado}</span>
+          <span class="mapa-popup__link" data-popup-id="${l.id}">Ver detalle →</span>
+        </div>
+      `;
+      marcador.bindPopup(popup);
+      marcador.addTo(capaMarcadores);
+    });
+  }
+
+  // Click en "Ver detalle" del popup
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('[data-popup-id]');
+    if (link) {
+      abrirDetalle(link.dataset.popupId);
+    }
+  });
+
+  /* ════════════════════════════════════════════════════
+     FILTRO
+     ════════════════════════════════════════════════════ */
+  function lugaresFiltrados() {
+    if (filtroActivo === 'todos') return LUGARES;
+    return LUGARES.filter((l) => l.estado === filtroActivo);
+  }
+
+  document.querySelectorAll('.chip-filtro').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      filtroActivo = chip.dataset.filtro;
+      document.querySelectorAll('.chip-filtro').forEach((c) => c.classList.remove('is-active'));
+      chip.classList.add('is-active');
+      pintarLista();
+      pintarMarcadores();
+    });
+  });
+
+  /* ════════════════════════════════════════════════════
+     LISTA
+     ════════════════════════════════════════════════════ */
+  function pintarLista() {
+    const cont = document.getElementById('listaLugares');
+    const lista = lugaresFiltrados();
+
+    if (lista.length === 0) {
+      cont.innerHTML = `<p style="text-align:center; color: var(--tinta-tenue); font-style: italic; font-size: 13px; padding: 20px 0;">Sin lugares en este filtro.</p>`;
+      return;
+    }
+
+    cont.innerHTML = lista.map((l) => `
+      <article class="lugar lugar--${l.estado}" data-id="${l.id}">
+        <div class="lugar__cab">
+          <div class="lugar__nombre">${l.nombre}</div>
+          <span class="chip-estado chip-estado--${l.estado}">${l.estado}</span>
+        </div>
+        <div class="lugar__meta">
+          ${l.region ? `<span>${l.region}</span>` : ''}
+          ${l.fechaVisita ? `<span class="lugar__meta-sep">·</span><span>${l.fechaVisita}</span>` : ''}
+        </div>
+        ${l.notas ? `<p class="lugar__notas">${l.notas}</p>` : ''}
+      </article>
+    `).join('');
+  }
+
+  function pintarProgreso() {
+    const visitados = LUGARES.filter((l) => l.estado === 'visitado').length;
+    const total = LUGARES.length;
+    document.getElementById('progNum').textContent = `${visitados} / ${total}`;
+  }
+
+  // Click en item de lista
+  document.getElementById('listaLugares').addEventListener('click', (e) => {
+    const item = e.target.closest('.lugar');
+    if (item) abrirDetalle(item.dataset.id);
+  });
+
+  /* ════════════════════════════════════════════════════
+     SHEET
+     ════════════════════════════════════════════════════ */
+  let sheetActivo = null;
+  function cerrarSheet() {
+    if (!sheetActivo) return;
+    const s = sheetActivo;
+    s.classList.remove('is-open');
+    sheetActivo = null;
+    setTimeout(() => { if (s.parentNode) s.remove(); }, 320);
+  }
+  function abrirSheet({ eyebrow, titulo, cuerpo, foot }) {
+    cerrarSheet();
+    const sheet = document.createElement('div');
+    sheet.className = 'sheet';
+    sheet.innerHTML = `
+      <div class="sheet__panel">
+        <div class="sheet__handle"></div>
+        <div class="sheet__head">
+          <div class="sheet__head-title">
+            <p class="sheet__eyebrow">${eyebrow || ''}</p>
+            <h2 class="sheet__title">${titulo}</h2>
+          </div>
+          <button class="sheet__cerrar" data-cerrar>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+              <path d="M6 6l12 12M18 6l-12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="sheet__body">${cuerpo}</div>
+        ${foot ? `<div class="sheet__foot">${foot}</div>` : ''}
+      </div>
+    `;
+    document.querySelector('.phone').appendChild(sheet);
+    requestAnimationFrame(() => sheet.classList.add('is-open'));
+    sheetActivo = sheet;
+    sheet.addEventListener('click', (e) => { if (e.target === sheet) cerrarSheet(); });
+    sheet.querySelectorAll('[data-cerrar]').forEach((b) => b.addEventListener('click', cerrarSheet));
+    return sheet;
+  }
+
+  /* ════════════════════════════════════════════════════
+     DETALLE
+     ════════════════════════════════════════════════════ */
+  function abrirDetalle(id) {
+    const l = LUGARES.find((x) => x.id === id);
+    if (!l) return;
+
+    const cuerpo = `
+      <div class="detalle__info">
+        <div class="detalle__info-item">
+          <span class="detalle__info-label">Estado</span>
+          <span class="detalle__info-valor">
+            <span class="chip-estado chip-estado--${l.estado}">${l.estado}</span>
+          </span>
+        </div>
+        <div class="detalle__info-item">
+          <span class="detalle__info-label">Región</span>
+          <span class="detalle__info-valor">${l.region || '—'}</span>
+        </div>
+        <div class="detalle__info-item">
+          <span class="detalle__info-label">Coordenadas</span>
+          <span class="detalle__coords">${l.lat.toFixed(4)}, ${l.lng.toFixed(4)}</span>
+        </div>
+        <div class="detalle__info-item">
+          <span class="detalle__info-label">${l.estado === 'visitado' ? 'Fecha visita' : 'Pendiente'}</span>
+          <span class="detalle__info-valor">${l.fechaVisita || 'Sin fecha'}</span>
+        </div>
+      </div>
+
+      ${l.notas ? `
+        <div style="margin-bottom: 8px;">
+          <p style="font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--musgo); margin-bottom: 8px;">Notas</p>
+          <div class="detalle__notas">${l.notas}</div>
+        </div>
+      ` : ''}
+    `;
+
+    const foot = `
+      <button class="btn btn--peligro" data-eliminar>Eliminar</button>
+      <button class="btn btn--secundario" data-cerrar>Cerrar</button>
+      <button class="btn btn--primario" data-editar>Editar</button>
+    `;
+
+    const sheet = abrirSheet({
+      eyebrow: 'Lugar',
+      titulo: l.nombre,
+      cuerpo,
+      foot,
+    });
+
+    // Centrar mapa en el lugar al abrir
+    if (mapa) {
+      mapa.flyTo([l.lat, l.lng], 11, { duration: 0.6 });
+    }
+
+    sheet.querySelector('[data-editar]')?.addEventListener('click', () => {
+      cerrarSheet();
+      setTimeout(() => abrirFormulario(l), 200);
+    });
+    sheet.querySelector('[data-eliminar]')?.addEventListener('click', () => {
+      cerrarSheet();
+      setTimeout(() => mostrarToast('Eliminaría el lugar'), 200);
+    });
+  }
+
+  /* ════════════════════════════════════════════════════
+     FORMULARIO
+     ════════════════════════════════════════════════════ */
+  function abrirFormulario(l) {
+    const editando = !!l;
+    const estado = editando ? l.estado : 'pendiente';
+
+    const cuerpo = `
+      <div class="fcampo buscador">
+        <label>Buscar dirección o lugar</label>
+        <div style="position: relative;">
+          <svg class="buscador__icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="M20 20l-3.5-3.5"/>
+          </svg>
+          <input type="search" id="inpBusqueda" placeholder="Termas, cerro, pueblo, dirección…" autocomplete="off">
+        </div>
+        <div class="buscador__resultados" id="resultadosBusqueda"></div>
+      </div>
+
+      <div class="fcampo">
+        <label>Nombre del lugar</label>
+        <input type="text" id="inpNombre" value="${editando ? l.nombre : ''}" placeholder="Ej. Termas de Chillán" maxlength="100">
+      </div>
+
+      <div class="fcampo">
+        <label>Coordenadas</label>
+        <div class="coords-grupo">
+          <input type="number" step="any" id="inpLat" value="${editando ? l.lat : ''}" placeholder="Latitud">
+          <input type="number" step="any" id="inpLng" value="${editando ? l.lng : ''}" placeholder="Longitud">
+          <button type="button" class="btn-ubicacion" id="btnUbicacion">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s-8-7.5-8-13a8 8 0 1 1 16 0c0 5.5-8 13-8 13z"/>
+              <circle cx="12" cy="9" r="2.5"/>
+            </svg>
+            Ubicación
+          </button>
+        </div>
+      </div>
+
+      <div class="fcampo">
+        <label>Región o zona</label>
+        <input type="text" id="inpRegion" value="${editando ? (l.region || '') : ''}" placeholder="Región de Ñuble…" maxlength="100">
+      </div>
+
+      <div class="fcampo">
+        <label>Estado</label>
+        <div class="estado-toggle" id="estadoToggle">
+          <button type="button" data-estado="pendiente" class="${estado === 'pendiente' ? 'is-active' : ''}">Pendiente</button>
+          <button type="button" data-estado="visitado" class="${estado === 'visitado' ? 'is-active' : ''}">Visitado</button>
+        </div>
+      </div>
+
+      <div class="fcampo" id="campoFecha" style="${estado === 'pendiente' ? 'display: none;' : ''}">
+        <label>Fecha de visita</label>
+        <input type="date" id="inpFecha">
+      </div>
+
+      <div class="fcampo">
+        <label>Notas (opcional)</label>
+        <textarea id="inpNotas" placeholder="¿Por qué queremos ir? ¿Cómo fue la visita?" maxlength="500">${editando && l.notas ? l.notas : ''}</textarea>
+      </div>
+    `;
+
+    const foot = `
+      <button class="btn btn--secundario" data-cerrar>Cancelar</button>
+      <button class="btn btn--primario" id="btnGuardar">${editando ? 'Guardar' : 'Añadir'}</button>
+    `;
+
+    const sheet = abrirSheet({
+      eyebrow: 'Mapa',
+      titulo: editando ? 'Editar lugar' : 'Nuevo lugar',
+      cuerpo,
+      foot,
+    });
+
+    // Toggle estado
+    sheet.querySelectorAll('#estadoToggle button').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        sheet.querySelectorAll('#estadoToggle button').forEach((b) => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        const campoFecha = sheet.querySelector('#campoFecha');
+        if (btn.dataset.estado === 'visitado') {
+          campoFecha.style.display = '';
+        } else {
+          campoFecha.style.display = 'none';
+        }
+      });
+    });
+
+    // Buscador (mock de resultados)
+    const inpBusqueda = sheet.querySelector('#inpBusqueda');
+    const resultados = sheet.querySelector('#resultadosBusqueda');
+
+    const MOCK_RESULTADOS = [
+      { titulo: 'Termas de Chillán', sub: 'Región de Ñuble, Chile', tipo: 'Atracción', lat: -36.9019, lng: -71.4111 },
+      { titulo: 'Volcán Nevados de Chillán', sub: 'Región de Ñuble, Chile', tipo: 'Cumbre', lat: -36.8633, lng: -71.4069 },
+      { titulo: 'Cerro Cayumanque', sub: 'Región de Ñuble, Chile', tipo: 'Cumbre', lat: -36.7, lng: -72.5 },
+      { titulo: 'Pinto', sub: 'Región de Ñuble, Chile', tipo: 'Pueblo', lat: -36.7036, lng: -71.8917 },
+      { titulo: 'Salto del Laja', sub: 'Región del Biobío, Chile', tipo: 'Atracción', lat: -37.2072, lng: -72.3883 },
+    ];
+
+    inpBusqueda.addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      if (q.length < 2) {
+        resultados.classList.remove('is-visible');
+        return;
+      }
+      const filtrados = MOCK_RESULTADOS.filter((r) =>
+        r.titulo.toLowerCase().includes(q) || r.sub.toLowerCase().includes(q)
+      );
+      if (filtrados.length === 0) {
+        resultados.innerHTML = `<div class="buscador__item" style="color: var(--tinta-tenue); font-style: italic;">Sin resultados.</div>`;
+      } else {
+        resultados.innerHTML = filtrados.map((r) => `
+          <div class="buscador__item" data-lat="${r.lat}" data-lng="${r.lng}" data-titulo="${r.titulo}" data-region="${r.sub}">
+            <div class="buscador__item-titulo">${r.titulo}<span class="buscador__item-tipo">${r.tipo}</span></div>
+            <div class="buscador__item-sub">${r.sub}</div>
+          </div>
+        `).join('');
+      }
+      resultados.classList.add('is-visible');
+    });
+
+    resultados.addEventListener('click', (e) => {
+      const item = e.target.closest('[data-lat]');
+      if (!item) return;
+      sheet.querySelector('#inpLat').value = item.dataset.lat;
+      sheet.querySelector('#inpLng').value = item.dataset.lng;
+      sheet.querySelector('#inpNombre').value = item.dataset.titulo;
+      if (!sheet.querySelector('#inpRegion').value) {
+        sheet.querySelector('#inpRegion').value = item.dataset.region.split(',')[0];
+      }
+      resultados.classList.remove('is-visible');
+      inpBusqueda.value = '';
+      // FlyTo en el mapa
+      if (mapa) {
+        mapa.flyTo([Number(item.dataset.lat), Number(item.dataset.lng)], 11, { duration: 0.8 });
+      }
+    });
+
+    // Cerrar resultados al hacer click fuera
+    document.addEventListener('click', function handler(ev) {
+      if (!sheetActivo) {
+        document.removeEventListener('click', handler);
+        return;
+      }
+      if (!ev.target.closest('.buscador')) {
+        resultados.classList.remove('is-visible');
+      }
+    });
+
+    // Ubicación actual (mock)
+    sheet.querySelector('#btnUbicacion').addEventListener('click', () => {
+      mostrarToast('Usaría tu ubicación actual');
+      sheet.querySelector('#inpLat').value = '-36.6067';
+      sheet.querySelector('#inpLng').value = '-72.1034';
+      if (mapa) mapa.flyTo([-36.6067, -72.1034], 12, { duration: 0.8 });
+    });
+
+    // Guardar
+    sheet.querySelector('#btnGuardar').addEventListener('click', () => {
+      const nombre = sheet.querySelector('#inpNombre').value.trim();
+      const lat = sheet.querySelector('#inpLat').value;
+      const lng = sheet.querySelector('#inpLng').value;
+      if (!nombre) { mostrarToast('Falta el nombre'); return; }
+      if (!lat || !lng) { mostrarToast('Faltan las coordenadas'); return; }
+      cerrarSheet();
+      mostrarToast(editando ? 'Guardado' : 'Lugar añadido');
+    });
+  }
+
+  /* ════════════════════════════════════════════════════
+     TOAST
+     ════════════════════════════════════════════════════ */
+  const toast = document.getElementById('toast');
+  let toastTimer;
+  function mostrarToast(texto) {
+    toast.textContent = texto;
+    toast.classList.add('is-visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 1600);
+  }
+
+  /* ════════════════════════════════════════════════════
+     FAB y subtabs y tabbar
+     ════════════════════════════════════════════════════ */
+  document.getElementById('fab').addEventListener('click', () => abrirFormulario(null));
+
+  document.querySelectorAll('.subtab').forEach((t) => {
+    t.addEventListener('click', () => {
+      if (t.classList.contains('is-active')) return;
+      mostrarToast(t.textContent + ' — próximamente');
+    });
+  });
+
+  document.querySelectorAll('.tabbar__item').forEach((item) => {
+    item.addEventListener('click', () => {
+      if (item.dataset.tab === 'afuera') return;
+      mostrarToast('Próximamente');
+    });
+  });
+
+  /* ════════════════════════════════════════════════════
+     INIT
+     ════════════════════════════════════════════════════ */
+  pintarLista();
+  pintarProgreso();
+  inicializarMapa();
+
+})();
+</script>
+
+</body>
+</html>

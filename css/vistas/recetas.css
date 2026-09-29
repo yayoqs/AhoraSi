@@ -1,15 +1,22 @@
 /* ================================================================
    Ahora Sí — CSS MODULAR
    Archivo: css/vistas/recetas.css
-   Versión: 3.0.0
+   Versión: 3.0.1
    Propósito: Estilos de la vista de recetas en el nuevo lenguaje
               visual. Lista agrupada por categoría con índice
               lateral derecho. Modal de detalle con árbol de
               ingredientes y pasos numerados. Formulario con
               listas editables.
-              v3.0.0: rediseño completo. Paleta papel/terracota.
-                      La vista ya no emite h1 ni lead. Modales en
-                      papel crema, botones terracota. Paleta de
+              v3.0.1: el índice lateral rota el texto. Antes iba
+                      horizontal y se leía mal por el poco ancho.
+                      Ahora usa writing-mode: vertical-rl y
+                      rotate(180deg), así el texto sube por el
+                      borde derecho como pestañas de libro. Se
+                      mantiene la rotación en el estado activo
+                      combinándola con el translateX.
+              v3.0.0: rediseño al nuevo lenguaje visual. La vista
+                      ya no emite h1 ni lead. Modales en papel
+                      crema, botones terracota. Paleta de
                       categorías cálida.
               v1.0.0: versión inicial.
    ================================================================ */
@@ -102,16 +109,19 @@
 }
 #vista-recetas .recetas__indice::-webkit-scrollbar { display: none; }
 
+/* Pestaña lateral. El texto se escribe en vertical y luego se
+   rota 180° para que se lea de abajo hacia arriba, como los
+   lomos de los libros. */
 #vista-recetas .recetas__indice-tab {
   width: 26px;
-  height: 38px;
+  height: 58px;
   border-radius: 8px 0 0 8px;
   border: none;
   cursor: pointer;
   font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: .02em;
+  letter-spacing: .04em;
   color: var(--papel);
   opacity: .55;
   transition: transform var(--t-media), opacity var(--t-media), width var(--t-media);
@@ -119,18 +129,20 @@
   align-items: center;
   justify-content: center;
   padding: 0;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
 }
 #vista-recetas .recetas__indice-tab.activo {
   opacity: 1;
   width: 30px;
-  transform: translateX(-4px);
+  transform: rotate(180deg) translateX(-4px);
   box-shadow: -4px 3px 12px rgba(31, 27, 22, .18);
 }
 #vista-recetas .recetas__indice-tab:hover { opacity: 1; }
 
 @media (max-width: 420px) {
   #vista-recetas .recetas__indice { width: 26px; gap: 6px; }
-  #vista-recetas .recetas__indice-tab { width: 22px; height: 32px; font-size: 9px; }
+  #vista-recetas .recetas__indice-tab { width: 22px; height: 50px; font-size: 9px; }
   #vista-recetas .recetas__indice-tab.activo { width: 26px; }
 }
 

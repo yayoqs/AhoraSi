@@ -1,14 +1,24 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/componentes/galeria.js
-   Versión: 1.0.0
+   Versión: 2.1.0
    Propósito: componente de galería de fotos. Autocontenido: se
               encarga de pintar miniaturas, abrir el lightbox,
-              subir fotos (cámara o galería), eliminar fotos y
-              avisar al padre cuando algo cambia. Se usa en
-              cualquier vista que necesite fotos.
-              v1.0.0: versión inicial. Nace de la galería que
-                      estaba embebida en fauna.js v1.5.0.
+              subir fotos y eliminar fotos. Dos modos:
+              - compacto (para tarjetas): muestra hasta 3 fotos
+                en grid. Si hay más, la última celda es "+N"
+                que abre el detalle. Sin subir, sin eliminar.
+              - detalle (por defecto): todas las fotos con botón
+                de eliminar y el bloque de subida al final.
+              v2.1.0: en modo compacto se quita el slot de
+                      "añadir foto". La tarjeta ya no permite
+                      subir. Todo el flujo de subida vive en el
+                      detalle. Se quita también el caso vacío
+                      (si no hay fotos, el componente no pinta
+                      nada en compacto).
+              v2.0.0: se agrega el modo compacto con slot
+                      dividido "+N / + Añadir".
+              v1.0.0: versión inicial.
    ================================================================ */
 
 import * as repoFotos from '../../datos/repositorios/fotos.js';
@@ -21,6 +31,7 @@ import { h } from '../../nucleo/utils.js';
 const log = crearLogger('componente:galeria');
 
 const MAX_FOTOS_DEFECTO = 10;
+const MAX_COMPACTO = 3;
 
 let lightboxActual = null;
 
@@ -30,9 +41,11 @@ let lightboxActual = null;
  *   fotos: Array<{id: string, fileId: string}>,
  *   tabla: string,
  *   filaId: string,
+ *   compacto?: boolean,
  *   max?: number,
  *   onCambio?: () => void,
- *   onMensaje?: (texto: string, tipo: 'ok'|'error') => void
+ *   onMensaje?: (texto: string, tipo: 'ok'|'error') => void,
+ *   onVerMas?: () => void
  * }} opciones
  * @returns {HTMLElement}
  */
@@ -41,113 +54,186 @@ export function pintarGaleria(opciones = {}) {
     fotos = [],
     tabla,
     filaId,
+    compacto = false,
     max = MAX_FOTOS_DEFECTO,
     onCambio,
     onMensaje,
+    onVerMas,
   } = opciones;
-
-  const cont = h('div', { class: 'galeria' });
-  cont._tabla = tabla;
-  cont._filaId = filaId;
-  cont._onCambio = onCambio;
-  cont._onMensaje = onMensaje;
-  cont._subiendo = false;
 
   if (!tabla || !filaId) {
     log.warn('pintarGaleria() sin tabla o filaId');
-    return cont;
+    return h('div');
   }
 
-  for (const foto of fotos) {
-    cont.append(h('div', { class: 'galeria__item' },
-      h('button', {
-        type: 'button',
-        class: 'galeria__miniatura',
-        'data-accion': 'abrir-foto',
-        'data-file-id': foto.fileId,
-        'aria-label': 'Ver foto',
-      },
-        h('img', {
-          src: repoFotos.urlPreview(foto.fileId),
-          alt: '',
-          loading: 'lazy',
-        })
-      ),
-      h('button', {
-        type: 'button',
-        class: 'galeria__eliminar',
-        'data-accion': 'eliminar-foto',
-        'data-id': foto.id,
-        'aria-label': 'Eliminar foto',
-      }, '×')
-    ));
+  const wrap = h('div', { class: 'galeria-wrap' });
+  wrap._tabla = tabla;
+  wrap._filaId = filaId;
+  wrap._onCambio = onCambio;
+  wrap._onMensaje = onMensaje;
+  wrap._onVerMas = onVerMas;
+  wrap._compacto = compacto;
+  wrap._max = max;
+  wrap._subiendo = false;
+
+  // Modo compacto sin fotos: no pintamos nada.
+  if (compacto && fotos.length === 0) {
+    wrap.classList.add('galeria-wrap--vacia');
+    return wrap;
   }
 
-  if (fotos.length < max) {
-    const inputId = 'input-foto-' + filaId;
-    const puedeCamara = camaraDisponible();
-    cont.append(h('div', { class: 'galeria__acciones' },
-      h('input', {
-        type: 'file',
-        id: inputId,
-        accept: 'image/*',
-        class: 'galeria__archivo',
-        'data-accion': 'seleccionar-foto',
-      }),
-      h('label', {
-        for: inputId,
-        class: 'galeria__boton',
-        role: 'button',
-      }, fotos.length === 0 ? 'Galería' : 'Otra'),
-      puedeCamara
-        ? h('button', {
-            type: 'button',
-            class: 'galeria__boton galeria__boton--camara',
-            'data-accion': 'tomar-foto',
-          }, 'Cámara')
-        : null
-    ));
+  const grid = h('div', {
+    class: 'galeria' + (compacto ? ' galeria--compacta' : ''),
+  });
+
+  if (compacto) {
+    const visibles = Math.min(fotos.length, MAX_COMPACTO);
+    const restantes = fotos.length - visibles;
+
+    // Fotos visibles.
+    for (let i = 0; i < visibles; i++) {
+      grid.append(pintarFoto(fotos[i], { compacto: true }));
+    }
+
+    // Si hay más fotos, la última celda es "+N".
+    if (restantes > 0) {
+      grid.append(pintarSlotMas(restantes));
+    }
+  } else {
+    // Modo detalle: todas las fotos + botón de acciones.
+    for (const foto of fotos) {
+      grid.append(pintarFoto(foto, { compacto: false }));
+    }
+    if (fotos.length < max) {
+      grid.append(pintarBloqueAcciones());
+    }
   }
 
-  cont.addEventListener('click', manejarClick);
-  cont.addEventListener('change', manejarChange);
+  wrap.append(grid);
+
+  if (compacto) {
+    // Solo escuchamos click (lightbox y "+N").
+    wrap.addEventListener('click', manejarClickCompacto);
+  } else {
+    wrap.addEventListener('click', manejarClickDetalle);
+    wrap.addEventListener('change', manejarChangeDetalle);
+  }
+
+  return wrap;
+}
+
+/* ---------- Piezas internas ----------------------------------- */
+
+function pintarFoto(foto, { compacto }) {
+  const item = h('button', {
+    type: 'button',
+    class: 'galeria__item',
+    'data-accion': 'abrir-foto',
+    'data-file-id': foto.fileId,
+    'aria-label': 'Ver foto',
+  });
+
+  const fondo = h('span', {
+    class: 'galeria__foto',
+    style: `background-image: url('${repoFotos.urlPreview(foto.fileId)}')`,
+  });
+  item.append(fondo);
+
+  if (!compacto) {
+    item.append(h('span', {
+      class: 'galeria__eliminar',
+      'data-accion': 'eliminar-foto',
+      'data-id': foto.id,
+      'role': 'button',
+      'aria-label': 'Eliminar foto',
+      'title': 'Eliminar',
+    }, '×'));
+  }
+
+  return item;
+}
+
+function pintarSlotMas(restantes) {
+  return h('button', {
+    type: 'button',
+    class: 'galeria__mas',
+    'data-accion': 'ver-mas-fotos',
+    'aria-label': `Ver ${restantes} fotos más`,
+  },
+    `+${restantes}`,
+    h('small', {}, 'fotos')
+  );
+}
+
+function pintarBloqueAcciones() {
+  const inputId = 'input-foto-' + Math.random().toString(36).slice(2, 8);
+  const puedeCamara = camaraDisponible();
+
+  const cont = h('div', { class: 'galeria__acciones' });
+
+  cont.append(h('input', {
+    type: 'file',
+    id: inputId,
+    accept: 'image/*',
+    class: 'galeria__archivo',
+    'data-accion': 'seleccionar-foto',
+  }));
+
+  cont.append(h('label', {
+    for: inputId,
+    class: 'galeria__boton',
+    role: 'button',
+  }, 'Galería'));
+
+  if (puedeCamara) {
+    cont.append(h('button', {
+      type: 'button',
+      class: 'galeria__boton galeria__boton--camara',
+      'data-accion': 'tomar-foto',
+    }, 'Cámara'));
+  }
 
   return cont;
 }
 
-async function manejarClick(ev) {
-  const cont = ev.currentTarget;
-  const boton = ev.target.closest('button[data-accion]');
-  if (!boton || !cont.contains(boton)) return;
-  const accion = boton.dataset.accion;
+/* ---------- Eventos modo compacto ----------------------------- */
 
-  // Solo detenemos la propagación si manejamos la acción.
-  // Si el click cayó en zona vacía, el padre debe poder verlo.
+function manejarClickCompacto(ev) {
+  const cont = ev.currentTarget;
+  const btn = ev.target.closest('[data-accion]');
+  if (!btn || !cont.contains(btn)) return;
+  const accion = btn.dataset.accion;
+
   if (accion === 'abrir-foto') {
     ev.stopPropagation();
-    abrirLightbox(boton.dataset.fileId);
+    abrirLightbox(btn.dataset.fileId);
+  } else if (accion === 'ver-mas-fotos') {
+    ev.stopPropagation();
+    if (typeof cont._onVerMas === 'function') cont._onVerMas();
+  }
+}
+
+/* ---------- Eventos modo detalle ------------------------------ */
+
+async function manejarClickDetalle(ev) {
+  const cont = ev.currentTarget;
+  const btn = ev.target.closest('[data-accion]');
+  if (!btn || !cont.contains(btn)) return;
+  const accion = btn.dataset.accion;
+
+  if (accion === 'abrir-foto') {
+    ev.stopPropagation();
+    abrirLightbox(btn.dataset.fileId);
   } else if (accion === 'eliminar-foto') {
     ev.stopPropagation();
-    const ok = await mostrarConfirmacion(
-      'Eliminar foto',
-      '¿Seguro que quieres eliminar esta foto?',
-      { textoConfirmar: 'Eliminar' }
-    );
-    if (!ok) return;
-    const r = await repoFotos.eliminar(boton.dataset.id);
-    if (r.exito) {
-      mensaje(cont, 'Foto eliminada.', 'ok');
-      cambio(cont);
-    } else {
-      mensaje(cont, r.error, 'error');
-    }
+    await eliminarFoto(cont, btn.dataset.id);
   } else if (accion === 'tomar-foto') {
     ev.stopPropagation();
     await subirDesdeCamara(cont);
   }
 }
 
-async function manejarChange(ev) {
+async function manejarChangeDetalle(ev) {
   const cont = ev.currentTarget;
   const input = ev.target.closest('input[type="file"][data-accion="seleccionar-foto"]');
   if (!input || !cont.contains(input)) return;
@@ -157,6 +243,8 @@ async function manejarChange(ev) {
   if (!archivo) return;
   await subirDesdeArchivo(cont, archivo);
 }
+
+/* ---------- Subidas ------------------------------------------- */
 
 async function subirDesdeArchivo(cont, archivo) {
   if (cont._subiendo) return;
@@ -216,6 +304,22 @@ async function subirDesdeCamara(cont) {
   }
 }
 
+async function eliminarFoto(cont, id) {
+  const ok = await mostrarConfirmacion(
+    'Eliminar foto',
+    '¿Seguro que quieres eliminar esta foto?',
+    { textoConfirmar: 'Eliminar' }
+  );
+  if (!ok) return;
+  const r = await repoFotos.eliminar(id);
+  if (r.exito) {
+    mensaje(cont, 'Foto eliminada.', 'ok');
+    cambio(cont);
+  } else {
+    mensaje(cont, r.error, 'error');
+  }
+}
+
 function mensaje(cont, texto, tipo = 'ok') {
   if (typeof cont._onMensaje === 'function') {
     cont._onMensaje(texto, tipo);
@@ -228,7 +332,7 @@ function cambio(cont) {
   }
 }
 
-/* ---------- Lightbox ------------------------------------------- */
+/* ---------- Lightbox ------------------------------------------ */
 
 export function abrirLightbox(fileId) {
   cerrarLightbox();
@@ -273,10 +377,6 @@ export function cerrarLightbox() {
   lightboxActual = null;
 }
 
-/**
- * Limpieza global del componente. Las vistas lo llaman en su
- * limpiar() para cerrar cualquier lightbox abierto.
- */
 export function limpiarGaleria() {
   cerrarLightbox();
 }

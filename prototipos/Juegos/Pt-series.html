@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ahora Sí — Prototipo Series</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --papel: #F7F1E8;
+  --papel-2: #EFE7DA;
+  --papel-3: #FCF8F0;
+  --borde: #E2D7C5;
+  --borde-fuerte: #D2C4AC;
+  --tinta: #1F1B16;
+  --tinta-suave: #6B6155;
+  --tinta-tenue: #A89B87;
+  --terracota: #C9613B;
+  --mostaza: #D9A421;
+  --musgo: #5A6B3E;
+  --azul: #4A6785;
+  --ciruela: #7A3E5C;
+  --rojo: #A03737;
+  --luci: #D89A9A;
+  --yayo: #B8893C;
+  --ambos: #7A8B6B;
+  --accent: var(--ciruela);
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-full: 999px;
+  --sombra-1: 0 1px 2px rgba(31,27,22,.06);
+  --sombra-2: 0 12px 28px rgba(31,27,22,.10);
+  --fuente-titulo: 'Bricolage Grotesque', system-ui, sans-serif;
+  --fuente-cuerpo: 'Figtree', system-ui, sans-serif;
+  --fuente-carta: 'Fraunces', Georgia, serif;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+h1,h2,h3,h4,p,ul,ol,li { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+button { background: none; border: none; cursor: pointer; font: inherit; color: inherit; }
+
+body {
+  font-family: var(--fuente-cuerpo);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--tinta);
+  background: radial-gradient(ellipse at top, #2C2620 0%, #13100D 100%);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  -webkit-font-smoothing: antialiased;
+}
+@media (max-width: 520px) { body { padding: 0; display: block; } }
+
+.phone {
+  width: 390px;
+  height: 844px;
+  max-height: calc(100vh - 48px);
+  background: var(--papel);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 0 0 10px #0E0B08,
+    0 0 0 12px #2A2318,
+    0 30px 80px rgba(0,0,0,.55);
+}
+@media (max-width: 520px) {
+  .phone { width: 100%; height: 100dvh; max-height: none; border-radius: 0; box-shadow: none; }
+}
+
+.screen-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--papel);
+  display: flex;
+  flex-direction: column;
+}
+.screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+.topbar {
+  flex-shrink: 0;
+  padding: 16px 20px 12px;
+  background: var(--papel);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.topbar__eyebrow {
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.topbar__title {
+  font-family: var(--fuente-titulo);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--accent);
+}
+.topbar__btn {
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  border-radius: var(--r-full);
+  color: var(--tinta-suave);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.subtabs {
+  display: flex;
+  gap: 6px;
+  padding: 0 20px 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--papel);
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--borde);
+}
+.subtabs::-webkit-scrollbar { display: none; }
+.subtab {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  border-radius: var(--r-full);
+  white-space: nowrap;
+}
+.subtab.is-active { background: var(--tinta); color: var(--papel); }
+.subtab__badge {
+  display: inline-block;
+  padding: 1px 6px;
+  margin-left: 6px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--papel-2);
+  color: var(--tinta-suave);
+  font-variant-numeric: tabular-nums;
+}
+.subtab.is-active .subtab__badge {
+  background: rgba(247,241,232,.22);
+  color: var(--papel);
+}
+
+.screen__body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px 20px 120px;
+  position: relative;
+}
+.screen__body::-webkit-scrollbar { width: 0; }
+
+.progreso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--papel-2);
+  border-radius: var(--r-md);
+  margin-bottom: 12px;
+}
+.progreso__izq { display: flex; align-items: baseline; gap: 8px; }
+.progreso__num {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.03em;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.progreso__txt {
+  font-size: 12.5px;
+  color: var(--tinta-suave);
+  font-weight: 500;
+}
+
+.toggle {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--papel-3);
+  border-radius: var(--r-full);
+}
+.toggle button {
+  padding: 5px 12px;
+  border-radius: var(--r-full);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  transition: all .15s ease;
+}
+.toggle button.is-active { background: var(--tinta); color: var(--papel); }
+
+.btn-agregar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: var(--r-md);
+  background: var(--accent);
+  color: var(--papel);
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 14px;
+  transition: filter .15s ease, transform .1s ease;
+}
+.btn-agregar:hover { filter: brightness(1.05); }
+.btn-agregar:active { transform: translateY(1px); }
+
+.filtros {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 -20px 16px;
+  padding: 2px 20px;
+}
+.filtros::-webkit-scrollbar { display: none; }
+.filtro {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--r-full);
+  border: 1px solid transparent;
+  color: var(--tinta-suave);
+  background: var(--papel-2);
+  white-space: nowrap;
+  transition: all .15s ease;
+}
+.filtro.is-active { background: var(--tinta); color: var(--papel); }
+.filtro--destacado {
+  background: color-mix(in oklab, var(--azul) 14%, var(--papel-2));
+  color: var(--azul);
+  border-color: color-mix(in oklab, var(--azul) 30%, var(--borde));
+}
+.filtro--destacado.is-active { background: var(--azul); color: var(--papel); border-color: var(--azul); }
+
+.seccion-titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 18px 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.seccion-titulo::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--borde);
+}
+
+.autor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px 2px 2px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.autor__ini {
+  width: 16px; height: 16px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 9px; font-weight: 800;
+  color: var(--papel);
+  font-family: var(--fuente-titulo);
+}
+.autor--luci { background: #F0E2E2; color: #8A5757; }
+.autor--luci .autor__ini { background: var(--luci); }
+.autor--yayo { background: #EFE4CC; color: #6B4F1F; }
+.autor--yayo .autor__ini { background: var(--yayo); }
+.autor--ambos { background: #E2E7DA; color: #4A5C3B; }
+.autor--ambos .autor__ini { background: var(--ambos); }
+
+.chip-estado {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.chip-estado--vista { background: color-mix(in oklab, var(--musgo) 18%, var(--papel-2)); color: var(--musgo); }
+.chip-estado--viendo { background: color-mix(in oklab, var(--azul) 18%, var(--papel-2)); color: var(--azul); }
+.chip-estado--pendiente { background: color-mix(in oklab, var(--mostaza) 22%, var(--papel-2)); color: #8A6D0F; }
+.chip-estado--abandonada { background: color-mix(in oklab, var(--rojo) 14%, var(--papel-2)); color: var(--rojo); }
+
+.btn-mini {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  background: transparent;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  transition: all .15s ease;
+  white-space: nowrap;
+}
+.btn-mini:hover { background: var(--papel-2); color: var(--tinta); }
+.btn-mini--cap {
+  color: var(--azul);
+  border-color: color-mix(in oklab, var(--azul) 40%, var(--borde));
+  background: color-mix(in oklab, var(--azul) 8%, transparent);
+  font-weight: 700;
+  font-family: var(--fuente-titulo);
+}
+.btn-mini--cap:hover { background: color-mix(in oklab, var(--azul) 15%, transparent); }
+.btn-mini--peligro:hover { background: #FBE9E9; color: var(--rojo); border-color: #E3B6B6; }
+
+.modo { display: none; }
+.modo.is-active { display: block; animation: fadeUp .3s ease; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ══════════════════════════════════════════════
+   MODO TARJETA — la vista rica
+   Carátula 80×120. Layout generoso.
+   ══════════════════════════════════════════════ */
+.card {
+  display: flex;
+  gap: 14px;
+  padding: 14px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-left: 4px solid var(--borde-fuerte);
+  border-radius: var(--r-md);
+  margin-bottom: 12px;
+  align-items: flex-start;
+  transition: border-color .15s ease, transform .1s ease;
+}
+.card:active { transform: scale(.99); }
+
+.card--vista { border-left-color: var(--musgo); }
+.card--viendo { border-left-color: var(--azul); }
+.card--pendiente { border-left-color: var(--mostaza); }
+.card--abandonada { border-left-color: var(--rojo); opacity: .75; }
+
+.card__caratula {
+  width: 80px;
+  height: 120px;
+  border-radius: var(--r-md);
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #8B7FA8 0%, #4A3D5E 100%);
+  display: grid;
+  place-items: center;
+  color: rgba(255,255,255,.8);
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 30px;
+  letter-spacing: -.04em;
+  position: relative;
+  overflow: hidden;
+}
+.card__caratula--2 { background: linear-gradient(135deg, #D9A421 0%, #A5522C 100%); }
+.card__caratula--3 { background: linear-gradient(135deg, #8FA076 0%, #3F4C2B 100%); }
+.card__caratula--4 { background: linear-gradient(135deg, #8DB7D8 0%, #2E4A6A 100%); }
+.card__caratula--5 { background: linear-gradient(135deg, #D89A9A 0%, #8A5757 100%); }
+
+.card__puntaje {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  background: rgba(20,16,12,.92);
+  color: var(--papel);
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 14px;
+  padding: 3px 9px;
+  border-radius: var(--r-full);
+  letter-spacing: -.02em;
+  line-height: 1.1;
+}
+
+.card__cuerpo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.card__cab {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.card__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--tinta);
+  letter-spacing: -.015em;
+  line-height: 1.2;
+}
+.card__meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 12px;
+  color: var(--tinta-suave);
+}
+.card__nota {
+  font-family: var(--fuente-carta);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--tinta-suave);
+  line-height: 1.5;
+}
+.card__barra {
+  height: 4px;
+  background: var(--papel-2);
+  border-radius: var(--r-full);
+  overflow: hidden;
+  margin-top: 4px;
+}
+.card__barra i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: var(--r-full);
+}
+.card--vista .card__barra i { background: var(--musgo); }
+.card--viendo .card__barra i { background: var(--azul); }
+.card__acciones {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 8px;
+}
+
+/* ══════════════════════════════════════════════
+   MODO RANKING — la vista compacta
+   Handle + número grande + texto en una línea.
+   ══════════════════════════════════════════════ */
+.fila {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-left: 3px solid var(--borde-fuerte);
+  border-radius: var(--r-md);
+  margin-bottom: 8px;
+  transition: border-color .15s ease, box-shadow .15s ease;
+  touch-action: pan-y;
+}
+.fila--vista { border-left-color: var(--musgo); }
+.fila--viendo { border-left-color: var(--azul); }
+.fila--pendiente { border-left-color: var(--mostaza); }
+.fila--abandonada { border-left-color: var(--rojo); opacity: .75; }
+
+.fila--arrastrando {
+  background: var(--papel-2);
+  border-color: var(--accent);
+  box-shadow: var(--sombra-2);
+  opacity: .92;
+}
+
+.fila__handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tinta-tenue);
+  cursor: grab;
+  font-size: 14px;
+  letter-spacing: -.05em;
+  width: 20px;
+  height: 32px;
+  flex-shrink: 0;
+  user-select: none;
+  touch-action: none;
+}
+.fila__handle:active { cursor: grabbing; }
+
+.fila__puntaje {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: -.04em;
+  color: var(--accent);
+  min-width: 38px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.fila__puntaje--vacio {
+  color: var(--tinta-tenue);
+  font-weight: 500;
+  font-size: 18px;
+}
+
+.fila__cuerpo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+
+.fila__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--tinta);
+  letter-spacing: -.01em;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fila__meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 11px;
+  color: var(--tinta-suave);
+}
+
+.fila__acciones {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  align-items: center;
+}
+.fila__acciones .btn-mini {
+  padding: 5px 9px;
+  font-size: 11px;
+}
+
+/* Tabbar */
+.tabbar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 78px;
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  background: rgba(247, 241, 232, .94);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--borde);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 50;
+}
+.tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--tinta-tenue);
+  opacity: .55;
+  padding: 4px;
+}
+.tabbar__item svg { width: 22px; height: 22px; }
+.tabbar__label { font-size: 10px; font-weight: 600; }
+.tabbar__item.activo { color: var(--accent); opacity: 1; }
+.tabbar__item.activo .tabbar__label { font-weight: 700; }
+
+.debug-nav {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 240px;
+}
+.debug-nav__label {
+  font-size: 9px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+  font-weight: 700;
+}
+.debug-nav__btns {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 4px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--r-md);
+  backdrop-filter: blur(12px);
+}
+.debug-nav__btns button {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.55);
+  border-radius: 8px;
+  text-align: left;
+  transition: all .15s ease;
+}
+.debug-nav__btns button:hover { color: rgba(255,255,255,.9); }
+.debug-nav__btns button.is-active { background: rgba(255,255,255,.15); color: #fff; }
+@media (max-width: 720px) { .debug-nav { display: none; } }
+</style>
+</head>
+
+<body>
+
+<nav class="debug-nav">
+  <span class="debug-nav__label">Modo</span>
+  <div class="debug-nav__btns" id="debugNav">
+    <button data-modo="tarjeta" class="is-active">Tarjeta (grande)</button>
+    <button data-modo="ranking">Ranking (compacta)</button>
+  </div>
+</nav>
+
+<div class="phone">
+  <main class="screen-area">
+    <section class="screen">
+
+      <header class="topbar">
+        <div>
+          <p class="topbar__eyebrow">Juegos · Series</p>
+          <h1 class="topbar__title">Series</h1>
+        </div>
+        <button class="topbar__btn" aria-label="Opciones">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="5" cy="12" r="1.6"/>
+            <circle cx="12" cy="12" r="1.6"/>
+            <circle cx="19" cy="12" r="1.6"/>
+          </svg>
+        </button>
+      </header>
+
+      <nav class="subtabs">
+        <button class="subtab is-active">Series</button>
+        <button class="subtab">Percusión</button>
+        <button class="subtab">Juegos <span class="subtab__badge">5</span></button>
+      </nav>
+
+      <div class="screen__body" id="scrollArea">
+
+        <div class="progreso">
+          <div class="progreso__izq">
+            <span class="progreso__num">12 / 28</span>
+            <span class="progreso__txt">vistas</span>
+          </div>
+          <div class="toggle" id="toggleVista">
+            <button data-modo="tarjeta" class="is-active">Tarjeta</button>
+            <button data-modo="ranking">Ranking</button>
+          </div>
+        </div>
+
+        <button class="btn-agregar">+ Añadir serie o película</button>
+
+        <div class="filtros">
+          <button class="filtro is-active">Todas</button>
+          <button class="filtro filtro--destacado">Viendo ahora</button>
+          <button class="filtro">Pendientes</button>
+          <button class="filtro">Series</button>
+          <button class="filtro">Películas</button>
+        </div>
+
+        <!-- ══════════════════════════════════════════
+             MODO TARJETA
+             ══════════════════════════════════════════ -->
+        <div class="modo is-active" data-modo="tarjeta">
+
+          <h3 class="seccion-titulo">Viendo ahora</h3>
+
+          <article class="card card--viendo">
+            <div class="card__caratula card__caratula--4">
+              S
+              <span class="card__puntaje">—</span>
+            </div>
+            <div class="card__cuerpo">
+              <div class="card__cab">
+                <span class="card__titulo">Shogun</span>
+                <span class="chip-estado chip-estado--viendo">Viendo</span>
+              </div>
+              <div class="card__meta">
+                <span class="autor autor--ambos"><span class="autor__ini">L</span>Los dos</span>
+                <span>Disney+</span>
+              </div>
+              <div class="card__barra"><i style="width:40%"></i></div>
+              <div class="card__meta" style="font-size:11px;">
+                <span>Temporada 1 · capítulo 4 de 10</span>
+                <b style="color:var(--azul);font-weight:700;">40%</b>
+              </div>
+              <div class="card__acciones">
+                <button class="btn-mini btn-mini--cap">+1 cap.</button>
+                <button class="btn-mini">Estado</button>
+                <button class="btn-mini">Editar</button>
+              </div>
+            </div>
+          </article>
+
+          <h3 class="seccion-titulo">Todo</h3>
+
+          <article class="card card--vista">
+            <div class="card__caratula">
+              S
+              <span class="card__puntaje">10</span>
+            </div>
+            <div class="card__cuerpo">
+              <div class="card__cab">
+                <span class="card__titulo">Severance</span>
+                <span class="chip-estado chip-estado--vista">Vista</span>
+              </div>
+              <div class="card__meta">
+                <span class="autor autor--luci"><span class="autor__ini">L</span>Luci</span>
+                <span>Apple TV</span>
+              </div>
+              <p class="card__nota">La mejor cosa que hemos visto en años. Cada capítulo es una obra.</p>
+              <div class="card__barra"><i style="width:100%"></i></div>
+              <div class="card__acciones">
+                <button class="btn-mini">Ver</button>
+                <button class="btn-mini">Estado</button>
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Quitar</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="card card--vista">
+            <div class="card__caratula card__caratula--2">
+              T
+              <span class="card__puntaje">9</span>
+            </div>
+            <div class="card__cuerpo">
+              <div class="card__cab">
+                <span class="card__titulo">The Bear</span>
+                <span class="chip-estado chip-estado--vista">Vista</span>
+              </div>
+              <div class="card__meta">
+                <span class="autor autor--yayo"><span class="autor__ini">Y</span>Yayo</span>
+                <span>Disney+</span>
+              </div>
+              <div class="card__barra"><i style="width:90%"></i></div>
+              <div class="card__acciones">
+                <button class="btn-mini">Ver</button>
+                <button class="btn-mini">Estado</button>
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Quitar</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="card card--vista">
+            <div class="card__caratula card__caratula--5">
+              P
+              <span class="card__puntaje">8</span>
+            </div>
+            <div class="card__cuerpo">
+              <div class="card__cab">
+                <span class="card__titulo">Past Lives</span>
+                <span class="chip-estado chip-estado--vista">Vista</span>
+              </div>
+              <div class="card__meta">
+                <span class="autor autor--luci"><span class="autor__ini">L</span>Luci</span>
+                <span>Película</span>
+              </div>
+              <div class="card__barra"><i style="width:80%"></i></div>
+              <div class="card__acciones">
+                <button class="btn-mini">Ver</button>
+                <button class="btn-mini">Estado</button>
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Quitar</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="card card--pendiente">
+            <div class="card__caratula card__caratula--3">
+              C
+              <span class="card__puntaje">—</span>
+            </div>
+            <div class="card__cuerpo">
+              <div class="card__cab">
+                <span class="card__titulo">Cien años de soledad</span>
+                <span class="chip-estado chip-estado--pendiente">Pendiente</span>
+              </div>
+              <div class="card__meta">
+                <span class="autor autor--yayo"><span class="autor__ini">Y</span>Yayo</span>
+                <span>Netflix</span>
+              </div>
+              <div class="card__acciones">
+                <button class="btn-mini">Ver</button>
+                <button class="btn-mini">Estado</button>
+                <button class="btn-mini">Editar</button>
+                <button class="btn-mini btn-mini--peligro">Quitar</button>
+              </div>
+            </div>
+          </article>
+
+        </div>
+
+        <!-- ══════════════════════════════════════════
+             MODO RANKING
+             ══════════════════════════════════════════ -->
+        <div class="modo" data-modo="ranking">
+
+          <article class="fila fila--vista">
+            <div class="fila__handle">⠿</div>
+            <span class="fila__puntaje">10</span>
+            <div class="fila__cuerpo">
+              <div class="fila__titulo">Severance</div>
+              <div class="fila__meta">
+                <span class="autor autor--luci"><span class="autor__ini">L</span>Luci</span>
+                <span>Apple TV</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="fila fila--vista">
+            <div class="fila__handle">⠿</div>
+            <span class="fila__puntaje">9</span>
+            <div class="fila__cuerpo">
+              <div class="fila__titulo">The Bear</div>
+              <div class="fila__meta">
+                <span class="autor autor--yayo"><span class="autor__ini">Y</span>Yayo</span>
+                <span>Disney+</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="fila fila--vista">
+            <div class="fila__handle">⠿</div>
+            <span class="fila__puntaje">8</span>
+            <div class="fila__cuerpo">
+              <div class="fila__titulo">Past Lives</div>
+              <div class="fila__meta">
+                <span class="autor autor--luci"><span class="autor__ini">L</span>Luci</span>
+                <span>Película</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="fila fila--viendo">
+            <div class="fila__handle">⠿</div>
+            <span class="fila__puntaje fila__puntaje--vacio">—</span>
+            <div class="fila__cuerpo">
+              <div class="fila__titulo">Shogun</div>
+              <div class="fila__meta">
+                <span class="autor autor--ambos"><span class="autor__ini">L</span>Los dos</span>
+                <span>Viendo · T1 E4</span>
+              </div>
+            </div>
+            <div class="fila__acciones">
+              <button class="btn-mini btn-mini--cap">+1</button>
+            </div>
+          </article>
+
+          <article class="fila fila--pendiente">
+            <div class="fila__handle">⠿</div>
+            <span class="fila__puntaje fila__puntaje--vacio">—</span>
+            <div class="fila__cuerpo">
+              <div class="fila__titulo">Cien años de soledad</div>
+              <div class="fila__meta">
+                <span class="autor autor--yayo"><span class="autor__ini">Y</span>Yayo</span>
+                <span>Netflix</span>
+              </div>
+            </div>
+          </article>
+
+        </div>
+
+      </div>
+
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button class="tabbar__item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+      </svg>
+      <span class="tabbar__label">Nido</span>
+    </button>
+    <button class="tabbar__item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/>
+        <path d="M4 17a3 3 0 0 1 3-3h11"/>
+      </svg>
+      <span class="tabbar__label">Vida</span>
+    </button>
+    <button class="tabbar__item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 20h18L14 8l-3 5-2-3-6 10z"/>
+      </svg>
+      <span class="tabbar__label">Afuera</span>
+    </button>
+    <button class="tabbar__item activo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+        <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/>
+      </svg>
+      <span class="tabbar__label">Juegos</span>
+    </button>
+    <button class="tabbar__item">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="5" cy="12" r="1.6"/>
+        <circle cx="12" cy="12" r="1.6"/>
+        <circle cx="19" cy="12" r="1.6"/>
+      </svg>
+      <span class="tabbar__label">Más</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const modos = document.querySelectorAll('.modo');
+  const toggleBtns = document.querySelectorAll('#toggleVista button');
+  const debugBtns = document.querySelectorAll('#debugNav button');
+  const scrollArea = document.getElementById('scrollArea');
+
+  function cambiarModo(modo) {
+    modos.forEach((m) => m.classList.toggle('is-active', m.dataset.modo === modo));
+    toggleBtns.forEach((b) => b.classList.toggle('is-active', b.dataset.modo === modo));
+    debugBtns.forEach((b) => b.classList.toggle('is-active', b.dataset.modo === modo));
+    scrollArea.scrollTop = 0;
+  }
+
+  toggleBtns.forEach((b) => b.addEventListener('click', () => cambiarModo(b.dataset.modo)));
+  debugBtns.forEach((b) => b.addEventListener('click', () => cambiarModo(b.dataset.modo)));
+
+  document.querySelectorAll('.filtro').forEach((f) => {
+    f.addEventListener('click', () => {
+      f.parentNode.querySelectorAll('.filtro').forEach((x) => x.classList.remove('is-active'));
+      f.classList.add('is-active');
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
