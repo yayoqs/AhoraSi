@@ -1,12 +1,21 @@
 /* ================================================================
    Ahora Sí — CSS
    Archivo: css/base.css
-   Versión: 3.0.0
+   Versión: 3.1.0
    Propósito: reset mínimo, variables de diseño, tipografía base.
               Paleta nueva (papel/terracota/Fraunces) con soporte
               de modo noche global. Se mantienen los alias de
               compatibilidad para las vistas que todavía no
               migran al rediseño.
+              v3.1.0: se completan los text-size-adjust con las
+                      tres variantes (webkit, moz, estándar) en
+                      html y body. Sin esto, Brave y algunos
+                      navegadores basados en Chromium móvil
+                      agrandan todo el texto por su cuenta. Se
+                      agrega fallback explícito de Fraunces a
+                      Georgia por si Google Fonts no carga (Brave
+                      Shields las bloquea por defecto). Sin
+                      cambios en el resto.
               v3.0.0: se elimina --verde (queda solo --musgo).
                       Se agrega bloque de modo noche bajo
                       body.modo-noche. Se agrega --accent como
@@ -22,12 +31,28 @@
 
 /* -------- Reset ------------------------------------------------- */
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
 body, h1, h2, h3, h4, p, figure, blockquote, dl, dd { margin: 0; }
 ul, ol { padding: 0; margin: 0; list-style: none; }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
 input, select, textarea { font: inherit; color: inherit; }
 img, picture, svg { max-width: 100%; display: block; }
+
+/* -------- Fix de escalado de texto ------------------------------
+   Chrome móvil, Brave y otros Chromium agrandan el texto por su
+   cuenta cuando no encuentran el text-size-adjust estándar. Con
+   las tres variantes (webkit, moz, estándar) en html y body, se
+   les dice explícitamente "no toques el tamaño, yo lo controlo".
+   ------------------------------------------------------------------ */
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+body {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
 
 /* -------- Paleta base (modo día) ------------------------------- */
 :root {
@@ -60,10 +85,13 @@ img, picture, svg { max-width: 100%; display: block; }
   /* Acento activo. Cada vista lo sobreescribe. */
   --accent: var(--terracota);
 
-  /* Tipografía */
-  --fuente-titulo: 'Bricolage Grotesque', system-ui, sans-serif;
-  --fuente-cuerpo: 'Figtree', system-ui, sans-serif;
-  --fuente-carta:  'Fraunces', Georgia, serif;
+  /* Tipografía. Georgia como fallback explícito de Fraunces
+     para que, si Google Fonts no carga (Brave Shields, red
+     lenta), el texto caiga en una serif con métricas parecidas
+     y no en la serif genérica del sistema. */
+  --fuente-titulo: 'Bricolage Grotesque', 'Trebuchet MS', system-ui, sans-serif;
+  --fuente-cuerpo: 'Figtree', system-ui, -apple-system, sans-serif;
+  --fuente-carta:  'Fraunces', Georgia, 'Times New Roman', serif;
 
   /* Espaciado */
   --sp-1: 4px;
