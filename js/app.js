@@ -1,12 +1,22 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/app.js
-   Versión: 4.0.5
+   Versión: 4.0.6
    Propósito: punto de entrada. Arranca sesión, monta el shell
               con topbar + chips + tabbar inferior, monta/desmonta
               las vistas, aplica el acento dinámico por vista,
               monta el botón flotante contextual, aplica el modo
               noche y mantiene Realtime activo mientras hay sesión.
+              v4.0.6: login rediseñado (variante A minimalista).
+                      Título terracota con punto, tarjetas de
+                      usuario con check animado, campo de
+                      contraseña colapsable, dedicatoria al pie.
+                      Se renombran las clases internas:
+                      login__caja → login__form,
+                      login__inicial → login__avatar,
+                      login__usuario-nombre → login__nombre,
+                      se agrega login__marca y login__pie,
+                      se elimina login__paso (ya no aplica).
               v4.0.5: el botón "⋮" del topbar ya no navega directo
                       a Cuenta. Ahora abre un menú con dos opciones:
                       "Mi cuenta" y "Anexos". Se cierra al tocar
@@ -644,7 +654,7 @@ function mostrarLogin() {
 
   const estado = h('p', { class: 'login__estado', role: 'status' });
 
-  const grupoCampo = h('div', { class: 'login__campo-grupo' });
+  const formCampo = h('div', { class: 'login__campo-grupo' });
   const campoPassword = h('input', {
     type: 'password',
     name: 'password',
@@ -656,13 +666,16 @@ function mostrarLogin() {
     type: 'submit',
     class: 'login__boton',
   }, 'Entrar');
-  grupoCampo.append(campoPassword, botonEntrar);
+  formCampo.append(campoPassword, botonEntrar);
 
   const eleccion = h('div', { class: 'login__eleccion' });
 
   function pintarEleccion() {
     limpiarContenedor(eleccion);
     for (const u of USUARIOS) {
+      const marca = h('span', { class: 'login__marca', 'aria-hidden': 'true' });
+      marca.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>';
+
       eleccion.append(h('button', {
         type: 'button',
         class: `login__usuario ${u.clase}`,
@@ -671,33 +684,33 @@ function mostrarLogin() {
         onclick: () => {
           usuarioElegido = usuarioElegido === u.id ? null : u.id;
           pintarEleccion();
-          grupoCampo.classList.toggle('login__campo-grupo--visible', !!usuarioElegido);
-          if (usuarioElegido) setTimeout(() => campoPassword.focus(), 60);
+          formCampo.classList.toggle('login__campo-grupo--visible', !!usuarioElegido);
+          if (usuarioElegido) setTimeout(() => campoPassword.focus(), 320);
         },
       },
-        h('span', { class: 'login__inicial', 'aria-hidden': 'true' }, u.inicial),
-        h('span', { class: 'login__usuario-nombre' }, u.nombre)
+        marca,
+        h('span', { class: 'login__avatar', 'aria-hidden': 'true' }, u.inicial),
+        h('span', { class: 'login__nombre' }, u.nombre)
       ));
     }
   }
   pintarEleccion();
 
-  const form = h('form', { class: 'login__caja' },
+  const form = h('form', { class: 'login__form' },
     h('header', { class: 'login__cabecera' },
       h('h1', { class: 'login__titulo' }, CONFIG.app.nombre),
-      h('p', { class: 'login__lead' }, 'Un espacio de los dos.')
+      h('p', { class: 'login__lead' }, 'Un espacio para los dos.')
     ),
-    h('div', { class: 'login__paso' },
-      h('p', { class: 'login__etiqueta' }, '¿Quién eres?'),
-      eleccion
-    ),
-    h('div', { class: 'login__paso' },
-      grupoCampo
-    ),
+    h('span', { class: 'login__etiqueta' }, '¿Quién eres?'),
+    eleccion,
+    formCampo,
     estado
   );
 
-  app.append(form);
+  const pie = h('div', { class: 'login__pie' }, 'de mí, para ti, para nosotros');
+
+  const wrap = h('div', { class: 'login' }, form, pie);
+  app.append(wrap);
 
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();

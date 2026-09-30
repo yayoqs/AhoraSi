@@ -1,11 +1,28 @@
 /* ================================================================
    Ahora Sí — CSS
    Archivo: css/layout.css
-   Versión: 3.1.0
+   Versión: 3.2.0
    Propósito: estructura del shell. Header con topbar + chips de
               navegación, main con las vistas, tabbar inferior
-              de cinco grupos, botón flotante contextual, y
-              soporte de modo noche heredado de base.css.
+              de cinco grupos, botón flotante contextual, login
+              minimalista centrado, y soporte de modo noche
+              heredado de base.css.
+              v3.2.0: login rediseñado (variante A minimalista).
+                      Título terracota con punto, tarjetas de
+                      usuario con check animado, campo de
+                      contraseña colapsable, dedicatoria al pie.
+                      Se eliminan las clases viejas (login__caja,
+                      login__inicial, login__usuario-nombre,
+                      login__paso, login__campo-grupo--visible
+                      como único modo visible) y se reemplazan
+                      por (login__form, login__avatar,
+                      login__nombre, login__marca, login__pie).
+                      Se mantienen los nombres que no cambiaron
+                      (.login, .login__cabecera, .login__titulo,
+                      .login__lead, .login__etiqueta,
+                      .login__eleccion, .login__usuario,
+                      .login__campo-grupo, .login__campo,
+                      .login__boton, .login__estado).
               v3.1.0: tabbar rediseñada para que se note. Se
                       quita el blur (no hacía nada sobre papel
                       claro), se sube el contraste del borde y
@@ -350,111 +367,181 @@ body.modo-noche .tabbar {
   min-height: 100svh;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 24px;
+  background: var(--papel);
+  text-align: center;
+  position: relative;
+}
+
+.login__form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 24px 20px;
-  background: var(--papel);
+  margin: 0;
 }
-.login__caja {
-  width: 100%;
-  max-width: 420px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
+
 .login__cabecera {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  margin-bottom: 44px;
 }
+
 .login__titulo {
   font-family: var(--fuente-titulo);
-  color: var(--terracota);
-  font-size: clamp(38px, 10vw, 56px);
+  font-size: 54px;
   font-weight: 800;
-  letter-spacing: -.04em;
+  letter-spacing: -0.045em;
   line-height: 1;
-  margin: 0;
+  color: var(--terracota);
+  margin: 0 0 12px;
 }
-.login__lead { color: var(--tinta-suave); font-size: 14px; margin: 0; }
-.login__paso { display: flex; flex-direction: column; gap: 12px; }
+.login__titulo::after {
+  content: '.';
+  color: var(--terracota-clara);
+}
+
+.login__lead {
+  font-family: var(--fuente-carta);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 17px;
+  color: var(--tinta-suave);
+  margin: 0;
+  letter-spacing: -0.005em;
+}
+
 .login__etiqueta {
-  color: var(--tinta-tenue);
   font-size: 11px;
   font-weight: 700;
+  letter-spacing: .16em;
   text-transform: uppercase;
-  letter-spacing: .14em;
-  margin: 0;
+  color: var(--tinta-tenue);
+  margin: 0 0 16px;
+  display: block;
 }
+
 .login__eleccion {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  width: 100%;
+  max-width: 320px;
+  margin-bottom: 20px;
 }
+
 .login__usuario {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 16px 12px;
+  gap: 10px;
+  padding: 20px 12px;
   border-radius: var(--r-lg);
   border: 1.5px solid var(--borde);
   background: var(--papel-2);
   color: var(--tinta);
   cursor: pointer;
   transition: border-color var(--t-media), background var(--t-media), transform var(--t-rapida);
+  position: relative;
+  overflow: hidden;
 }
 .login__usuario:hover {
-  border-color: var(--terracota-clara);
+  border-color: var(--borde-fuerte);
   transform: translateY(-1px);
 }
 .login__usuario[aria-pressed="true"] {
   border-color: var(--terracota);
   background: var(--terracota-papel);
 }
-.login__inicial {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
+
+.login__avatar {
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
+  display: grid;
+  place-items: center;
   font-family: var(--fuente-titulo);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 800;
   color: var(--papel);
+  position: relative;
+  z-index: 1;
 }
-.login__usuario--luci .login__inicial { background: #D89A9A; }
-.login__usuario--yayo .login__inicial { background: #B8893C; }
-.login__usuario-nombre { font-size: 15px; font-weight: 600; }
+.login__usuario--luci .login__avatar { background: #D89A9A; }
+.login__usuario--yayo .login__avatar { background: #B8893C; }
+
+.login__nombre {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--tinta);
+}
+
+.login__marca {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--terracota);
+  color: var(--papel);
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: scale(.6);
+  transition: opacity var(--t-media), transform var(--t-media);
+}
+.login__usuario[aria-pressed="true"] .login__marca {
+  opacity: 1;
+  transform: scale(1);
+}
+.login__marca svg { width: 10px; height: 10px; }
+
 .login__campo-grupo {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  width: 100%;
+  max-width: 320px;
   opacity: 0;
   max-height: 0;
   overflow: hidden;
-  transition: opacity var(--t-media), max-height var(--t-media);
+  transition: opacity var(--t-media), max-height .35s ease;
 }
-.login__campo-grupo--visible { opacity: 1; max-height: 200px; }
+.login__campo-grupo--visible {
+  opacity: 1;
+  max-height: 220px;
+}
+
 .login__campo {
-  padding: 12px 14px;
+  width: 100%;
+  padding: 14px 16px;
   border-radius: var(--r-md);
   border: 1.5px solid var(--borde);
   background: var(--papel-3);
   color: var(--tinta);
   font-size: 15px;
-  width: 100%;
+  font-family: inherit;
   transition: border-color var(--t-rapida), background var(--t-rapida);
+  text-align: center;
+  letter-spacing: .08em;
+}
+.login__campo::placeholder {
+  color: var(--tinta-tenue);
+  letter-spacing: normal;
+  font-family: var(--fuente-carta);
+  font-style: italic;
 }
 .login__campo:focus {
+  outline: none;
   border-color: var(--terracota);
   background: var(--papel-carta);
-  outline: none;
 }
+
 .login__boton {
-  padding: 13px 18px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 14px 20px;
   border-radius: var(--r-md);
   background: var(--terracota);
   color: var(--papel);
@@ -464,12 +551,30 @@ body.modo-noche .tabbar {
 }
 .login__boton:hover { filter: brightness(1.05); }
 .login__boton:active { transform: translateY(1px); }
+
 .login__estado {
   min-height: 1.4em;
   font-size: 13px;
   color: var(--tinta-suave);
   text-align: center;
-  margin: 0;
+  margin: 16px 0 0;
+  font-family: var(--fuente-carta);
+  font-style: italic;
+}
+
+.login__pie {
+  position: absolute;
+  bottom: 36px;
+  left: 24px;
+  right: 24px;
+  text-align: center;
+  font-family: var(--fuente-carta);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--tinta-tenue);
+  letter-spacing: -0.005em;
+  line-height: 1.5;
 }
 
 /* ─── Error fatal ──────────────────────────────────────────── */

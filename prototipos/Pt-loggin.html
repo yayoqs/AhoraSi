@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ahora Sí</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --papel:        #F7F1E8;
+  --papel-2:      #EFE7DA;
+  --papel-3:      #FCF8F0;
+  --papel-carta:  #FBF4E6;
+  --borde:        #E2D7C5;
+  --borde-fuerte: #D2C4AC;
+  --tinta:        #1F1B16;
+  --tinta-suave:  #6B6155;
+  --tinta-tenue:  #A89B87;
+
+  --terracota:        #C9613B;
+  --terracota-clara:  #E8A17A;
+  --terracota-papel:  #F7E3D5;
+
+  --luci: #D89A9A;
+  --yayo: #B8893C;
+
+  --r-md: 14px;
+  --r-lg: 22px;
+
+  --fuente-titulo: 'Bricolage Grotesque', system-ui, sans-serif;
+  --fuente-cuerpo: 'Figtree', system-ui, sans-serif;
+  --fuente-carta:  'Fraunces', Georgia, serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+button { background: none; border: none; cursor: pointer; font: inherit; color: inherit; }
+input { font: inherit; }
+
+body {
+  font-family: var(--fuente-cuerpo);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--tinta);
+  background: radial-gradient(ellipse at top, #2C2620 0%, #13100D 100%);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  -webkit-font-smoothing: antialiased;
+}
+@media (max-width: 520px) { body { padding: 0; display: block; } }
+
+.phone {
+  width: 390px;
+  height: 844px;
+  max-height: calc(100vh - 48px);
+  background: var(--papel);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 0 0 10px #0E0B08,
+    0 0 0 12px #2A2318,
+    0 30px 80px rgba(0,0,0,.55);
+}
+@media (max-width: 520px) {
+  .phone { width: 100%; height: 100dvh; max-height: none; border-radius: 0; box-shadow: none; }
+}
+
+.screen-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--papel);
+  display: flex;
+  flex-direction: column;
+}
+
+.login {
+  padding: 40px 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: relative;
+}
+
+.cabecera {
+  margin-bottom: 44px;
+}
+
+.titulo {
+  font-family: var(--fuente-titulo);
+  font-size: 54px;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  color: var(--terracota);
+  margin: 0 0 12px;
+}
+.titulo::after {
+  content: '.';
+  color: var(--terracota-clara);
+}
+
+.lead {
+  font-family: var(--fuente-carta);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 17px;
+  color: var(--tinta-suave);
+  margin: 0;
+  letter-spacing: -0.005em;
+}
+
+.etiqueta {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  margin: 0 0 16px;
+  display: block;
+}
+
+.eleccion {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+  margin-bottom: 20px;
+}
+
+.usuario {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 12px;
+  border-radius: var(--r-lg);
+  border: 1.5px solid var(--borde);
+  background: var(--papel-2);
+  transition: all .22s ease;
+  position: relative;
+  overflow: hidden;
+}
+.usuario:hover {
+  border-color: var(--borde-fuerte);
+  transform: translateY(-1px);
+}
+.usuario[aria-pressed="true"] {
+  border-color: var(--terracota);
+  background: var(--terracota-papel);
+}
+
+.usuario__avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--fuente-titulo);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--papel);
+  position: relative;
+  z-index: 1;
+}
+.usuario--luci .usuario__avatar { background: var(--luci); }
+.usuario--yayo .usuario__avatar { background: var(--yayo); }
+
+.usuario__nombre {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--tinta);
+}
+
+.usuario__marca {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--terracota);
+  color: var(--papel);
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: scale(.6);
+  transition: all .22s ease;
+}
+.usuario[aria-pressed="true"] .usuario__marca {
+  opacity: 1;
+  transform: scale(1);
+}
+.usuario__marca svg { width: 10px; height: 10px; }
+
+.form-campo {
+  width: 100%;
+  max-width: 320px;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity .3s ease, max-height .35s ease;
+}
+.form-campo.is-visible {
+  opacity: 1;
+  max-height: 220px;
+}
+
+.form-campo input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--borde);
+  background: var(--papel-3);
+  color: var(--tinta);
+  font-size: 15px;
+  font-family: inherit;
+  transition: all .18s ease;
+  text-align: center;
+  letter-spacing: .08em;
+}
+.form-campo input::placeholder {
+  color: var(--tinta-tenue);
+  letter-spacing: normal;
+  font-family: var(--fuente-carta);
+  font-style: italic;
+}
+.form-campo input:focus {
+  outline: none;
+  border-color: var(--terracota);
+  background: var(--papel-carta);
+}
+
+.form-campo button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 14px 20px;
+  border-radius: var(--r-md);
+  background: var(--terracota);
+  color: var(--papel);
+  font-weight: 700;
+  font-size: 15px;
+  transition: all .18s ease;
+}
+.form-campo button:hover { filter: brightness(1.05); }
+.form-campo button:active { transform: translateY(1px); }
+
+.estado {
+  min-height: 1.4em;
+  font-size: 13px;
+  color: var(--tinta-suave);
+  text-align: center;
+  margin: 16px 0 0;
+  font-family: var(--fuente-carta);
+  font-style: italic;
+}
+
+.pie {
+  position: absolute;
+  bottom: 36px;
+  left: 24px;
+  right: 24px;
+  text-align: center;
+  font-family: var(--fuente-carta);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--tinta-tenue);
+  letter-spacing: -0.005em;
+  line-height: 1.5;
+}
+</style>
+</head>
+
+<body>
+
+<div class="phone">
+  <main class="screen-area">
+    <section class="login">
+
+      <header class="cabecera">
+        <h1 class="titulo">Ahora Sí</h1>
+        <p class="lead">Un espacio para los dos.</p>
+      </header>
+
+      <span class="etiqueta">¿Quién eres?</span>
+
+      <div class="eleccion">
+        <button type="button" class="usuario usuario--luci" data-usuario="luci" aria-pressed="false">
+          <span class="usuario__marca">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+          </span>
+          <span class="usuario__avatar">L</span>
+          <span class="usuario__nombre">Luci</span>
+        </button>
+
+        <button type="button" class="usuario usuario--yayo" data-usuario="yayo" aria-pressed="false">
+          <span class="usuario__marca">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+          </span>
+          <span class="usuario__avatar">Y</span>
+          <span class="usuario__nombre">Yayo</span>
+        </button>
+      </div>
+
+      <div class="form-campo" id="formCampo">
+        <input type="password" placeholder="Contraseña" autocomplete="current-password" id="passInput">
+        <button type="button" id="btnEntrar">Entrar</button>
+      </div>
+
+      <p class="estado" id="estado"></p>
+
+      <div class="pie">
+        de mí, para ti, para nosotros
+      </div>
+
+    </section>
+  </main>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const usuarios = document.querySelectorAll('[data-usuario]');
+  const form = document.getElementById('formCampo');
+  const input = document.getElementById('passInput');
+  const estado = document.getElementById('estado');
+  const boton = document.getElementById('btnEntrar');
+
+  let elegido = null;
+
+  usuarios.forEach((u) => {
+    u.addEventListener('click', () => {
+      const id = u.dataset.usuario;
+      elegido = (elegido === id) ? null : id;
+
+      usuarios.forEach((x) => {
+        x.setAttribute('aria-pressed', String(x.dataset.usuario === elegido));
+      });
+
+      form.classList.toggle('is-visible', !!elegido);
+      estado.textContent = '';
+
+      if (elegido) setTimeout(() => input.focus(), 320);
+    });
+  });
+
+  boton.addEventListener('click', () => {
+    if (!elegido) { estado.textContent = 'Elige quién eres.'; return; }
+    if (!input.value) { estado.textContent = 'Escribe la contraseña.'; return; }
+    estado.textContent = 'Entrando…';
+    setTimeout(() => {
+      estado.textContent = `Bienvenido/a, ${elegido === 'luci' ? 'Luci' : 'Yayo'}.`;
+    }, 700);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') boton.click();
+  });
+})();
+</script>
+
+</body>
+</html>
