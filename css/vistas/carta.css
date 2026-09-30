@@ -1089,3 +1089,11 @@ body.modo-noche #vista-carta .respuesta-opcion[aria-pressed="true"] {
   padding: 4px;
   cursor: pointer;
 }
+
+
+#vista-carta .carta__texto {
+  font-family: Arial, sans-serif !important;
+  font-size: 17px !important;
+  -webkit-text-size-adjust: none !important;
+  text-size-adjust: none !important;
+}
