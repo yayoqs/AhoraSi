@@ -1,11 +1,21 @@
 /* ================================================================
    Ahora Sí — CSS
    Archivo: css/layout.css
-   Versión: 3.0.2
+   Versión: 3.1.0
    Propósito: estructura del shell. Header con topbar + chips de
               navegación, main con las vistas, tabbar inferior
               de cinco grupos, botón flotante contextual, y
               soporte de modo noche heredado de base.css.
+              v3.1.0: tabbar rediseñada para que se note. Se
+                      quita el blur (no hacía nada sobre papel
+                      claro), se sube el contraste del borde y
+                      la sombra, y se elimina la opacidad de los
+                      items inactivos. El item activo ahora lleva
+                      fondo pill del color del acento. El .shell
+                      gana padding-bottom consistente con la
+                      altura real de la tabbar. Se agrega
+                      text-size-adjust estándar en html por si
+                      base.css no lo toma.
               v3.0.2: se agregan los estilos del menú del botón
                       "⋮" en el topbar. El botón ya no navega
                       directo a Cuenta: abre un menú con dos
@@ -17,6 +27,20 @@
               v3.0.0: shell nuevo con acento dinámico y tabbar.
               v2.0.0: rediseño completo. Tabbar inferior.
               v1.0.0: versión inicial.
+   ================================================================ */
+
+/* Fix de escalado de texto en navegadores móviles. La versión
+   estándar es la que respeta Brave; el prefijo es para Chrome
+   y Safari viejos. Va acá además de en base.css para no depender
+   del orden de carga de las hojas. */
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* ================================================================
+   SHELL
    ================================================================ */
 
 .shell {
@@ -216,7 +240,13 @@ body.modo-noche .shell__menu {
   width: 100%;
 }
 
-/* ─── Tabbar ────────────────────────────────────────────────── */
+/* ================================================================
+   TABBAR — navegación inferior
+   ================================================================
+   v3.1.0: sin blur (no hacía nada visible sobre papel claro),
+   borde superior más oscuro, sombra hacia arriba, items sin
+   opacidad reducida, activo con fondo pill.
+   ================================================================ */
 
 .tabbar {
   position: fixed;
@@ -224,15 +254,19 @@ body.modo-noche .shell__menu {
   left: 0;
   right: 0;
   height: var(--alto-tabbar);
-  padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
-  background: color-mix(in oklab, var(--papel) 94%, transparent);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid var(--borde);
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
+  background: var(--papel);
+  border-top: 1px solid var(--borde-fuerte);
+  box-shadow: 0 -4px 16px rgba(31, 27, 22, .06);
   display: grid;
   grid-template-columns: repeat(5, 1fr);
+  align-items: center;
   z-index: 50;
   transition: background var(--t-media), border-color var(--t-media);
+}
+
+body.modo-noche .tabbar {
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, .5);
 }
 
 .tabbar__item {
@@ -241,28 +275,37 @@ body.modo-noche .shell__menu {
   align-items: center;
   justify-content: center;
   gap: 3px;
-  padding: 4px;
-  border-radius: var(--r-md);
+  padding: 6px 4px;
+  border-radius: 14px;
   color: var(--tinta-tenue);
-  opacity: .55;
-  transition: color var(--t-media), opacity var(--t-media), transform var(--t-rapida);
+  /* Sin opacidad reducida: el color tenue ya da la jerarquía. */
+  background: transparent;
+  transition:
+    color var(--t-media),
+    background var(--t-media),
+    transform var(--t-rapida);
   cursor: pointer;
+  min-height: 54px;
 }
-.tabbar__item:hover { opacity: .85; }
+
 .tabbar__item svg {
   width: 22px;
   height: 22px;
   transition: transform var(--t-media);
 }
+
 .tabbar__label {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: .02em;
+  transition: font-weight var(--t-media);
 }
+
 .tabbar__item:active { transform: scale(.92); }
+
 .tabbar__item.activo {
   color: var(--accent);
-  opacity: 1;
+  background: color-mix(in oklab, var(--accent) 12%, transparent);
 }
 .tabbar__item.activo svg { transform: translateY(-1px); }
 .tabbar__item.activo .tabbar__label { font-weight: 700; }
