@@ -858,10 +858,13 @@ async function suiteCarta() {
 async function suiteRespuestas() {
   suite('M. Repositorios: respuestas');
 
+  let id = null;
+
   await caso('crear respuesta', async () => {
     const r = await repoRespuestas.crear({ eleccion: 'hablar', nota: 'test' });
     exigir(r.exito, r.error);
     exigir(r.datos.eleccion === 'hablar', 'elección incorrecta');
+    id = r.datos.id;
   });
 
   await caso('crear con elección inválida falla', async () => {
@@ -869,12 +872,31 @@ async function suiteRespuestas() {
     exigir(!r.exito, 'debería haber fallado');
   });
 
+  await caso('actualizar respuesta cambia elección y nota', async () => {
+    exigir(id, 'sin id de la respuesta anterior');
+    const r = await repoRespuestas.actualizar(id, {
+      eleccion: 'tiempo',
+      nota: 'después',
+    });
+    exigir(r.exito, r.error);
+    exigir(r.datos.eleccion === 'tiempo', 'no cambió la elección');
+    exigir(r.datos.nota === 'después', 'no cambió la nota');
+    exigir(r.datos.id === id, 'debería ser la misma fila');
+  });
+
+  await caso('actualizar con elección inválida falla', async () => {
+    exigir(id, 'sin id de la respuesta anterior');
+    const r = await repoRespuestas.actualizar(id, { eleccion: 'inventado' });
+    exigir(!r.exito, 'debería haber fallado');
+  });
+
   await caso('listar respuestas', async () => {
     const r = await repoRespuestas.listar();
     exigir(r.exito, r.error);
     exigir(Array.isArray(r.datos), 'no devuelve array');
+    exigir(r.datos.some((x) => x.id === id), 'la respuesta creada no aparece');
   });
-}
+  }
 
 async function suiteFauna() {
   suite('N. Repositorios: fauna');

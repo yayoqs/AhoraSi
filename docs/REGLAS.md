@@ -1,6 +1,6 @@
 # REGLAS.md — Reglas y decisiones de Ahora Sí
 
-**Versión:** 2.0.0
+**Versión:** 2.1.0
 **Fecha:** 30 de septiembre de 2026
 **Propósito:** Reglas duras del proyecto y decisiones de arquitectura ya tomadas. Si algo de acá se rompe, es una regresión y hay que arreglarlo antes de seguir. Este documento es el contrato entre Kiu y cualquier colaborador (humano o IA). Se pega al inicio de cada sesión.
 
@@ -28,11 +28,11 @@ Está servida desde GitHub Pages en `ahorasi.elisekai.com` y usa Appwrite Cloud 
 
 Todo el código propio va en español. Variables, funciones, clases, métodos, eventos, nombres de archivos, constantes propias, mensajes de log, textos de UI.
 
-Los modismos chilenos suaves son aceptables: "cachái", "dale", "al tiro", "po". Los modismos argentinos no son aceptables bajo ninguna circunstancia: ni voseo (`querés`, `tenés`, `podés`, `usás`, `confirmás`), ni léxico (`boludo`, `che`, `güey`), ni construcciones propias del Río de la Plata.
+Los modismos chilenos suaves son aceptables: "cachái", "dale", "al tiro", "po". Los modismos argentinos no son aceptables bajo ninguna circunstancia: ni voseo (`querés`, `tenés`, `podés`, `usás`, `confirmás`, `presentás`), ni léxico (`boludo`, `che`, `güey`), ni construcciones propias del Río de la Plata.
 
 Cuando hay duda, se usa español neutro. Cuando el modismo chileno aporta cercanía y no suena forzado, se usa.
 
-**Al escribir mensajes en el chat:** revisar cada mensaje antes de enviarlo. La regla aplica también a conversación, no solo a código.
+**Al escribir mensajes en el chat:** revisar cada mensaje antes de enviarlo. La regla aplica también a conversación, no solo a código. El voseo se cuela con facilidad en formas imperativas y en la segunda persona singular. Antes de enviar, revisar los verbos.
 
 ### 2.2 APIs externas conservan su idioma
 
@@ -140,6 +140,10 @@ Los modales y sheets se montan al `document.body`, fuera del `#vista-X`. Necesit
 
 Sus clases no llevan prefijo de ID.
 
+### 3.14 Modales y menús al body, no al main
+
+Los modales, sheets y menús desplegables que se montan fuera del flujo normal se agregan al `document.body` o a un contenedor con `position: relative` (como `.shell__acciones-cuenta` para el menú del botón "⋮"). Nunca dentro del `#vista-X`, porque el `limpiar()` de la vista los eliminaría.
+
 ---
 
 ## 4. Control de regresiones
@@ -175,9 +179,13 @@ Si algo se eliminó, se justifica explícitamente en el changelog. Si no hay jus
     │   ├── subidor-fotos.js
     │   └── repositorios/
     ├── audio/        → motor de audio (beatmaker, sintetizador)
-    ├── arranque/     → inicialización de sesión, espacio y sembrados
+    ├── arranque/     → inicialización de sesión y espacio
     └── vistas/       → módulos de UI
         └── componentes/  → componentes reutilizables (camara, galeria)
+
+Vistas actuales: `hero.js`, `carta.js`, `planes.js`, `ideas.js`, `hitos.js`, `kit.js`, `recetas.js`, `mapa.js`, `fauna.js`, `flora.js`, `series.js`, `juegos.js`, `chistes.js`, `retos.js`, `penitencias.js`, `preguntas.js`, `apuestas.js`, `percusion.js`, `cuenta.js`, `anexos.js`.
+
+CSS por vista en `css/vistas/`, un archivo por vista. Los nombres coinciden con los del JS.
 
 ### 5.2 Responsabilidades
 
@@ -230,6 +238,12 @@ Los campos JSON (patrón, ingredientes, efectos, volumen, etc.) van en columnas 
 
 Cuando se agrega una columna a una tabla que ya tiene filas, la columna se crea opcional (`--required=false`). Motivo: Appwrite rechaza la creación de una columna requerida si ya hay filas sin ese valor. Solo `espacioId` y los identificadores mínimos van como requeridos.
 
+### 6.7 Una fila por usuario en tablas singulares
+
+Algunas tablas tienen la semántica de "una fila por usuario del espacio". Por ejemplo, `ahorasi_respuestas` guarda la respuesta vigente de cada usuario. Cuando cambia, se actualiza la fila, no se crea una nueva. El repositorio expone `actualizar()` y la vista decide entre `crear()` y `actualizar()` según exista o no respuesta previa.
+
+Otras tablas con semántica similar a futuro: ninguna por ahora. `ahorasi_carta` con tipo `firma` se comporta así (una firma por usuario), resuelto dentro del flujo de edición de la carta.
+
 ---
 
 ## 7. Decisiones de arquitectura ya tomadas
@@ -270,7 +284,7 @@ Las suscripciones de Realtime filtran por `espacioId` para que cada dispositivo 
 
 ### 7.6 Idempotencia en memoria, no persistida
 
-El registro de idempotencia vive en memoria. No se persiste en `localStorage` entre sesiones. El TTL de 30 segundos cubre el caso de uso (doble clic y retry inmediato). Persistir más allá es complejidad innecesaria.
+El registro de idempotencia vive en memoria. No se persiste en `localStorage` entre sesiones. El TTL de 30 segundos cubre el caso de uso (doble clic y retry inmediato).
 
 ### 7.7 Arranque no bloqueante
 
@@ -303,12 +317,28 @@ Una vista puede declarar `padre` en `VISTAS` de `app.js`. Si lo tiene:
 - El eyebrow dice "Grupo · Vista".
 - El tabbar deja el grupo padre activo.
 - Al tocar volver, navega al padre.
+- El botón "⋮" del topbar se oculta (no tiene sentido mostrarlo dentro de Cuenta o Anexos).
 
-Las cinco sub-vistas de Juegos (Chistes, Retos, Penitencias, Preguntas, Apuestas) usan este patrón.
+Sub-vistas actuales:
+
+- Bajo Juegos: Chistes, Retos, Penitencias, Preguntas, Apuestas.
+- Bajo Cuenta: Anexos.
 
 ### 7.11 Cierre de sesión por comando
 
 El cierre de sesión vive en `app.js` como `manejarSalir()`. La vista Cuenta lo ejecuta vía bus de comandos (`app:cerrar-sesion`). Así la lógica de logout vive en un solo lugar (el shell) y la vista no importa la capa de datos ni la capa de Realtime directamente.
+
+### 7.12 Menú del botón "⋮"
+
+El botón "⋮" del topbar abre un menú con dos opciones: "Mi cuenta" y "Anexos". Se cierra al tocar fuera, al tocar de nuevo el botón, con Escape, o al navegar. El botón se oculta cuando ya estás en Cuenta o Anexos. El menú vive dentro de `.shell__acciones-cuenta` (que tiene `position: relative`) y no dentro del `#vista-X`.
+
+### 7.13 Anexos como sub-vista de Cuenta
+
+La sección "Anexos" vivió dentro de Carta hasta v4.0.2. Ahora es sub-vista de Cuenta (`anexos.js` v1.0.0). Reutiliza la tabla `ahorasi_carta` con `tipo: 'anexo'`. No hay migración de datos: es un cambio de dónde se agrupan. Carta dejó de mostrar esa sección por completo.
+
+### 7.14 Sembrados iniciales retirados
+
+Los módulos `carta-inicial.js` e `ideas-iniciales.js` sembraban contenido la primera vez que arrancaba el espacio. Cumplieron su función: el contenido ya está en la base y se edita desde la UI. Se eliminaron del repo en la sesión del 30 de septiembre de 2026. `espacio-inicial.js` sigue activo: crea el espacio compartido la primera vez que arranca la app en una cuenta nueva.
 
 ---
 
@@ -366,13 +396,13 @@ Un usuario autenticado solo puede otorgar permisos de fila a sí mismo, a `users
 
 ### 9.5 Los componentes de Appwrite usan índices concurrentes
 
-Cuando se crea una columna o un índice, pasa por estado `processing` y después `available`. No se puede escribir en la tabla hasta que todas las columnas estén `available`. Esperar entre comandos del CLI.
+Cuando se crea una columna o un índice, pasa por estado `processing` y después `available`. No se puede escribir en la tabla hasta que todas las columnas estén `available`.
 
 ### 9.6 La Terminal web de la consola no es una shell
 
 La Terminal web de Appwrite Console solo entiende comandos que empiezan con `appwrite`. Los comandos de sistema (`pwd`, `ls`, `cd`, `cat`) devuelven "not available in this terminal". No hay historial ni expansión de variables. No interpreta `\` para continuar línea: cada comando va en una sola línea.
 
-La CLI local sí es una shell real. Ahí sí funcionan los comandos de sistema.
+La CLI local sí es una shell real.
 
 ### 9.7 `whoami` no verifica el proyecto activo
 
@@ -382,28 +412,34 @@ La verificación real del proyecto activo se hace con `appwrite databases list`.
 
 ### 9.8 El flag `--required` va con signo igual
 
-`--required=false` es la sintaxis correcta. Con espacio (`--required false`) falla o se interpreta mal. Sin el flag, la CLI exige que esté presente y falla con `required flag(s) "required" not set`.
+`--required=false` es la sintaxis correcta. Con espacio (`--required false`) falla. Sin el flag, la CLI exige que esté presente y falla con `required flag(s) "required" not set`.
 
 ### 9.9 Crear columnas en paralelo tiene contención
 
 Se pueden mandar varios `create-*-column` seguidos sobre la misma tabla, pero mientras una columna está en `processing`, la tabla no acepta más cambios de schema. Los comandos que llegan en ese momento fallan silenciosamente. Si se manda en paralelo, verificar después con `list-columns` que todas entraron.
 
+### 9.10 Los sembrados iniciales se retiran cuando dejan de aportar
+
+Los sembrados iniciales (carta de Yayo, ideas iniciales) sirven para poblar la base la primera vez. Una vez que el contenido está en la base y se edita desde la UI, los archivos de siembra dejan de aportar y conviene retirarlos. Se borran del repo pero la data no se toca.
+
 ---
 
 ## 10. Tests
 
-- **Test unificado:** `Test.html` en la raíz del repo. No en `tests/test.html`. Corre las suites A a AG, más de 150 casos sobre núcleo, configuración, sesión, repositorios, vistas, audio, Realtime, eventos e idempotencia.
+- **Test unificado:** `Test.html` en la raíz del repo. Corre las suites A a AG, más de 150 casos sobre núcleo, configuración, sesión, repositorios, vistas, audio, Realtime, eventos e idempotencia.
 - **Regla de mantenimiento:** cada feature nueva que se agregue debe sumar sus propios tests al unificado.
 - **Tests temporales:** se pueden crear archivos sueltos para diagnóstico puntual. Si aportan algo al unificado, se migran y se borra el temporal. Si no, se borra directamente.
-- **Cuando cambia el schema de un repo:** el test se actualiza en la misma tanda, no después. Si un campo nuevo no se prueba, el bug que motivó el cambio puede volver sin que nadie lo note.
+- **Cuando cambia el schema de un repo:** el test se actualiza en la misma tanda, no después.
 
 ### 10.1 Estructura del test
 
-El test vive en la raíz, no en `/tests/`. Los `<script src>` apuntan a `./externos/appwrite.min.js` y `./externos/leaflet/leaflet.js`. Se sirve con el mismo servidor que la app.
+El test vive en la raíz, no en `/tests/`. Los `<script src>` apuntan a `./externos/appwrite.min.js` y `./externos/leaflet/leaflet.js`.
 
 ### 10.2 Cobertura actual
 
-Suites: A. Sanidad, B. Almacén, C. Resultado, D. Utilidades, E. Idempotencia núcleo, F. Bus eventos, G. Bus comandos, H. Autores, I. Planes, J. Kit, K. Hitos, L. Carta, M. Respuestas, N. Fauna, O. Flora, P. Ritmos, Q. Lugares, R. Series, S. Recetas, T. Retos, U. Penitencias, V. Preguntas, W. Apuestas, X. Chistes, Y. Fotos, Z. Espacios, AA. Perfiles, AB. Audio, AC. Eventos, AD. Vistas, AE. Realtime, AF. Idempotencia repos, AG. Limpieza.
+Suites: A. Sanidad, B. Almacén, C. Resultado, D. Utilidades, E. Idempotencia núcleo, F. Bus eventos, G. Bus comandos, H. Autores, I. Planes, J. Kit, K. Hitos, L. Carta, M. Respuestas, N. Fauna, O. Flora, P. Ritmos, Q. Lugares, R. Series, S. Recetas, T. Retos, U. Penitencias, V. Preguntas, W. Apuestas, X. Chistes, Y. Fotos, Z. Espacios, AA. Perfiles, AB. Audio, AC. Eventos, AD. Vistas (16 vistas), AE. Realtime, AF. Idempotencia repos, AG. Limpieza.
+
+Total actual: 154 casos.
 
 ### 10.3 Regla del `</script>` literal
 
@@ -417,8 +453,8 @@ Nunca puede aparecer `</script>` literal dentro de un `<script>` inline en HTML,
 - **Un hallazgo, un cambio acotado.** Si durante una tarea se detecta código que parece redundante, se consulta antes de tocarlo.
 - **Archivos completos, siempre.** Nunca fragmentos.
 - **Verificación por etapas.** Después de cada grupo de cambios, correr `Test.html`. Si falla, se arregla antes de seguir.
-- **Antes de tocar UI nueva, prototipo.** El flujo es: prototipo HTML estático → aprobación → implementación. No se salta.
-- **Español neutro o chileno suave.** Nunca voseo argentino, ni en código ni en chat.
+- **Antes de tocar UI nueva, prototipo.** El flujo es: prototipo HTML estático → aprobación → implementación.
+- **Español neutro o chileno suave.** Nunca voseo argentino, ni en código ni en chat. Revisar cada mensaje antes de enviarlo.
 
 ---
 
@@ -442,6 +478,7 @@ Nunca puede aparecer `</script>` literal dentro de un `<script>` inline en HTML,
 - No correr `appwrite push` sin `pull` previo.
 - No intentar comandos de shell (`pwd`, `ls`) en la Terminal web.
 - No enviar `permissions` en `createRow`.
+- No reimplantar los sembrados iniciales una vez retirados.
 
 ---
 
@@ -454,7 +491,7 @@ Esta sección recopila las decisiones tomadas a lo largo del proyecto. Cada una 
 - **D1:** El primer grupo se llama Nido (no Fogón).
 - **D2:** Acento por vista, no por grupo.
 - **D3:** Botón flotante solo en Recetas, Fauna, Flora, Series.
-- **D4:** Planes con segmented control dentro de la tarjeta (los 4 botones originales fueron reemplazados).
+- **D4:** Planes con segmented control dentro de la tarjeta.
 - **D5:** Kit con grid de 2 columnas y item expandible.
 - **D6:** Hitos con año destacado a la izquierda, solo cuando cambia.
 - **D7:** Barra de progreso de lectura en Carta.
@@ -474,20 +511,23 @@ Esta sección recopila las decisiones tomadas a lo largo del proyecto. Cada una 
 - **D15:** Modo noche como preferencia global en `localStorage`. Toggle en Cuenta.
 - **D16:** Respuesta se fusiona con Carta.
 - **D17:** Hitos como línea biográfica. Sin campo `cumplido`, sin autor, sin chip de tipo. Color elegible entre 6 opciones.
-- **D18:** Fauna y Flora en formato bitácora. Texto primero, foto al pie. Galería compacta de 3 fotos más "+N".
+- **D18:** Fauna y Flora en formato bitácora.
 - **D19:** Series con dos modos (Tarjeta y Ranking) con toggle.
-- **D20:** Juegos como hub con 5 cards que llevan a sub-vistas independientes. Soporte de sub-vistas en el shell.
-- **D21:** Percusión con orden tipo sheets (variante C). La caja sigue el modo noche global.
-- **D22:** Percusión modo extendido con grilla de 16 pasos partida en 2 bloques de 8 (variante B del prototipo). Celdas sin `min-height` forzado, label del modo extendido a 56px.
+- **D20:** Juegos como hub con 5 cards que llevan a sub-vistas independientes. Soporte de sub-vistas en el shell. Sub-vistas vigentes: Chistes, Retos, Penitencias, Preguntas, Apuestas bajo Juegos; Anexos bajo Cuenta.
+- **D21:** Percusión con orden tipo sheets. La caja sigue el modo noche global.
+- **D22:** Percusión modo extendido con grilla de 16 pasos partida en 2 bloques de 8. Celdas sin `min-height` forzado, label del modo extendido a 56px.
 
 ### 13.4 Schema y datos
 
 - **D23:** Campos JSON serializados van en columnas `text`, no `varchar`.
 - **D24:** Ritmos guarda efectos, volumen, silenciados, solistas y swing desde v1.6.0 del repositorio.
-- **D25:** Al cerrar sesión, se ejecuta por bus de comandos (`app:cerrar-sesion`) para que la lógica viva en el shell.
-- **D26:** El campo `marcar()` de hitos fue eliminado en v1.8.0. Nadie lo usaba desde el rediseño de hitos.
+- **D25:** Al cerrar sesión, se ejecuta por bus de comandos (`app:cerrar-sesion`).
+- **D26:** El campo `marcar()` de hitos fue eliminado en v1.8.0.
+- **D27:** Una respuesta por usuario en `ahorasi_respuestas`. Cambiar la respuesta actualiza la fila existente, no crea una nueva. Se emite `respuestas:actualizada`.
+- **D28:** Los sembrados iniciales se retiraron. `carta-inicial.js` e `ideas-iniciales.js` se borraron del repo. `espacio-inicial.js` sigue activo.
+- **D29:** El menú "⋮" agrupa Mi cuenta y Anexos. El botón se oculta cuando ya se está en una de esas dos vistas.
 
 ---
 
 *Documento mantenido por Kiu.*
-*Versión 2.0.0 — 30 de septiembre de 2026*
+*Versión 2.1.0 — 30 de septiembre de 2026*

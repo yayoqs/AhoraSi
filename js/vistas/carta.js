@@ -1,26 +1,26 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/carta.js
-   Versión: 4.0.2
+   Versión: 4.0.4
    Propósito: vista de la carta fusionada con Respuesta. Cada
               usuario tiene su propia carta (manifiesto,
               compromisos personales y firma). La vista principal
               muestra la carta del otro más los compromisos
               compartidos y el bloque de respuesta. El botón
               "Ver mi carta" lleva a la propia.
-              v4.0.2: se elimina la sección "Anexos". Los anexos
-                      ahora viven en su propia sub-vista bajo
-                      Cuenta (anexos.js v1.0.0). Se eliminan del
-                      render la lista, el formulario y las
-                      funciones auxiliares: pintarListaAnexos,
-                      pintarAnexoEnEdicion, guardarAnexo, anexos,
-                      y los handlers de 'crear-anexo',
-                      'editar-anexo' y 'eliminar-anexo'. Se
-                      elimina la propiedad editandoAnexo del
-                      registro. Sin cambios en las firmas públicas.
-                      Los anexos existentes siguen en la tabla
-                      ahorasi_carta con tipo 'anexo' y son leídos
-                      por anexos.js.
+              v4.0.4: "Cambiar mi respuesta" ahora actualiza la
+                      respuesta existente en vez de crear una
+                      nueva. Cada usuario tiene como máximo una
+                      respuesta vigente. Se elimina la acumulación
+                      en el historial: si alguien cambia de
+                      opinión, la fila se modifica y la fecha de
+                      envío se refresca. Se escucha también
+                      realtime:respuestas:actualizar. El botón
+                      del formulario cambia de texto según el
+                      caso: "Enviar respuesta" la primera vez,
+                      "Guardar cambios" al cambiar.
+              v4.0.3: fix del botón "Cambiar mi respuesta".
+              v4.0.2: se elimina la sección Anexos.
               v4.0.1: el CTA "Ver mi carta" se mueve arriba del
                       bloque de respuesta.
               v4.0.0: fusión con Respuesta.
@@ -85,6 +85,7 @@ const registro = {
   respuestaSeleccionada: null,
   respuestaNota: '',
   respuestaEnviando: false,
+  cambiandoRespuesta: false,
   barraProgresoEl: null,
   manejarScrollRef: null,
 };
@@ -367,14 +368,19 @@ function ultimaRespuestaPropia() {
 
 function pintarBloqueRespuesta() {
   const propia = ultimaRespuestaPropia();
+  const mostrandoFormulario = !propia || registro.cambiandoRespuesta;
   const bloque = h('section', { class: 'respuesta-cta', id: 'bloqueRespuesta' });
 
   bloque.append(
     h('p', { class: 'respuesta-cta__eyebrow' }, 'Cuando quieras'),
-    h('p', { class: 'respuesta-cta__titulo' }, propia ? 'Tu respuesta' : '¿Cómo te sientes ahora?')
+    h('p', { class: 'respuesta-cta__titulo' },
+      mostrandoFormulario
+        ? (propia ? 'Cambia tu respuesta' : '¿Cómo te sientes ahora?')
+        : 'Tu respuesta'
+    )
   );
 
-  if (propia) {
+  if (!mostrandoFormulario) {
     const check = h('span', { class: 'ya-respondiste__icono' });
     check.innerHTML = SVG_CHECK;
 
@@ -418,21 +424,37 @@ function pintarBloqueRespuesta() {
     });
     textarea.value = registro.respuestaNota;
 
+    const textoBoton = registro.respuestaEnviando
+      ? 'Guardando…'
+      : (propia ? 'Guardar cambios' : 'Enviar respuesta');
+
     const btnEnviar = h('button', {
       type: 'button',
       class: 'respuesta-boton-enviar',
       'data-accion': 'enviar-respuesta',
-    }, registro.respuestaEnviando ? 'Enviando…' : 'Enviar respuesta');
+    }, textoBoton);
     if (!registro.respuestaSeleccionada || registro.respuestaEnviando) {
       btnEnviar.disabled = true;
     }
 
     bloque.append(opciones, textarea, btnEnviar);
+
+    if (registro.cambiandoRespuesta) {
+      bloque.append(
+        h('button', {
+          type: 'button', class: 'btn btn--secundario btn--full',
+          style: 'margin-top: 10px;',
+          'data-accion': 'cancelar-cambio-respuesta',
+        }, 'Cancelar')
+      );
+    }
   }
 
+  // Historial. Ahora hay como máximo dos respuestas: la del
+  // otro y la propia (o solo una si el otro no ha respondido).
   if (registro.todasRespuestas.length > 0) {
     const hist = h('div', { class: 'historial' },
-      h('p', { class: 'historial__titulo' }, 'Lo que ya se dijo')
+      h('p', { class: 'historial__titulo' }, 'Lo que se dijo')
     );
     const lista = h('div', { class: 'historial__lista' });
 
@@ -465,19 +487,25 @@ async function enviarRespuesta() {
   registro.respuestaEnviando = true;
   pintar();
 
-  const r = await repoRespuestas.crear({
+  const propia = ultimaRespuestaPropia();
+  const datos = {
     eleccion: registro.respuestaSeleccionada,
     nota: registro.respuestaNota,
-  });
+  };
+
+  const r = propia
+    ? await repoRespuestas.actualizar(propia.id, datos)
+    : await repoRespuestas.crear(datos);
 
   registro.respuestaEnviando = false;
 
   if (r.exito) {
     registro.respuestaSeleccionada = null;
     registro.respuestaNota = '';
+    registro.cambiandoRespuesta = false;
     await refrescarRespuestas();
     pintar();
-    pintarMensaje('ok', 'Respuesta enviada.');
+    pintarMensaje('ok', propia ? 'Respuesta actualizada.' : 'Respuesta guardada.');
   } else {
     pintarMensaje('error', r.error);
     pintar();
@@ -491,7 +519,6 @@ function pintarVistaOtro(cont) {
   const carta = cartaDe(otro);
   const comp = compartidos();
 
-  // Hoja de carta.
   if (!cartaVacia(otro)) {
     const hoja = h('article', { class: 'carta-hoja' });
 
@@ -520,7 +547,6 @@ function pintarVistaOtro(cont) {
     ));
   }
 
-  // Compromisos del otro.
   if (carta.compromisos.length > 0) {
     cont.append(h('section', { class: 'seccion' },
       h('div', { class: 'seccion__cab' },
@@ -531,7 +557,6 @@ function pintarVistaOtro(cont) {
     ));
   }
 
-  // Compromisos compartidos.
   cont.append(h('section', { class: 'seccion' },
     h('div', { class: 'seccion__cab' },
       h('h2', { class: 'seccion__titulo' }, 'Compromisos compartidos'),
@@ -549,10 +574,7 @@ function pintarVistaOtro(cont) {
     )
   ));
 
-  // CTA "Ver mi carta" — va antes del bloque de respuesta.
   cont.append(pintarCtaVerMiCarta());
-
-  // Bloque de respuesta.
   cont.append(pintarBloqueRespuesta());
 }
 
@@ -1066,6 +1088,13 @@ async function manejarClick(ev) {
   } else if (accion === 'enviar-respuesta') {
     enviarRespuesta();
   } else if (accion === 'cambiar-respuesta') {
+    const propia = ultimaRespuestaPropia();
+    registro.cambiandoRespuesta = true;
+    registro.respuestaSeleccionada = propia ? propia.eleccion : null;
+    registro.respuestaNota = propia ? (propia.nota || '') : '';
+    pintar();
+  } else if (accion === 'cancelar-cambio-respuesta') {
+    registro.cambiandoRespuesta = false;
     registro.respuestaSeleccionada = null;
     registro.respuestaNota = '';
     pintar();
@@ -1133,6 +1162,7 @@ export async function activar(contenedor) {
   registro.respuestaSeleccionada = null;
   registro.respuestaNota = '';
   registro.respuestaEnviando = false;
+  registro.cambiandoRespuesta = false;
 
   const { signal } = registro.abortador;
   contenedor.addEventListener('submit', manejarSubmit, { signal });
@@ -1144,6 +1174,7 @@ export async function activar(contenedor) {
     al('realtime:carta:actualizar', async () => { await refrescar(); pintar(); }),
     al('realtime:carta:eliminar', async () => { await refrescar(); pintar(); }),
     al('realtime:respuestas:crear', async () => { await refrescarRespuestas(); pintar(); }),
+    al('realtime:respuestas:actualizar', async () => { await refrescarRespuestas(); pintar(); }),
   ];
 
   montarBarraProgreso();
@@ -1171,6 +1202,7 @@ export function limpiar() {
   registro.respuestaSeleccionada = null;
   registro.respuestaNota = '';
   registro.respuestaEnviando = false;
+  registro.cambiandoRespuesta = false;
   registro.contenedor = null;
   registro.raiz = null;
   registro.barraProgresoEl = null;

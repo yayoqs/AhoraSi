@@ -1,9 +1,14 @@
 # EVENTOS.md — Catálogo de eventos de Ahora Sí
 
-**Versión:** 2.2.0
+**Versión:** 2.4.0
 **Fecha:** 30 de septiembre de 2026
 **Propósito:** Catálogo canónico de eventos del sistema. Todo evento que un módulo emite debe estar acá. Todo evento que una vista consume debe estar acá. Si un evento no aparece en este documento, no existe.
 **Mantenedor:** Kiu.
+
+**v2.4.0:** se agrega el evento `respuestas:actualizada`. La vista Carta ahora permite cambiar la respuesta existente sin acumular filas. Cada usuario tiene como máximo una respuesta vigente. La fecha `enviadoEn` se refresca al actualizar.
+**v2.3.0:** se documenta que `anexos.js` consume Realtime de la tabla `carta`, filtrando por `tipo === 'anexo'`. La vista Carta dejó de consumir esa tabla para anexos.
+**v2.2.0:** se elimina `marcar()` de hitos. El campo `cumplido` deja de exponerse en el normalizador.
+**v2.1.0:** se agregan la sección de comandos, la tabla de claves del almacén, ejemplos de payload de ritmos y la limpieza de eventos inexistentes.
 
 ---
 
@@ -54,7 +59,9 @@ Claves vigentes en el almacén:
 
 ### 2.2 Arranque
 
-Los módulos de arranque (`sesion-inicial.js`, `espacio-inicial.js`, `carta-inicial.js`, `ideas-iniciales.js`) **no emiten eventos**. Devuelven objetos con `exito`, `usuario`, `perfil`, `espacio`, `motivo` y `detalle`. El shell consume el retorno directamente.
+Los módulos de arranque emiten solo a través de `sesion.js`. El módulo `sesion-inicial.js` no emite eventos: devuelve un objeto con `exito`, `usuario`, `perfil`, `espacio`, `motivo` y `detalle`. El shell consume el retorno directamente.
+
+`espacio-inicial.js` tampoco emite eventos. Emite `espacios:creado` solo cuando el repositorio crea uno nuevo (ver sección 5.10).
 
 ---
 
@@ -101,8 +108,8 @@ Para cada tabla suscrita, `realtime.js` emite también un evento específico por
 | `planes` | `ahorasi_planes` | `js/vistas/planes.js`, `js/vistas/ideas.js` |
 | `kit` | `ahorasi_kit` | `js/vistas/kit.js` |
 | `hitos` | `ahorasi_hitos` | `js/vistas/hitos.js` |
-| `carta` | `ahorasi_carta` | `js/vistas/carta.js` |
-| `respuestas` | `ahorasi_respuestas` | `js/vistas/carta.js` (solo `crear`) |
+| `carta` | `ahorasi_carta` | `js/vistas/carta.js`, `js/vistas/anexos.js` |
+| `respuestas` | `ahorasi_respuestas` | `js/vistas/carta.js` (crear y actualizar) |
 | `fauna` | `ahorasi_fauna` | `js/vistas/fauna.js` |
 | `flora` | `ahorasi_flora` | `js/vistas/flora.js` |
 | `ritmos` | `ahorasi_ritmos` | `js/vistas/percusion.js` (solo `crear` y `eliminar`) |
@@ -116,7 +123,12 @@ Para cada tabla suscrita, `realtime.js` emite también un evento específico por
 | `chistes` | `ahorasi_chistes` | `js/vistas/chistes.js`, `js/vistas/juegos.js` (hub) |
 | `recetas` | `ahorasi_recetas` | `js/vistas/recetas.js` |
 
-**Nota:** la vista de Juegos es solo un hub de navegación. Se suscribe a las cinco tablas de los mini-juegos para refrescar los contadores del hub, no para mostrar datos.
+**Nota sobre `carta`:** dos vistas consumen la misma tabla con filtros distintos.
+
+- `carta.js` reacciona a todas las filas que no sean `tipo === 'anexo'`. Manifiesto, compromisos, firma y compartidos.
+- `anexos.js` filtra por `tipo === 'anexo'` y solo refresca cuando la fila que llega es un anexo.
+
+**Nota sobre Juegos (hub):** es solo un hub de navegación. Se suscribe a las cinco tablas de los mini-juegos para refrescar los contadores, no para mostrar datos.
 
 ---
 
@@ -160,11 +172,16 @@ Emitidos por `js/datos/repositorios/*.js`. Se emiten **después** de que la oper
 
 **Tipos de carta:** `base`, `anexo`, `compromiso`, `compromiso_compartido`, `firma`.
 
+Los anexos se gestionan desde `anexos.js` (sub-vista de Cuenta), no desde `carta.js`. Los dos comparten la tabla y el repositorio, pero cada uno filtra por tipo.
+
 ### 5.5 Respuestas
 
 | Evento | Emisor | Payload | Consumidores |
 |--------|--------|---------|--------------|
 | `respuestas:creada` | `respuestas.js` | `respuesta` (objeto normalizado) | Vistas, tests |
+| `respuestas:actualizada` | `respuestas.js` | `respuesta` (objeto normalizado) | Vistas, tests |
+
+**Nota:** cada usuario tiene como máximo una respuesta vigente. La vista Carta usa `crear()` la primera vez y `actualizar()` cuando ya existe propia. El campo `enviadoEn` se refresca al actualizar, así que la fecha del historial corresponde al último cambio, no al primero.
 
 ### 5.6 Fauna
 
@@ -319,7 +336,33 @@ Cada repositorio normaliza la fila de Appwrite antes de emitirla. Los objetos ll
       creadoEn: '2026-09-25T...'
     }
 
-### 6.3 Ejemplo: `fotos:creada`
+### 6.3 Ejemplo: `carta:creado` (tipo `anexo`)
+
+    {
+      id: 'carta_xxxxx',
+      espacioId: 'esp_xxxxx',
+      tipo: 'anexo',
+      titulo: 'Sobre lo del cerro',
+      contenido: 'Encontré una ruta más corta por el lado de Las Trancas.',
+      autor: 'ChicaLuci',
+      orden: 0,
+      creadoEn: '2026-09-30T...'
+    }
+
+### 6.4 Ejemplo: `respuestas:actualizada`
+
+    {
+      id: 'resp_xxxxx',
+      espacioId: 'esp_xxxxx',
+      eleccion: 'tiempo',
+      nota: 'Necesito unos días más para pensarlo.',
+      enviadoPor: 'ChicaLuci',
+      enviadoEn: '2026-09-30T...'
+    }
+
+**Nota:** al actualizar una respuesta, se preserva el `id`. La fecha `enviadoEn` se refresca.
+
+### 6.5 Ejemplo: `fotos:creada`
 
     {
       id: 'fotos_xxxxx',
@@ -331,7 +374,7 @@ Cada repositorio normaliza la fila de Appwrite antes de emitirla. Los objetos ll
       creadoEn: '2026-09-25T...'
     }
 
-### 6.4 Ejemplo: `series:reordenado`
+### 6.6 Ejemplo: `series:reordenado`
 
     {
       ids: ['serie_a', 'serie_b', 'serie_c']
@@ -339,7 +382,7 @@ Cada repositorio normaliza la fila de Appwrite antes de emitirla. Los objetos ll
 
 El orden va de arriba hacia abajo.
 
-### 6.5 Ejemplo: `recetas:creado`
+### 6.7 Ejemplo: `recetas:creado`
 
     {
       id: 'receta_xxxxx',
@@ -354,7 +397,7 @@ El orden va de arriba hacia abajo.
       creadoEn: '2026-09-25T...'
     }
 
-### 6.6 Ejemplo: `ritmos:creado` (modo extendido, con mezcla y efectos)
+### 6.8 Ejemplo: `ritmos:creado` (modo extendido, con mezcla y efectos)
 
     {
       id: 'ritmo_xxxxx',
@@ -377,9 +420,7 @@ El orden va de arriba hacia abajo.
       creadoEn: '2026-09-30T...'
     }
 
-**Nota:** `efectos`, `volumen`, `silenciados`, `solistas` y `swing` se agregaron en la v1.6.0 del repositorio. Los ritmos guardados antes de esa versión devuelven `null` en esos campos; la vista los restituye con los defaults del estilo o del modo.
-
-### 6.7 Ejemplo: `ritmos:creado` (modo simple)
+### 6.9 Ejemplo: `ritmos:creado` (modo simple)
 
     {
       id: 'ritmo_xxxxx',
@@ -450,12 +491,13 @@ Las vistas guardan las funciones de desuscribir en un array y las ejecutan todas
 
 Estos eventos fueron considerados y descartados explícitamente:
 
-- **`arranque:listo`, `arranque:sin-sesion`, `arranque:error`.** El arranque usa un retorno directo en `sesion-inicial.js`. No emite eventos. Si en el futuro se necesita notificar al shell de forma asíncrona, se evalúa reintroducirlos.
+- **`arranque:listo`, `arranque:sin-sesion`, `arranque:error`.** El arranque usa un retorno directo en `sesion-inicial.js`. No emite eventos.
 - **`productos:*`, `comandas:*`, `mesas:*`, `turno:*`.** Son eventos de un POS. Ahora Sí no es un POS y no tiene esos conceptos.
 - **`fotos:actualizada`.** Una foto no se edita. Se borra y se sube de nuevo.
 - **`preguntas:actualizado`.** Las preguntas no se editan. Se crean y se eliminan.
 - **`ritmos:actualizado`.** Los ritmos guardados no se editan desde la UI. Se borran y se guardan de nuevo.
-- **`hitos:cumplido`.** El campo `cumplido` de hitos está deprecado desde la v1.7.0 del repositorio. La función `marcar()` fue eliminada en v1.8.0. No se emite ningún evento relacionado.
+- **`hitos:cumplido`.** El campo `cumplido` de hitos está deprecado desde la v1.7.0 del repositorio. La función `marcar()` fue eliminada en v1.8.0.
+- **`respuestas:eliminada`.** Una respuesta no se elimina desde la UI. Se cambia con `respuestas:actualizada`.
 - **`app:cerrar-sesion`.** No es un evento. Es un **comando** del bus de comandos. Ver sección 10.
 
 ---
@@ -505,4 +547,4 @@ Errores comunes que hay que evitar:
 ---
 
 *Documento mantenido por Kiu.*
-*Versión 2.2.0 — 30 de septiembre de 2026*
+*Versión 2.4.0 — 30 de septiembre de 2026*
