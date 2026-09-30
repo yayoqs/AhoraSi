@@ -150,8 +150,8 @@ body.modo-noche #vista-carta .carta-hoja::before { display: none; }
 
 #vista-carta .carta__texto {
   font-family: var(--fuente-carta);
-  font-size: 19px;
-  line-height: 1.7;
+  font-size: 16px;
+  line-height: 1.6;
   color: var(--tinta);
   letter-spacing: -.005em;
   white-space: pre-wrap;
