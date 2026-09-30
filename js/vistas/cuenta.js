@@ -1,9 +1,20 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/cuenta.js
-   Versión: 1.1.0
-   Propósito: vista "Mi cuenta". Permite cambiar el nombre visible
-              y cambiar la contraseña.
+   Versión: 1.2.0
+   Propósito: vista "Mi cuenta". Permite cambiar el nombre visible,
+              cambiar la contraseña, activar el modo noche y cerrar
+              sesión.
+              v1.2.0: se agrega el toggle de modo noche y el botón
+                      de cerrar sesión. El toggle lee y escribe
+                      'modoNoche' en el almacén (que emite el
+                      evento que app.js escucha para aplicar la
+                      clase al body) y persiste en localStorage
+                      con la clave ahorasi:modoNoche. El cierre de
+                      sesión ejecuta el comando 'app:cerrar-sesion'
+                      registrado en app.js, que muestra la
+                      confirmación y cierra. Sin cambios en las
+                      firmas públicas.
               v1.1.0: la sección raíz lleva id="vista-cuenta" para
                       el encapsulado de CSS. Sin cambios en la
                       lógica ni en las firmas públicas.
@@ -13,10 +24,13 @@
 import * as repoPerfiles from '../datos/repositorios/perfiles.js';
 import { cambiarContrasena } from '../datos/sesion.js';
 import { obtener, establecer } from '../nucleo/almacen.js';
+import { ejecutar as ejecutarComando } from '../nucleo/bus-comandos.js';
 import { crearLogger } from '../nucleo/logger.js';
 import { h, limpiarContenedor } from '../nucleo/utils.js';
 
 const log = crearLogger('vista:cuenta');
+
+const CLAVE_MODO_NOCHE = 'ahorasi:modoNoche';
 
 const registro = {
   contenedor: null,
@@ -24,9 +38,15 @@ const registro = {
   perfil: null,
 };
 
+/* ---------- Helpers -------------------------------------------- */
+
 function usuarioActualId() {
   const u = obtener('usuarioActual');
   return u?.$id || u?.id || null;
+}
+
+function modoNocheActivo() {
+  return obtener('modoNoche') === true;
 }
 
 function pintarMensaje(tipo, texto) {
@@ -38,25 +58,78 @@ function pintarMensaje(tipo, texto) {
   setTimeout(() => p.remove(), 5000);
 }
 
-function pintar() {
-  const cont = registro.contenedor;
-  if (!cont) return;
-  limpiarContenedor(cont);
+/* ---------- Modo noche ----------------------------------------- */
 
+function alternarModoNoche() {
+  const nuevo = !modoNocheActivo();
+  establecer('modoNoche', nuevo);
+  try {
+    localStorage.setItem(CLAVE_MODO_NOCHE, nuevo ? '1' : '0');
+  } catch (e) {
+    // silencioso
+  }
+}
+
+/* ---------- Secciones ------------------------------------------ */
+
+function pintarToggleNoche() {
+  const activo = modoNocheActivo();
+
+  const toggle = h('button', {
+    type: 'button',
+    class: 'toggle',
+    'data-accion': 'toggle-noche',
+    'aria-pressed': String(activo),
+    'aria-label': activo ? 'Desactivar modo noche' : 'Activar modo noche',
+  });
+
+  return h('section', { class: 'seccion' },
+    h('div', { class: 'seccion__cab' },
+      h('h2', { class: 'seccion__titulo' }, 'Modo noche')
+    ),
+    h('p', { class: 'seccion__nota' },
+      'Se guarda en este navegador. Cambia el tono de toda la app.'
+    ),
+    h('div', { class: 'toggle-fila' },
+      h('div', { class: 'toggle-fila__texto' },
+        h('span', { class: 'toggle-fila__titulo' }, 'Papel oscuro'),
+        h('span', { class: 'toggle-fila__sub' }, 'Ideal de noche o con poca luz')
+      ),
+      toggle
+    )
+  );
+}
+
+function pintarSeccionNombre() {
   const nombreActual = registro.perfil?.nombre || '';
 
-  const formNombre = h('form', { class: 'vista__form', 'data-accion': 'guardar-nombre' },
+  const form = h('form', { class: 'form', 'data-accion': 'guardar-nombre' },
     h('input', {
+      type: 'text',
       name: 'nombre',
       placeholder: 'Tu nombre visible',
       required: true,
       maxlength: 60,
       value: nombreActual,
+      autocomplete: 'name',
     }),
-    h('button', { type: 'submit' }, registro.perfil ? 'Guardar nombre' : 'Crear perfil')
+    h('button', { type: 'submit' },
+      registro.perfil ? 'Guardar nombre' : 'Crear perfil')
   );
 
-  const formContrasena = h('form', { class: 'vista__form', 'data-accion': 'cambiar-contrasena' },
+  return h('section', { class: 'seccion' },
+    h('div', { class: 'seccion__cab' },
+      h('h2', { class: 'seccion__titulo' }, 'Nombre visible')
+    ),
+    h('p', { class: 'seccion__nota' },
+      'Es el nombre que aparece en los registros que tú creas.'
+    ),
+    form
+  );
+}
+
+function pintarSeccionContrasena() {
+  const form = h('form', { class: 'form', 'data-accion': 'cambiar-contrasena' },
     h('input', {
       type: 'password',
       name: 'actual',
@@ -83,23 +156,53 @@ function pintar() {
     h('button', { type: 'submit' }, 'Cambiar contraseña')
   );
 
-  cont.append(
-    h('section', { id: 'vista-cuenta', class: 'vista vista--cuenta' },
-      h('h1', {}, 'Mi cuenta'),
-      h('p', { class: 'vista__lead' }, 'Cómo te ve el otro y cómo entras a la app.'),
-
-      h('h2', { class: 'vista__subtitulo' }, 'Nombre visible'),
-      h('p', { class: 'cuenta__nota' },
-        'Es el nombre que aparece en los registros que tú creas.'),
-      formNombre,
-
-      h('h2', { class: 'vista__subtitulo' }, 'Contraseña'),
-      h('p', { class: 'cuenta__nota' },
-        'Tu contraseña es solo tuya. Puedes cambiarla cuando quieras.'),
-      formContrasena
-    )
+  return h('section', { class: 'seccion' },
+    h('div', { class: 'seccion__cab' },
+      h('h2', { class: 'seccion__titulo' }, 'Contraseña')
+    ),
+    h('p', { class: 'seccion__nota' },
+      'Tu contraseña es solo tuya. Puedes cambiarla cuando quieras.'
+    ),
+    form
   );
 }
+
+function pintarSeccionSalir() {
+  const boton = h('button', {
+    type: 'button',
+    class: 'btn-salir',
+    'data-accion': 'cerrar-sesion',
+  });
+  boton.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg><span>Cerrar sesión</span>';
+
+  return h('section', { class: 'salir-bloque' },
+    h('p', { class: 'salir-bloque__nota' },
+      'Vas a volver a la pantalla de inicio de sesión. No se borra nada de lo que hay guardado.'
+    ),
+    boton
+  );
+}
+
+/* ---------- Pintar --------------------------------------------- */
+
+function pintar() {
+  const cont = registro.contenedor;
+  if (!cont) return;
+  limpiarContenedor(cont);
+
+  const raiz = h('section', { id: 'vista-cuenta', class: 'vista vista--cuenta' });
+
+  raiz.append(
+    pintarToggleNoche(),
+    pintarSeccionNombre(),
+    pintarSeccionContrasena(),
+    pintarSeccionSalir()
+  );
+
+  cont.append(raiz);
+}
+
+/* ---------- Handlers ------------------------------------------- */
 
 async function manejarSubmit(ev) {
   ev.preventDefault();
@@ -110,6 +213,28 @@ async function manejarSubmit(ev) {
     await guardarNombre(form);
   } else if (accion === 'cambiar-contrasena') {
     await procesarCambioContrasena(form);
+  }
+}
+
+async function manejarClick(ev) {
+  const btn = ev.target.closest('button[data-accion]');
+  if (!btn) return;
+  const accion = btn.dataset.accion;
+
+  if (accion === 'toggle-noche') {
+    alternarModoNoche();
+    // Actualiza el toggle sin re-pintar, para no perder los valores
+    // escritos en los formularios de nombre y contraseña.
+    const activo = modoNocheActivo();
+    btn.setAttribute('aria-pressed', String(activo));
+    btn.setAttribute('aria-label', activo ? 'Desactivar modo noche' : 'Activar modo noche');
+  } else if (accion === 'cerrar-sesion') {
+    try {
+      await ejecutarComando('app:cerrar-sesion');
+    } catch (e) {
+      log.error('Error al ejecutar cierre de sesión:', e.message);
+      pintarMensaje('error', 'No se pudo cerrar la sesión.');
+    }
   }
 }
 
@@ -170,11 +295,14 @@ async function procesarCambioContrasena(form) {
   pintarMensaje('ok', 'Contraseña cambiada.');
 }
 
+/* ---------- Ciclo de vida -------------------------------------- */
+
 export async function activar(contenedor) {
   registro.contenedor = contenedor;
   registro.abortador = new AbortController();
   const { signal } = registro.abortador;
   contenedor.addEventListener('submit', manejarSubmit, { signal });
+  contenedor.addEventListener('click', manejarClick, { signal });
 
   registro.perfil = obtener('perfil');
 

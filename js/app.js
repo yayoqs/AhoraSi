@@ -1,31 +1,34 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/app.js
-   Versión: 4.0.2
+   Versión: 4.0.5
    Propósito: punto de entrada. Arranca sesión, monta el shell
               con topbar + chips + tabbar inferior, monta/desmonta
               las vistas, aplica el acento dinámico por vista,
               monta el botón flotante contextual, aplica el modo
               noche y mantiene Realtime activo mientras hay sesión.
-              v4.0.2: reubicación de vistas. Kit se mueve de Vida
-                      a Afuera (entre Mapa y Fauna), porque es
-                      material de campamento, no de la vida
-                      cotidiana. Recetas pasa a ser la primera
-                      vista de Vida (antes iba al final).
-              v4.0.1: el primer grupo se llama Nido (antes
-                      Fogón). Se renombra la clave interna de
-                      'fogon' a 'nido' por consistencia.
-              v4.0.0: shell nuevo. Los cinco grupos pasan a ser
-                      Nido, Vida, Afuera, Juegos, Más.
-              v3.0.0: rediseño del shell. Tabbar inferior con
-                      cinco grupos.
+              v4.0.5: el botón "⋮" del topbar ya no navega directo
+                      a Cuenta. Ahora abre un menú con dos opciones:
+                      "Mi cuenta" y "Anexos". Se cierra al tocar
+                      fuera, al tocar de nuevo el botón, con Escape,
+                      o al navegar. El botón se oculta cuando ya
+                      estás en Cuenta o Anexos. Se registra la
+                      sub-vista "anexos" con padre "cuenta". La
+                      sección de anexos de la vista Carta se
+                      elimina en carta.js v4.0.2.
+              v4.0.4: se registra el comando 'app:cerrar-sesion'.
+              v4.0.3: se agrega soporte de sub-vistas.
+              v4.0.2: reubicación de vistas (Kit y Recetas).
+              v4.0.1: primer grupo se llama Nido.
+              v4.0.0: shell nuevo.
+              v3.0.0: tabbar inferior.
               v2.14.0: vista Recetas.
               v2.13.0: vista Juegos.
               v2.12.0: vista Series.
               v2.11.0: vista Mapa.
               v2.10.0: vista Ideas.
               v2.9.0: hero como primera vista.
-              v2.8.0: login rediseñado, Mi cuenta, nombre visible.
+              v2.8.0: login rediseñado.
               v2.7.0: manejarSalir() con mostrarConfirmacion().
               v2.6.0: navegar() e iniciarRealtime() no bloquean.
               v1.0.0: verificación de arranque.
@@ -38,6 +41,7 @@ import { iniciarSesion, cerrarSesion } from './datos/sesion.js';
 import { iniciar as iniciarRealtime, detener as detenerRealtime } from './datos/realtime.js';
 import { obtener, establecer } from './nucleo/almacen.js';
 import { al } from './nucleo/bus-eventos.js';
+import { registrar } from './nucleo/bus-comandos.js';
 import { h, limpiarContenedor } from './nucleo/utils.js';
 import { mostrarConfirmacion } from './nucleo/dialogos.js';
 
@@ -53,10 +57,22 @@ import * as vistaFauna from './vistas/fauna.js';
 import * as vistaFlora from './vistas/flora.js';
 import * as vistaSeries from './vistas/series.js';
 import * as vistaJuegos from './vistas/juegos.js';
+import * as vistaChistes from './vistas/chistes.js';
+import * as vistaRetos from './vistas/retos.js';
+import * as vistaPenitencias from './vistas/penitencias.js';
+import * as vistaPreguntas from './vistas/preguntas.js';
+import * as vistaApuestas from './vistas/apuestas.js';
 import * as vistaPercusion from './vistas/percusion.js';
 import * as vistaCuenta from './vistas/cuenta.js';
+import * as vistaAnexos from './vistas/anexos.js';
 
 const log = crearLogger('app');
+
+/* ----------------------------------------------------------------
+   VISTAS.
+   - padre: si está definido, la vista es sub-vista de otra y el
+            shell muestra botón volver sin tocar los chips.
+   ---------------------------------------------------------------- */
 
 const VISTAS = {
   hero: {
@@ -107,6 +123,26 @@ const VISTAS = {
     titulo: 'Juegos', grupo: 'juegos',
     modulo: vistaJuegos, acento: 'ciruela',
   },
+  chistes: {
+    titulo: 'Chistes', grupo: 'juegos', padre: 'juegos',
+    modulo: vistaChistes, acento: 'mostaza',
+  },
+  retos: {
+    titulo: 'Retos', grupo: 'juegos', padre: 'juegos',
+    modulo: vistaRetos, acento: 'azul-piedra',
+  },
+  penitencias: {
+    titulo: 'Penitencias', grupo: 'juegos', padre: 'juegos',
+    modulo: vistaPenitencias, acento: 'terracota',
+  },
+  preguntas: {
+    titulo: 'Preguntas', grupo: 'juegos', padre: 'juegos',
+    modulo: vistaPreguntas, acento: 'musgo',
+  },
+  apuestas: {
+    titulo: 'Apuestas', grupo: 'juegos', padre: 'juegos',
+    modulo: vistaApuestas, acento: 'ciruela',
+  },
   percusion: {
     titulo: 'Percusión', grupo: 'juegos',
     modulo: vistaPercusion, acento: 'mostaza',
@@ -115,13 +151,25 @@ const VISTAS = {
     titulo: 'Mi cuenta', grupo: 'mas',
     modulo: vistaCuenta, acento: 'terracota',
   },
+  anexos: {
+    titulo: 'Anexos', grupo: 'mas', padre: 'cuenta',
+    modulo: vistaAnexos, acento: 'terracota',
+  },
 };
+
+/* ----------------------------------------------------------------
+   GRUPOS.
+   ---------------------------------------------------------------- */
 
 const ICONO_NIDO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>';
 const ICONO_VIDA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/><path d="M4 17a3 3 0 0 1 3-3h11"/></svg>';
 const ICONO_AFUERA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18L14 8l-3 5-2-3-6 10z"/></svg>';
 const ICONO_JUEGOS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/></svg>';
 const ICONO_MAS = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>';
+
+const ICONO_PERSONA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.5 3.5-6 8-6s8 2.5 8 6"/></svg>';
+const ICONO_ANEXO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>';
+const ICONO_MENU = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>';
 
 const GRUPOS = {
   nido:   { titulo: 'Nido',   icono: ICONO_NIDO,   vistas: ['carta'] },
@@ -161,7 +209,13 @@ let chipsContenedor = null;
 let vistasContenedor = null;
 let tabbarContenedor = null;
 let botonFlotanteEl = null;
+let menuEl = null;
+let botonMenuEl = null;
 let usuarioElegido = null;
+
+/* ----------------------------------------------------------------
+   Utilidades.
+   ---------------------------------------------------------------- */
 
 function heroVisto() {
   try {
@@ -209,11 +263,71 @@ function grupoDe(vistaId) {
   return VISTAS[vistaId]?.grupo || null;
 }
 
+function padreDe(vistaId) {
+  return VISTAS[vistaId]?.padre || null;
+}
+
 function aplicarAcento(vistaId) {
   const v = VISTAS[vistaId];
   if (!v || !v.acento) return;
   document.documentElement.style.setProperty('--accent', `var(--${v.acento})`);
 }
+
+/* ----------------------------------------------------------------
+   Menú del botón "⋮".
+   ---------------------------------------------------------------- */
+
+function abrirMenu() {
+  if (!menuEl) return;
+  menuEl.classList.add('is-open');
+}
+
+function cerrarMenu() {
+  if (!menuEl) return;
+  menuEl.classList.remove('is-open');
+}
+
+function menuEstaAbierto() {
+  return menuEl && menuEl.classList.contains('is-open');
+}
+
+function alternarMenu() {
+  if (menuEstaAbierto()) cerrarMenu();
+  else abrirMenu();
+}
+
+function construirMenu() {
+  const menu = h('div', { class: 'shell__menu', role: 'menu' });
+
+  menu.append(
+    h('button', {
+      type: 'button',
+      class: 'shell__menu-item',
+      'data-destino': 'cuenta',
+      role: 'menuitem',
+      onclick: () => { cerrarMenu(); navegar('cuenta'); },
+    },
+      h('span', { class: 'shell__menu-icono', html: ICONO_PERSONA }),
+      h('span', {}, 'Mi cuenta')
+    ),
+    h('button', {
+      type: 'button',
+      class: 'shell__menu-item',
+      'data-destino': 'anexos',
+      role: 'menuitem',
+      onclick: () => { cerrarMenu(); navegar('anexos'); },
+    },
+      h('span', { class: 'shell__menu-icono', html: ICONO_ANEXO }),
+      h('span', {}, 'Anexos')
+    )
+  );
+
+  return menu;
+}
+
+/* ----------------------------------------------------------------
+   Header.
+   ---------------------------------------------------------------- */
 
 function construirHeader(estadoSesion) {
   limpiarContenedor(headerContenedor);
@@ -222,24 +336,52 @@ function construirHeader(estadoSesion) {
     || estadoSesion?.usuario?.email
     || '';
 
+  const botonVolver = h('button', {
+    type: 'button',
+    class: 'shell__btn-volver',
+    'aria-label': 'Volver',
+    hidden: '',
+  });
+  botonVolver.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M15 6l-6 6 6 6"/></svg>';
+  botonVolver.addEventListener('click', () => {
+    const padre = padreDe(vistaActivaId);
+    if (padre) navegar(padre);
+  });
+
   const eyebrow = h('p', { class: 'shell__eyebrow' }, '');
   const titulo = h('h1', { class: 'shell__titulo' }, '');
-  const usuario = h('button', { type: 'button', class: 'shell__btn-cuenta', title: nombreVisible, 'aria-label': 'Mi cuenta' });
 
-  usuario.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>';
-  usuario.addEventListener('click', () => navegar('cuenta'));
+  const izquierda = h('div', { class: 'shell__header-izq' }, botonVolver, h('div', {}, eyebrow, titulo));
 
-  const topbarRow = h('div', { class: 'shell__topbar-row' },
-    h('div', {}, eyebrow, titulo),
-    usuario
-  );
+  const botonMenu = h('button', {
+    type: 'button',
+    class: 'shell__btn-cuenta',
+    title: nombreVisible,
+    'aria-label': 'Opciones',
+    'aria-haspopup': 'menu',
+    'aria-expanded': 'false',
+    onclick: (ev) => {
+      ev.stopPropagation();
+      alternarMenu();
+      botonMenu.setAttribute('aria-expanded', String(menuEstaAbierto()));
+    },
+  });
+  botonMenu.innerHTML = ICONO_MENU;
 
+  const menu = construirMenu();
+
+  const acciones = h('div', { class: 'shell__acciones-cuenta' }, botonMenu, menu);
+
+  const topbarRow = h('div', { class: 'shell__topbar-row' }, izquierda, acciones);
   const topbar = h('div', { class: 'shell__topbar' }, topbarRow);
 
   const chips = h('nav', { class: 'shell__chips', id: 'chips' });
 
   headerContenedor.append(topbar, chips);
   chipsContenedor = chips;
+  headerContenedor._botonVolver = botonVolver;
+  botonMenuEl = botonMenu;
+  menuEl = menu;
 }
 
 function pintarHeader(vistaId) {
@@ -247,17 +389,31 @@ function pintarHeader(vistaId) {
   if (!vista) return;
 
   const grupo = grupoDe(vistaId);
+  const padre = padreDe(vistaId);
   const grupoTitulo = grupo ? GRUPOS[grupo].titulo : '';
 
   const eyebrow = headerContenedor.querySelector('.shell__eyebrow');
   const titulo = headerContenedor.querySelector('.shell__titulo');
+  const botonVolver = headerContenedor._botonVolver;
 
-  if (eyebrow) eyebrow.textContent = grupoTitulo;
-  if (titulo) titulo.textContent = vista.titulo;
+  if (padre) {
+    // Sub-vista: eyebrow dice "Grupo · Vista".
+    if (eyebrow) eyebrow.textContent = `${grupoTitulo} · ${vista.titulo}`;
+    if (titulo) titulo.textContent = vista.titulo;
+    if (botonVolver) botonVolver.hidden = false;
+  } else {
+    if (eyebrow) eyebrow.textContent = grupoTitulo;
+    if (titulo) titulo.textContent = vista.titulo;
+    if (botonVolver) botonVolver.hidden = true;
+  }
 
+  // El botón "⋮" se oculta cuando la vista activa ya es Cuenta o Anexos.
+  const ocultarMenu = vistaId === 'cuenta' || vistaId === 'anexos';
+  if (botonMenuEl) botonMenuEl.hidden = ocultarMenu;
+
+  // Chips del grupo. Nunca se muestran para sub-vistas.
   limpiarContenedor(chipsContenedor);
-
-  if (!grupo) {
+  if (padre || !grupo) {
     chipsContenedor.hidden = true;
     return;
   }
@@ -278,6 +434,10 @@ function pintarHeader(vistaId) {
     }, VISTAS[id].titulo));
   }
 }
+
+/* ----------------------------------------------------------------
+   Tabbar.
+   ---------------------------------------------------------------- */
 
 function pintarTabbar(vistaId) {
   limpiarContenedor(tabbarContenedor);
@@ -305,6 +465,10 @@ function navegarAlGrupo(grupoId) {
   const primera = grupo.vistas[0];
   if (primera) navegar(primera);
 }
+
+/* ----------------------------------------------------------------
+   Botón flotante.
+   ---------------------------------------------------------------- */
 
 function crearBotonFlotante() {
   const btn = h('button', {
@@ -342,6 +506,10 @@ function dispararAbrirFormulario() {
   }
 }
 
+/* ----------------------------------------------------------------
+   Montaje y navegación.
+   ---------------------------------------------------------------- */
+
 async function montarVista(ruta) {
   const config = VISTAS[ruta];
   if (!config) return;
@@ -359,6 +527,8 @@ async function montarVista(ruta) {
 function navegar(ruta) {
   if (!VISTAS[ruta] || VISTAS[ruta].oculta) ruta = RUTA_DEFECTO;
 
+  cerrarMenu();
+
   if (vistaActiva) {
     try {
       vistaActiva.modulo.limpiar();
@@ -369,12 +539,8 @@ function navegar(ruta) {
     limpiarContenedor(vistasContenedor);
   }
 
-  if (ruta !== 'hero') {
-    marcarHeroVisto();
-  }
-
+  if (ruta !== 'hero') marcarHeroVisto();
   aplicarAcento(ruta);
-
   montarVista(ruta).catch((e) => log.error('Error al montar vista:', e));
 
   pintarHeader(ruta);
@@ -385,6 +551,10 @@ function navegar(ruta) {
 function instalarNavegacion() {
   window.addEventListener('hashchange', () => navegar(rutaDesdeHash()));
 }
+
+/* ----------------------------------------------------------------
+   Shell.
+   ---------------------------------------------------------------- */
 
 async function manejarSalir() {
   const confirmado = await mostrarConfirmacion(
@@ -425,12 +595,31 @@ function construirShell(estadoSesion) {
   construirHeader(estadoSesion);
 
   al('almacen:perfil', ({ valor }) => {
-    if (valor?.nombre) {
-      const span = header.querySelector('.shell__btn-cuenta');
-      if (span) span.title = valor.nombre;
+    if (valor?.nombre && botonMenuEl) {
+      botonMenuEl.title = valor.nombre;
+    }
+  });
+
+  // Cierre del menú al tocar fuera o con Escape.
+  document.addEventListener('click', (ev) => {
+    if (!menuEstaAbierto()) return;
+    if (ev.target.closest('.shell__menu')) return;
+    if (ev.target.closest('.shell__btn-cuenta')) return;
+    cerrarMenu();
+    if (botonMenuEl) botonMenuEl.setAttribute('aria-expanded', 'false');
+  });
+
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape' && menuEstaAbierto()) {
+      cerrarMenu();
+      if (botonMenuEl) botonMenuEl.setAttribute('aria-expanded', 'false');
     }
   });
 }
+
+/* ----------------------------------------------------------------
+   Modo noche.
+   ---------------------------------------------------------------- */
 
 function inicializarModoNoche() {
   const activo = leerModoNocheDeDisco();
@@ -438,6 +627,10 @@ function inicializarModoNoche() {
   aplicarModoNoche(activo);
   al('almacen:modoNoche', ({ valor }) => aplicarModoNoche(valor));
 }
+
+/* ----------------------------------------------------------------
+   Login.
+   ---------------------------------------------------------------- */
 
 function mostrarLogin() {
   const app = document.getElementById('app');
@@ -532,6 +725,10 @@ function mostrarLogin() {
   });
 }
 
+/* ----------------------------------------------------------------
+   Arranque.
+   ---------------------------------------------------------------- */
+
 async function principal() {
   const app = document.getElementById('app');
   if (!app) {
@@ -550,6 +747,9 @@ async function principal() {
   }
 
   inicializarModoNoche();
+
+  // Comando de cierre de sesión. Lo usa la vista Cuenta.
+  registrar('app:cerrar-sesion', manejarSalir);
 
   const estadoSesion = await arrancarSesion();
 

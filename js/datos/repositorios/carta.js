@@ -1,14 +1,20 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/repositorios/carta.js
-   Versión: 1.4.0
+   Versión: 1.4.1
    Propósito: acceso a ahorasi_carta.
+              v1.4.1: se corrige el encabezado. La v1.4.0 anunciaba
+                      una función guardarFirma() que nunca se
+                      implementó. La vista Carta resuelve la firma
+                      con repoCarta.crear({ tipo: 'firma', ... })
+                      y repoCarta.actualizar() directamente, así que
+                      no hace falta ningún wrapper. Se elimina la
+                      mención del encabezado. Sin cambios en el
+                      cuerpo del módulo.
               v1.4.0: se amplían los tipos a cinco: base, anexo,
                       compromiso, compromiso_compartido y firma.
                       Se agrega actualizar(id, cambios) para
-                      editar piezas existentes. Se agrega
-                      guardarFirma(contenido) que crea o actualiza
-                      la firma del usuario actual. Emite
+                      editar piezas existentes. Emite
                       'carta:actualizado' al editar.
               v1.3.0: crear() con idempotencia automática.
               v1.2.0: sin envío de permisos de fila.

@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ahora Sí — Cuenta · Prototipo</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --papel: #F7F1E8;
+  --papel-2: #EFE7DA;
+  --papel-3: #FCF8F0;
+  --borde: #E2D7C5;
+  --borde-fuerte: #D2C4AC;
+  --tinta: #1F1B16;
+  --tinta-suave: #6B6155;
+  --tinta-tenue: #A89B87;
+  --terracota: #C9613B;
+  --musgo: #5A6B3E;
+  --rojo: #A03737;
+  --mostaza: #D9A421;
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-full: 999px;
+  --fuente-titulo: 'Bricolage Grotesque', system-ui, sans-serif;
+  --fuente-cuerpo: 'Figtree', system-ui, sans-serif;
+}
+
+body.modo-noche {
+  --papel: #14100C;
+  --papel-2: #241C14;
+  --papel-3: #3A2E22;
+  --borde: rgba(242,230,208,.12);
+  --borde-fuerte: rgba(242,230,208,.22);
+  --tinta: #F2E6D0;
+  --tinta-suave: #B8A888;
+  --tinta-tenue: #6E5F48;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+h1, h2, h3, p { margin: 0; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+body {
+  font-family: var(--fuente-cuerpo);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--tinta);
+  background: radial-gradient(ellipse at top, #2C2620 0%, #13100D 100%);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  transition: background .3s ease;
+}
+
+@media (max-width: 520px) { body { padding: 0; display: block; } }
+
+.phone {
+  width: 390px;
+  height: 844px;
+  max-height: calc(100vh - 48px);
+  background: var(--papel);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 0 0 10px #0E0B08,
+    0 0 0 12px #2A2318,
+    0 30px 80px rgba(0,0,0,.55);
+  transition: background .3s ease;
+}
+
+@media (max-width: 520px) {
+  .phone { width: 100%; height: 100dvh; max-height: none; border-radius: 0; box-shadow: none; }
+}
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.topbar {
+  flex-shrink: 0;
+  padding: 16px 20px 12px;
+  background: var(--papel);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  transition: background .3s ease;
+}
+.topbar__eyebrow {
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.topbar__title {
+  font-family: var(--fuente-titulo);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -.035em;
+  line-height: 1;
+  color: var(--terracota);
+}
+.topbar__btn {
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  border-radius: var(--r-full);
+  color: var(--tinta-suave);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.screen__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 20px 120px;
+  transition: background .3s ease;
+}
+.screen__body::-webkit-scrollbar { width: 0; }
+
+/* Secciones */
+.seccion {
+  margin-bottom: 32px;
+}
+.seccion__cab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.seccion__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -.01em;
+  color: var(--tinta);
+}
+.seccion__nota {
+  font-size: 13px;
+  color: var(--tinta-suave);
+  line-height: 1.5;
+  margin-bottom: 12px;
+  max-width: 50ch;
+}
+
+/* Toggle modo noche */
+.toggle-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  transition: background .3s ease, border-color .3s ease;
+}
+.toggle-fila__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.toggle-fila__titulo {
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--tinta);
+}
+.toggle-fila__sub {
+  font-size: 12px;
+  color: var(--tinta-suave);
+}
+
+.toggle {
+  position: relative;
+  width: 52px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: var(--r-full);
+  background: var(--borde-fuerte);
+  transition: background .2s ease;
+  cursor: pointer;
+}
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--papel);
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  transition: transform .2s ease;
+}
+.toggle[aria-pressed="true"] {
+  background: var(--terracota);
+}
+.toggle[aria-pressed="true"]::after {
+  transform: translateX(22px);
+}
+
+/* Formularios */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 420px;
+}
+.form input {
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--borde);
+  background: var(--papel-3);
+  color: var(--tinta);
+  font-size: 15px;
+  font-family: inherit;
+  width: 100%;
+  transition: border-color .15s ease, background .15s ease;
+}
+.form input:focus {
+  border-color: var(--terracota);
+  background: var(--papel);
+  outline: none;
+}
+.form button[type="submit"] {
+  padding: 12px 20px;
+  border-radius: var(--r-md);
+  background: var(--terracota);
+  color: var(--papel);
+  font-weight: 700;
+  font-size: 15px;
+  align-self: flex-start;
+  padding-left: 28px;
+  padding-right: 28px;
+  transition: filter .15s ease, transform .15s ease;
+}
+.form button[type="submit"]:hover { filter: brightness(1.05); }
+.form button[type="submit"]:active { transform: translateY(1px); }
+
+/* Botón salir */
+.salir-bloque {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px dashed var(--borde-fuerte);
+}
+.salir-bloque__nota {
+  font-size: 12.5px;
+  color: var(--tinta-tenue);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+.btn-salir {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: var(--r-md);
+  border: 1.5px solid color-mix(in oklab, var(--rojo) 40%, var(--borde));
+  background: transparent;
+  color: var(--rojo);
+  font-weight: 700;
+  font-size: 14.5px;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.btn-salir:hover {
+  background: var(--rojo);
+  color: var(--papel);
+  border-color: var(--rojo);
+}
+.btn-salir svg { width: 16px; height: 16px; }
+
+/* Debug nav */
+.debug-nav {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 240px;
+}
+.debug-nav__label {
+  font-size: 9px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+  font-weight: 700;
+}
+.debug-nav__btns {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 4px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--r-md);
+  backdrop-filter: blur(12px);
+}
+.debug-nav__btns button {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.55);
+  border-radius: 8px;
+  text-align: left;
+  transition: all .15s ease;
+}
+.debug-nav__btns button:hover { color: rgba(255,255,255,.9); }
+.debug-nav__btns button.is-active { background: rgba(255,255,255,.15); color: #fff; }
+@media (max-width: 720px) { .debug-nav { display: none; } }
+
+/* Tabbar (decorativo) */
+.tabbar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 78px;
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  background: color-mix(in oklab, var(--papel) 94%, transparent);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--borde);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 50;
+  transition: background .3s ease, border-color .3s ease;
+}
+.tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--tinta-tenue);
+  opacity: .55;
+  padding: 4px;
+}
+.tabbar__item svg { width: 22px; height: 22px; }
+.tabbar__label { font-size: 10px; font-weight: 600; }
+.tabbar__item.activo { color: var(--terracota); opacity: 1; }
+.tabbar__item.activo .tabbar__label { font-weight: 700; }
+
+/* Toast de confirmación (mock del diálogo) */
+.toast {
+  position: absolute;
+  bottom: 100px;
+  left: 20px;
+  right: 20px;
+  padding: 14px 18px;
+  background: var(--tinta);
+  color: var(--papel);
+  border-radius: var(--r-lg);
+  font-size: 13px;
+  line-height: 1.5;
+  box-shadow: 0 12px 32px rgba(0,0,0,.25);
+  transform: translateY(140%);
+  transition: transform .3s ease;
+  z-index: 100;
+}
+.toast.visible { transform: translateY(0); }
+</style>
+</head>
+
+<body>
+
+<nav class="debug-nav">
+  <span class="debug-nav__label">Tema</span>
+  <div class="debug-nav__btns" id="temaNav">
+    <button data-tema="dia" class="is-active">Día</button>
+    <button data-tema="noche">Noche</button>
+  </div>
+</nav>
+
+<div class="phone">
+  <main class="screen">
+
+    <header class="topbar">
+      <div>
+        <p class="topbar__eyebrow">Más · Cuenta</p>
+        <h1 class="topbar__title">Mi cuenta</h1>
+      </div>
+      <button class="topbar__btn" aria-label="Opciones">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="5" cy="12" r="1.6"/>
+          <circle cx="12" cy="12" r="1.6"/>
+          <circle cx="19" cy="12" r="1.6"/>
+        </svg>
+      </button>
+    </header>
+
+    <div class="screen__body">
+
+      <!-- Modo noche -->
+      <section class="seccion">
+        <div class="seccion__cab">
+          <h2 class="seccion__titulo">Modo noche</h2>
+        </div>
+        <p class="seccion__nota">
+          Se guarda en este navegador. Cambia el tono de toda la app.
+        </p>
+        <div class="toggle-fila">
+          <div class="toggle-fila__texto">
+            <span class="toggle-fila__titulo">Papel oscuro</span>
+            <span class="toggle-fila__sub">Ideal de noche o con poca luz</span>
+          </div>
+          <button type="button" class="toggle" id="toggleNoche" aria-pressed="false" aria-label="Activar modo noche"></button>
+        </div>
+      </section>
+
+      <!-- Nombre visible -->
+      <section class="seccion">
+        <div class="seccion__cab">
+          <h2 class="seccion__titulo">Nombre visible</h2>
+        </div>
+        <p class="seccion__nota">
+          Es el nombre que aparece en los registros que tú creas.
+        </p>
+        <form class="form" onsubmit="event.preventDefault(); toast('Nombre guardado.');">
+          <input type="text" placeholder="Tu nombre visible" value="Yayo" maxlength="60">
+          <button type="submit">Guardar nombre</button>
+        </form>
+      </section>
+
+      <!-- Contraseña -->
+      <section class="seccion">
+        <div class="seccion__cab">
+          <h2 class="seccion__titulo">Contraseña</h2>
+        </div>
+        <p class="seccion__nota">
+          Tu contraseña es solo tuya. Puedes cambiarla cuando quieras.
+        </p>
+        <form class="form" onsubmit="event.preventDefault(); toast('Contraseña cambiada.');">
+          <input type="password" placeholder="Contraseña actual" autocomplete="current-password">
+          <input type="password" placeholder="Contraseña nueva (mínimo 8 caracteres)" autocomplete="new-password" minlength="8">
+          <input type="password" placeholder="Repetir contraseña nueva" autocomplete="new-password" minlength="8">
+          <button type="submit">Cambiar contraseña</button>
+        </form>
+      </section>
+
+      <!-- Salir -->
+      <section class="salir-bloque">
+        <p class="salir-bloque__nota">
+          Vas a volver a la pantalla de inicio de sesión. No se borra nada de lo que hay guardado.
+        </p>
+        <button type="button" class="btn-salir" onclick="toast('Acá iría el diálogo de confirmación.');">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <path d="M16 17l5-5-5-5"/>
+            <path d="M21 12H9"/>
+          </svg>
+          Cerrar sesión
+        </button>
+      </section>
+
+    </div>
+
+  </main>
+
+  <nav class="tabbar">
+    <button class="tabbar__item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+      </svg>
+      <span class="tabbar__label">Nido</span>
+    </button>
+    <button class="tabbar__item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/>
+        <path d="M4 17a3 3 0 0 1 3-3h11"/>
+      </svg>
+      <span class="tabbar__label">Vida</span>
+    </button>
+    <button class="tabbar__item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 20h18L14 8l-3 5-2-3-6 10z"/>
+      </svg>
+      <span class="tabbar__label">Afuera</span>
+    </button>
+    <button class="tabbar__item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+        <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/>
+      </svg>
+      <span class="tabbar__label">Juegos</span>
+    </button>
+    <button class="tabbar__item activo">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="5" cy="12" r="1.6"/>
+        <circle cx="12" cy="12" r="1.6"/>
+        <circle cx="19" cy="12" r="1.6"/>
+      </svg>
+      <span class="tabbar__label">Más</span>
+    </button>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // Toggle de modo noche.
+  const toggle = document.getElementById('toggleNoche');
+  toggle.addEventListener('click', () => {
+    const activo = toggle.getAttribute('aria-pressed') === 'true';
+    const nuevo = !activo;
+    toggle.setAttribute('aria-pressed', String(nuevo));
+    document.body.classList.toggle('modo-noche', nuevo);
+    sincronizarTemaNav(nuevo ? 'noche' : 'dia');
+  });
+
+  // Debug nav de tema (para revisar visualmente).
+  document.querySelectorAll('#temaNav button').forEach((b) => {
+    b.addEventListener('click', () => {
+      const tema = b.dataset.tema;
+      document.body.classList.toggle('modo-noche', tema === 'noche');
+      toggle.setAttribute('aria-pressed', String(tema === 'noche'));
+      sincronizarTemaNav(tema);
+    });
+  });
+
+  function sincronizarTemaNav(tema) {
+    document.querySelectorAll('#temaNav button').forEach((x) => {
+      x.classList.toggle('is-active', x.dataset.tema === tema);
+    });
+  }
+
+  // Toast simple para simular respuestas.
+  const toastEl = document.getElementById('toast');
+  let timeoutToast = null;
+  window.toast = function (texto) {
+    toastEl.textContent = texto;
+    toastEl.classList.add('visible');
+    clearTimeout(timeoutToast);
+    timeoutToast = setTimeout(() => toastEl.classList.remove('visible'), 2400);
+  };
+})();
+</script>
+
+</body>
+</html>

@@ -1,14 +1,19 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/audio/beatmaker.js
-   Versión: 1.1.0
+   Versión: 1.2.0
    Propósito: motor de audio del secuenciador. Dos modos:
               - simple: 4 filas intercambiables, 8 pasos, cada
-                fila elige un sonido de un catálogo de 12.
+                fila elige un sonido de un catálogo de 13.
               - extendido: 7 voces fijas de una familia (afro),
                 16 pasos, con efectos globales.
               La cadena de audio (compresor, saturación, filtro,
               reverb, eco) se mantiene activa en ambos modos.
+              v1.2.0: se agrega 'clap' al catálogo simple. Antes
+                      el patrón inicial usaba 'clap' pero el
+                      sonido no existía en GOLPES_SIMPLES, así que
+                      la fila 4 sonaba vacía sin avisar. Ahora
+                      hay 13 sonidos repartidos en 4 categorías.
               v1.1.0: se agrega el modo simple con catálogo de 12
                       sonidos. Se separa la síntesis: VOCES_AFRO
                       (extendido) y GOLPES_SIMPLES (simple).
@@ -49,7 +54,7 @@ export const FILAS_SIMPLE = 4;
 
 /* ================================================================
    CATÁLOGO DE SONIDOS SIMPLES.
-   12 sonidos repartidos en 4 categorías.
+   13 sonidos repartidos en 4 categorías.
    ================================================================ */
 
 export const SONIDOS_SIMPLES = [
@@ -59,6 +64,7 @@ export const SONIDOS_SIMPLES = [
   { id: 'caja_seca',    nombre: 'Caja seca',    cat: 'Medios' },
   { id: 'caja_clasica', nombre: 'Caja clásica', cat: 'Medios' },
   { id: 'timbal',       nombre: 'Timbal',       cat: 'Medios' },
+  { id: 'clap',         nombre: 'Clap',         cat: 'Medios' },
   { id: 'hh_cerrado',   nombre: 'HH cerrado',   cat: 'Agudos' },
   { id: 'hh_abierto',   nombre: 'HH abierto',   cat: 'Agudos' },
   { id: 'shaker',       nombre: 'Shaker',       cat: 'Agudos' },
@@ -431,6 +437,12 @@ const GOLPES_SIMPLES = {
   timbal: (o, t, v) => {
     tono(o, t, 'sine', 380, 300, 0.25, 0.9 * v);
     tono(o, t, 'square', 800, 600, 0.05, 0.15 * v);
+  },
+  clap: (o, t, v) => {
+    // Tres ráfagas cortas en banda media, típico clap sintetizado.
+    ruido(o, t, 'bandpass', 1800, 1.4, 0.9 * v, 0.012);
+    ruido(o, t + 0.008, 'bandpass', 1600, 1.2, 0.7 * v, 0.014);
+    ruido(o, t + 0.016, 'bandpass', 1400, 1.0, 0.5 * v, 0.02);
   },
   hh_cerrado: (o, t, v) => {
     ruido(o, t, 'highpass', 7500, 0.6, 0.4 * v, 0.035);

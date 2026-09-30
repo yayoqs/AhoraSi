@@ -1,16 +1,21 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/repositorios/ritmos.js
-   Versión: 1.5.0
+   Versión: 1.6.0
    Propósito: acceso a ahorasi_ritmos. Cada ritmo guarda nombre,
-              bpm, patrón, estiloId, familia y ahora modo (simple
-              o extendido).
-              v1.5.0: se agrega el campo modo. Los patrones del
-                      modo simple son de 4 filas × 8 pasos y cada
-                      fila tiene un sonidoId del catálogo simple.
-                      Los del modo extendido son de 7 filas × 16
-                      pasos con la estructura anterior. Se
-                      valida según el modo.
+              bpm, patrón, modo (simple o extendido) y ahora
+              también el estado de mezcla y efectos del secuenciador.
+              v1.6.0: se agregan cinco campos opcionales para no
+                      perder el estado del instrumento al guardar:
+                      efectos (objeto JSON), volumen (array JSON
+                      0-1), silenciados (array JSON de bool),
+                      solistas (array JSON de bool), swing (entero
+                      0-50). Antes solo se guardaban patrón y BPM,
+                      así que al recargar un ritmo se perdía la
+                      mezcla y los efectos. Sin cambios en las
+                      firmas públicas: crear() sigue recibiendo
+                      un objeto de datos y opciones.
+              v1.5.0: se agrega el campo modo.
               v1.4.0: estiloId y familia.
               v1.3.0: crear() con idempotencia automática.
               v1.2.0: sin envío de permisos de fila.
@@ -41,6 +46,52 @@ const PASOS_EXT = 16;
 const FILAS_SIM = 4;
 const PASOS_SIM = 8;
 
+/* ---------- Parseo defensivo de JSON ---------- */
+
+function parsearEfectos(crudo) {
+  if (crudo == null || crudo === '') return null;
+  try {
+    const obj = typeof crudo === 'string' ? JSON.parse(crudo) : crudo;
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return null;
+    return {
+      reverb: Number(obj.reverb) || 0,
+      eco: Number(obj.eco) || 0,
+      saturacion: Number(obj.saturacion) || 0,
+      filtro: obj.filtro != null ? Number(obj.filtro) : 100,
+    };
+  } catch (e) {
+    log.warn('efectos no parseables:', e.message);
+    return null;
+  }
+}
+
+function parsearVolumen(crudo) {
+  if (crudo == null || crudo === '') return null;
+  try {
+    const arr = typeof crudo === 'string' ? JSON.parse(crudo) : crudo;
+    if (!Array.isArray(arr)) return null;
+    return arr.map((v) => {
+      const n = Number(v);
+      if (!Number.isFinite(n)) return 1;
+      return Math.max(0, Math.min(1, n));
+    });
+  } catch (e) {
+    log.warn('volumen no parseable:', e.message);
+    return null;
+  }
+}
+
+function parsearBooleanos(crudo) {
+  if (crudo == null || crudo === '') return null;
+  try {
+    const arr = typeof crudo === 'string' ? JSON.parse(crudo) : crudo;
+    if (!Array.isArray(arr)) return null;
+    return arr.map((v) => !!v);
+  } catch (e) {
+    return null;
+  }
+}
+
 function normalizar(fila) {
   if (!fila) return null;
 
@@ -65,6 +116,11 @@ function normalizar(fila) {
     modo,
     estiloId: fila.estiloId || '',
     familia: fila.familia || '',
+    efectos: parsearEfectos(fila.efectos),
+    volumen: parsearVolumen(fila.volumen),
+    silenciados: parsearBooleanos(fila.silenciados),
+    solistas: parsearBooleanos(fila.solistas),
+    swing: fila.swing != null ? Number(fila.swing) : 0,
     creadoPor: fila.creadoPor,
     creadoEn: fila.creadoEn || fila.$createdAt,
   };
@@ -133,6 +189,8 @@ export async function listar() {
   }
 }
 
+/* ---------- Validaciones ---------- */
+
 function validarPatronSimple(patron) {
   if (!Array.isArray(patron) || patron.length !== FILAS_SIM) {
     return `Patrón simple inválido: se esperaban ${FILAS_SIM} filas`;
@@ -184,6 +242,44 @@ function validarPatronExtendido(patron) {
   return null;
 }
 
+function validarEfectos(efectos) {
+  if (efectos == null) return null;
+  if (typeof efectos !== 'object' || Array.isArray(efectos)) {
+    return 'efectos debe ser un objeto';
+  }
+  const claves = ['reverb', 'eco', 'saturacion', 'filtro'];
+  for (const k of claves) {
+    if (efectos[k] != null) {
+      const n = Number(efectos[k]);
+      if (!Number.isFinite(n) || n < 0 || n > 100) {
+        return `${k} fuera de rango (0-100)`;
+      }
+    }
+  }
+  return null;
+}
+
+function validarVolumen(volumen) {
+  if (volumen == null) return null;
+  if (!Array.isArray(volumen)) return 'volumen debe ser un array';
+  for (const v of volumen) {
+    const n = Number(v);
+    if (!Number.isFinite(n) || n < 0 || n > 1) {
+      return 'volumen debe estar entre 0 y 1';
+    }
+  }
+  return null;
+}
+
+function validarBooleanos(nombre, arr) {
+  if (arr == null) return null;
+  if (!Array.isArray(arr)) return `${nombre} debe ser un array`;
+  for (const v of arr) {
+    if (typeof v !== 'boolean') return `${nombre} debe contener booleanos`;
+  }
+  return null;
+}
+
 export async function crear(datos, opciones = {}) {
   if (!datos?.nombre?.trim()) return Resultado.fallo('Falta nombre');
   if (datos.nombre.length > 100) return Resultado.fallo('Nombre demasiado largo');
@@ -193,6 +289,21 @@ export async function crear(datos, opciones = {}) {
   if (!MODOS.includes(datos.modo)) {
     return Resultado.fallo(`Modo inválido: ${datos.modo}`);
   }
+  if (datos.swing != null) {
+    const s = Number(datos.swing);
+    if (!Number.isInteger(s) || s < 0 || s > 50) {
+      return Resultado.fallo('Swing debe ser un entero entre 0 y 50');
+    }
+  }
+
+  const errEfectos = validarEfectos(datos.efectos);
+  if (errEfectos) return Resultado.fallo(errEfectos);
+  const errVolumen = validarVolumen(datos.volumen);
+  if (errVolumen) return Resultado.fallo(errVolumen);
+  const errSil = validarBooleanos('silenciados', datos.silenciados);
+  if (errSil) return Resultado.fallo(errSil);
+  const errSol = validarBooleanos('solistas', datos.solistas);
+  if (errSol) return Resultado.fallo(errSol);
 
   const errPatron = datos.modo === 'simple'
     ? validarPatronSimple(datos.patron)
@@ -210,6 +321,11 @@ export async function crear(datos, opciones = {}) {
     modo: datos.modo,
     estiloId: (datos.estiloId || '').trim(),
     familia: datos.familia || '',
+    efectos: datos.efectos ? JSON.stringify(datos.efectos) : null,
+    volumen: datos.volumen ? JSON.stringify(datos.volumen) : null,
+    silenciados: datos.silenciados ? JSON.stringify(datos.silenciados) : null,
+    solistas: datos.solistas ? JSON.stringify(datos.solistas) : null,
+    swing: typeof datos.swing === 'number' ? Math.round(datos.swing) : 0,
     creadoPor: ctx.datos.usuarioId,
     creadoEn: new Date().toISOString(),
   };

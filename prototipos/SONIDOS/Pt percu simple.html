@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ahora Sí — Percusión · Modo simple</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --papel: #F7F1E8;
+  --papel-2: #EFE7DA;
+  --papel-3: #FCF8F0;
+  --borde: #E2D7C5;
+  --borde-fuerte: #D2C4AC;
+  --tinta: #1F1B16;
+  --tinta-suave: #6B6155;
+  --tinta-tenue: #A89B87;
+  --terracota: #C9613B;
+  --mostaza: #D9A421;
+  --musgo: #5A6B3E;
+  --azul: #4A6785;
+  --ciruela: #7A3E5C;
+  --rojo: #A03737;
+  --accent: var(--mostaza);
+
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-full: 999px;
+  --sombra-1: 0 1px 2px rgba(31,27,22,.06);
+  --sombra-2: 0 12px 28px rgba(31,27,22,.10);
+  --fuente-titulo: 'Bricolage Grotesque', system-ui, sans-serif;
+  --fuente-cuerpo: 'Figtree', system-ui, sans-serif;
+}
+
+/* Modo noche global, tal como el resto de la app. */
+body.modo-noche {
+  --papel: #14100C;
+  --papel-2: #241C14;
+  --papel-3: #3A2E22;
+  --borde: rgba(242,230,208,.12);
+  --borde-fuerte: rgba(242,230,208,.22);
+  --tinta: #F2E6D0;
+  --tinta-suave: #B8A888;
+  --tinta-tenue: #6E5F48;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+h1,h2,h3,h4,p,ul,ol,li { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+button { background: none; border: none; cursor: pointer; font: inherit; color: inherit; }
+
+body {
+  font-family: var(--fuente-cuerpo);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--tinta);
+  background: radial-gradient(ellipse at top, #2C2620 0%, #13100D 100%);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  -webkit-font-smoothing: antialiased;
+  transition: background .3s ease;
+}
+@media (max-width: 520px) { body { padding: 0; display: block; } }
+
+.phone {
+  width: 390px;
+  height: 844px;
+  max-height: calc(100vh - 48px);
+  background: var(--papel);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 0 0 10px #0E0B08,
+    0 0 0 12px #2A2318,
+    0 30px 80px rgba(0,0,0,.55);
+  transition: background .3s ease;
+}
+@media (max-width: 520px) {
+  .phone { width: 100%; height: 100dvh; max-height: none; border-radius: 0; box-shadow: none; }
+}
+
+.screen-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--papel);
+  display: flex;
+  flex-direction: column;
+  transition: background .3s ease;
+}
+.screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+/* TOPBAR */
+.topbar {
+  flex-shrink: 0;
+  padding: 16px 20px 12px;
+  background: var(--papel);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  transition: background .3s ease;
+}
+.topbar__eyebrow {
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  margin-bottom: 4px;
+  transition: color .3s ease;
+}
+.topbar__title {
+  font-family: var(--fuente-titulo);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--mostaza);
+}
+.topbar__btn {
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  border-radius: var(--r-full);
+  color: var(--tinta-suave);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* SUBTABS */
+.subtabs {
+  display: flex;
+  gap: 6px;
+  padding: 0 20px 12px;
+  background: var(--papel);
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--borde);
+  transition: background .3s ease, border-color .3s ease;
+}
+.subtab {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  border-radius: var(--r-full);
+  white-space: nowrap;
+  transition: all .2s ease;
+}
+.subtab.is-active { background: var(--tinta); color: var(--papel); }
+.subtab__badge {
+  display: inline-block;
+  padding: 1px 6px;
+  margin-left: 6px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--papel-2);
+  color: var(--tinta-suave);
+}
+.subtab.is-active .subtab__badge {
+  background: rgba(247,241,232,.22);
+  color: var(--papel);
+}
+
+/* CUERPO */
+.screen__body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px 20px 120px;
+  transition: background .3s ease;
+}
+.screen__body::-webkit-scrollbar { width: 0; }
+
+/* ══════════════════════════════════════════════
+   CAJA DEL INSTRUMENTO
+   Usa los mismos tokens del shell. Cambia sola
+   cuando el body tiene modo-noche.
+   ══════════════════════════════════════════════ */
+.perc-caja {
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-lg);
+  padding: 16px 14px;
+  color: var(--tinta);
+  box-shadow: var(--sombra-2);
+  transition: background .3s ease, border-color .3s ease, color .3s ease;
+}
+.perc-caja * { color: inherit; }
+
+/* Selector de modo */
+.perc-modo {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--papel-2);
+  border-radius: var(--r-full);
+  margin-bottom: 14px;
+  transition: background .3s ease;
+}
+.perc-modo button {
+  flex: 1;
+  padding: 8px;
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tinta-suave);
+  transition: all .2s ease;
+}
+.perc-modo button.is-active {
+  background: var(--mostaza);
+  color: #1a1410;
+}
+
+/* Grilla modo simple */
+.perc-grilla {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.perc-voz {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.perc-voz__selector {
+  width: 96px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
+  color: var(--tinta);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+  transition: all .15s ease;
+  min-height: 38px;
+}
+.perc-voz__selector:hover {
+  background: var(--papel-3);
+  border-color: var(--borde-fuerte);
+}
+.perc-voz__selector-texto {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+.perc-voz__selector svg {
+  width: 10px; height: 10px;
+  flex-shrink: 0;
+  color: var(--tinta-tenue);
+  transition: color .15s ease;
+}
+.perc-voz__selector:hover svg { color: var(--mostaza); }
+
+.perc-pasos {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+}
+.perc-celda {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  transition: all .15s ease;
+  cursor: pointer;
+  min-height: 32px;
+  padding: 0;
+}
+.perc-celda:hover {
+  border-color: var(--borde-fuerte);
+}
+.perc-celda--marca {
+  background: color-mix(in oklab, var(--tinta) 6%, var(--papel-2));
+}
+.perc-celda--n1 { background: color-mix(in oklab, var(--mostaza) 40%, var(--papel-2)); border-color: color-mix(in oklab, var(--mostaza) 50%, var(--borde)); }
+.perc-celda--n2 { background: color-mix(in oklab, var(--mostaza) 70%, var(--papel-2)); border-color: var(--mostaza); }
+.perc-celda--n3 { background: var(--mostaza); border-color: var(--mostaza); }
+.perc-celda:active { transform: scale(.88); }
+
+/* Controles */
+.perc-controles {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  margin-bottom: 12px;
+  transition: background .3s ease, border-color .3s ease;
+}
+.perc-play {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-full);
+  background: var(--mostaza);
+  color: #1a1410;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: filter .15s ease, transform .15s ease;
+}
+.perc-play:hover { filter: brightness(1.05); }
+.perc-play:active { transform: scale(.92); }
+.perc-play svg { width: 20px; height: 20px; }
+.perc-sliders {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.perc-slider__label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+}
+.perc-slider__fila {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.perc-slider__input {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  background: var(--papel-3);
+  border-radius: 2px;
+  outline: none;
+}
+.perc-slider__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--mostaza);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,.15);
+}
+.perc-slider__input::-moz-range-thumb {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--mostaza);
+  border: none;
+  cursor: pointer;
+}
+.perc-slider__valor {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 12px;
+  color: var(--tinta);
+  min-width: 32px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Botones que abren sheets */
+.perc-botones {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 12px;
+}
+.perc-boton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 6px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  color: var(--tinta-suave);
+  font-size: 11px;
+  font-weight: 600;
+  transition: all .15s ease;
+  min-height: 58px;
+}
+.perc-boton:hover {
+  background: var(--papel);
+  color: var(--tinta);
+  border-color: var(--borde-fuerte);
+}
+.perc-boton svg { width: 18px; height: 18px; }
+
+/* Botones inferiores */
+.botones-fila {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+.boton-accion {
+  flex: 1;
+  padding: 10px 12px;
+  background: transparent;
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--r-sm);
+  color: var(--tinta-suave);
+  font-size: 12px;
+  font-weight: 600;
+  transition: all .15s ease;
+}
+.boton-accion:hover { background: var(--papel-2); color: var(--tinta); }
+.boton-accion--principal {
+  background: var(--mostaza);
+  border-color: var(--mostaza);
+  color: #1a1410;
+}
+.boton-accion--principal:hover {
+  background: color-mix(in oklab, var(--mostaza) 90%, #000);
+  color: #1a1410;
+}
+
+/* ══════════════════════════════════════════════
+   SHEET
+   ══════════════════════════════════════════════ */
+.sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(10, 8, 5, .6);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s ease;
+}
+.sheet.is-open { opacity: 1; pointer-events: auto; }
+.sheet__panel {
+  width: 100%;
+  max-height: 82%;
+  background: var(--papel);
+  color: var(--tinta);
+  border-radius: 22px 22px 0 0;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform .3s cubic-bezier(.32,.72,0,1), background .3s ease;
+  overflow: hidden;
+  border: 1px solid var(--borde);
+  border-bottom: 0;
+}
+.sheet.is-open .sheet__panel { transform: translateY(0); }
+.sheet__handle {
+  width: 40px; height: 4px;
+  background: var(--borde-fuerte);
+  border-radius: 4px;
+  margin: 10px auto 4px;
+}
+.sheet__cab {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 18px 14px;
+  border-bottom: 1px solid var(--borde);
+}
+.sheet__titulo {
+  flex: 1;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -.01em;
+}
+.sheet__cerrar {
+  width: 32px; height: 32px;
+  border-radius: var(--r-full);
+  background: var(--papel-2);
+  color: var(--tinta-suave);
+  display: grid; place-items: center;
+  transition: background .15s ease;
+}
+.sheet__cerrar:hover { background: var(--papel-3); color: var(--tinta); }
+.sheet__cerrar svg { width: 16px; height: 16px; }
+.sheet__cuerpo {
+  padding: 16px 18px 20px;
+  overflow-y: auto;
+}
+.sheet__cuerpo::-webkit-scrollbar { width: 0; }
+
+/* Sheet elegir sonido */
+.categoria-sonidos {
+  margin-bottom: 18px;
+}
+.categoria-sonidos__titulo {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  margin-bottom: 8px;
+}
+.sonidos-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.sonido-chip {
+  padding: 10px 12px;
+  background: var(--papel-2);
+  border: 1.5px solid transparent;
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tinta);
+  text-align: left;
+  cursor: pointer;
+  transition: all .15s ease;
+  line-height: 1.25;
+}
+.sonido-chip:hover {
+  background: var(--papel-3);
+}
+.sonido-chip.is-active {
+  background: color-mix(in oklab, var(--mostaza) 18%, var(--papel-2));
+  border-color: var(--mostaza);
+  color: var(--tinta);
+}
+
+/* Sheet mezcla y efectos */
+.fila-slider {
+  display: grid;
+  grid-template-columns: 96px 1fr 68px;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.fila-slider label {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--tinta);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fila-slider .valor {
+  font-size: 11px;
+  color: var(--tinta-suave);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.fila-slider input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  background: var(--papel-2);
+  border-radius: 2px;
+  outline: none;
+  width: 100%;
+}
+.fila-slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--mostaza);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,.15);
+}
+.fila-slider input[type="range"]::-moz-range-thumb {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--mostaza);
+  border: none;
+  cursor: pointer;
+}
+.fila-slider__acciones {
+  display: flex;
+  gap: 3px;
+  justify-content: flex-end;
+}
+.mini-btn {
+  padding: 3px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  background: transparent;
+  border: 1px solid var(--borde-fuerte);
+  border-radius: 4px;
+  color: var(--tinta-suave);
+  cursor: pointer;
+  transition: all .15s ease;
+  min-width: 24px;
+}
+.mini-btn:hover {
+  background: var(--papel-2);
+  color: var(--tinta);
+}
+.mini-btn.is-active {
+  background: var(--rojo);
+  border-color: var(--rojo);
+  color: #F2E6D0;
+}
+
+/* Sheet guardados */
+.guardados-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ritmo-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+}
+.ritmo-item__cuerpo { flex: 1; min-width: 0; }
+.ritmo-item__nombre {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--tinta);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+.ritmo-item__meta {
+  font-size: 11px;
+  color: var(--tinta-tenue);
+}
+.ritmo-item__acciones {
+  display: flex;
+  gap: 4px;
+}
+
+/* Placeholder del formulario guardar */
+.campo-nombre {
+  padding: 11px 13px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--r-sm);
+  color: var(--tinta);
+  font-size: 14px;
+  width: 100%;
+  font-family: inherit;
+  margin-bottom: 12px;
+}
+.campo-nombre::placeholder { color: var(--tinta-tenue); }
+.campo-nombre:focus {
+  outline: none;
+  border-color: var(--mostaza);
+  background: var(--papel);
+}
+
+/* FAB */
+.fab {
+  position: absolute;
+  bottom: 92px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-full);
+  background: var(--mostaza);
+  color: #1a1410;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 12px 28px rgba(217,164,33,.35);
+  z-index: 40;
+  transition: transform .15s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+.fab.is-visible { opacity: 1; pointer-events: auto; }
+.fab:active { transform: scale(.9); }
+.fab svg { width: 24px; height: 24px; }
+
+/* TABBAR */
+.tabbar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 78px;
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  background: color-mix(in oklab, var(--papel) 94%, transparent);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--borde);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 50;
+  transition: background .3s ease, border-color .3s ease;
+}
+.tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--tinta-tenue);
+  opacity: .55;
+  padding: 4px;
+  transition: color .2s ease;
+}
+.tabbar__item svg { width: 22px; height: 22px; }
+.tabbar__label { font-size: 10px; font-weight: 600; }
+.tabbar__item.activo { color: var(--mostaza); opacity: 1; }
+.tabbar__item.activo .tabbar__label { font-weight: 700; }
+
+/* DEBUG NAV */
+.debug-nav {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 260px;
+}
+.debug-nav__label {
+  font-size: 9px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+  font-weight: 700;
+}
+.debug-nav__btns {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 4px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--r-md);
+  backdrop-filter: blur(12px);
+}
+.debug-nav__btns button {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.55);
+  border-radius: 8px;
+  text-align: left;
+  transition: all .15s ease;
+}
+.debug-nav__btns button:hover { color: rgba(255,255,255,.9); }
+.debug-nav__btns button.is-active { background: rgba(255,255,255,.15); color: #fff; }
+@media (max-width: 720px) { .debug-nav { display: none; } }
+</style>
+</head>
+
+<body>
+
+<nav class="debug-nav">
+  <span class="debug-nav__label">Tema</span>
+  <div class="debug-nav__btns" id="temaNav">
+    <button data-tema="dia" class="is-active">Día + caja clara</button>
+    <button data-tema="noche">Noche + caja oscura</button>
+  </div>
+</nav>
+
+<div class="phone">
+  <main class="screen-area">
+    <section class="screen">
+
+      <header class="topbar">
+        <div>
+          <p class="topbar__eyebrow">Juegos · Percusión</p>
+          <h1 class="topbar__title">Percusión</h1>
+        </div>
+        <button class="topbar__btn" aria-label="Opciones">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="5" cy="12" r="1.6"/>
+            <circle cx="12" cy="12" r="1.6"/>
+            <circle cx="19" cy="12" r="1.6"/>
+          </svg>
+        </button>
+      </header>
+
+      <nav class="subtabs">
+        <button class="subtab">Series</button>
+        <button class="subtab">Juegos <span class="subtab__badge">5</span></button>
+        <button class="subtab is-active">Percusión</button>
+      </nav>
+
+      <div class="screen__body">
+
+        <div class="perc-caja">
+
+          <div class="perc-modo">
+            <button class="is-active">Simple</button>
+            <button>Extendido</button>
+          </div>
+
+          <div class="perc-grilla">
+            <div class="perc-voz">
+              <button class="perc-voz__selector" data-fila="0">
+                <span class="perc-voz__selector-texto">Bombo gordo</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="perc-pasos">
+                <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                <button class="perc-celda"></button>
+                <button class="perc-celda perc-celda--n2"></button>
+                <button class="perc-celda"></button>
+                <button class="perc-celda perc-celda--marca"></button>
+                <button class="perc-celda"></button>
+                <button class="perc-celda perc-celda--n2"></button>
+                <button class="perc-celda"></button>
+              </div>
+            </div>
+
+            <div class="perc-voz">
+              <button class="perc-voz__selector" data-fila="1">
+                <span class="perc-voz__selector-texto">Caja seca</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="perc-pasos">
+                <button class="perc-celda perc-celda--marca"></button>
+                <button class="perc-celda"></button>
+                <button class="perc-celda perc-celda--n3"></button>
+                <button class="perc-celda"></button>
+                <button class="perc-celda perc-celda--marca"></button>
+                <button class="perc-celda"></button>
+                <button class="perc-celda perc-celda--n3"></button>
+                <button class="perc-celda"></button>
+              </div>
+            </div>
+
+            <div class="perc-voz">
+              <button class="perc-voz__selector" data-fila="2">
+                <span class="perc-voz__selector-texto">HH cerrado</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="perc-pasos">
+                <button class="perc-celda perc-celda--marca perc-celda--n2"></button>
+                <button class="perc-celda perc-celda--n1"></button>
+                <button class="perc-celda perc-celda--n2"></button>
+                <button class="perc-celda perc-celda--n1"></button>
+                <button class="perc-celda perc-celda--marca perc-celda--n2"></button>
+                <button class="perc-celda perc-celda--n1"></button>
+                <button class="perc-celda perc-celda--n2"></button>
+                <button class="perc-celda perc-celda--n1"></button>
+              </div>
+            </div>
+
+            <div class="perc-voz">
+              <button class="perc-voz__selector" data-fila="3">
+                <span class="perc-voz__selector-texto">Clap</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="perc-pasos">
+                <button class="perc-celda perc-celda--marca"></button>
+                <button class="perc-celda"></button>
+                <button class="perc-celda"></button>
+                <button class="perc-celda"></button>
+                <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                <button class="perc-celda"></button>
+                <button class="perc-celda"></button>
+                <button class="perc-celda"></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="perc-controles">
+            <button class="perc-play">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <div class="perc-sliders">
+              <span class="perc-slider__label">Tempo</span>
+              <div class="perc-slider__fila">
+                <input class="perc-slider__input" type="range" value="90">
+                <span class="perc-slider__valor">90</span>
+              </div>
+              <span class="perc-slider__label" style="margin-top: 4px;">Swing</span>
+              <div class="perc-slider__fila">
+                <input class="perc-slider__input" type="range" value="8">
+                <span class="perc-slider__valor">8%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="perc-botones">
+            <button class="perc-boton" data-sheet="mezcla">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 6h16M4 12h16M4 18h16"/>
+              </svg>
+              Mezcla
+            </button>
+            <button class="perc-boton" data-sheet="efectos">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M12 3v18M3 12h18"/>
+              </svg>
+              Efectos
+            </button>
+            <button class="perc-boton" data-sheet="guardados">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+              </svg>
+              Guardados
+            </button>
+          </div>
+
+          <div class="botones-fila">
+            <button class="boton-accion">Reset</button>
+            <button class="boton-accion">Limpiar</button>
+            <button class="boton-accion boton-accion--principal">Guardar</button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button class="tabbar__item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+      </svg>
+      <span class="tabbar__label">Nido</span>
+    </button>
+    <button class="tabbar__item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/>
+        <path d="M4 17a3 3 0 0 1 3-3h11"/>
+      </svg>
+      <span class="tabbar__label">Vida</span>
+    </button>
+    <button class="tabbar__item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 20h18L14 8l-3 5-2-3-6 10z"/>
+      </svg>
+      <span class="tabbar__label">Afuera</span>
+    </button>
+    <button class="tabbar__item activo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+        <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/>
+      </svg>
+      <span class="tabbar__label">Juegos</span>
+    </button>
+    <button class="tabbar__item">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="5" cy="12" r="1.6"/>
+        <circle cx="12" cy="12" r="1.6"/>
+        <circle cx="19" cy="12" r="1.6"/>
+      </svg>
+      <span class="tabbar__label">Más</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const SONIDOS = [
+    { id: 'bombo_seco',   nombre: 'Bombo seco',   cat: 'Graves' },
+    { id: 'bombo_gordo',  nombre: 'Bombo gordo',  cat: 'Graves' },
+    { id: 'djembe_grave', nombre: 'Djembé grave', cat: 'Graves' },
+    { id: 'caja_seca',    nombre: 'Caja seca',    cat: 'Medios' },
+    { id: 'caja_clasica', nombre: 'Caja clásica', cat: 'Medios' },
+    { id: 'timbal',       nombre: 'Timbal',       cat: 'Medios' },
+    { id: 'hh_cerrado',   nombre: 'HH cerrado',   cat: 'Agudos' },
+    { id: 'hh_abierto',   nombre: 'HH abierto',   cat: 'Agudos' },
+    { id: 'shaker',       nombre: 'Shaker',       cat: 'Agudos' },
+    { id: 'guira',        nombre: 'Güira',        cat: 'Agudos' },
+    { id: 'cencerro',     nombre: 'Cencerro',     cat: 'Metálicos' },
+    { id: 'campana',      nombre: 'Campana',      cat: 'Metálicos' },
+  ];
+
+  const CATEGORIAS = ['Graves', 'Medios', 'Agudos', 'Metálicos'];
+
+  /* ═══════════════════════════════════════════════
+     TEMA
+     ═══════════════════════════════════════════════ */
+  document.querySelectorAll('#temaNav button').forEach((b) => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#temaNav button').forEach((x) => x.classList.remove('is-active'));
+      b.classList.add('is-active');
+      document.body.classList.toggle('modo-noche', b.dataset.tema === 'noche');
+    });
+  });
+
+  /* ═══════════════════════════════════════════════
+     CELDAS: ciclan nivel
+     ═══════════════════════════════════════════════ */
+  document.querySelectorAll('.perc-celda').forEach((c) => {
+    c.addEventListener('click', () => {
+      const cl = ['perc-celda--n1', 'perc-celda--n2', 'perc-celda--n3'];
+      const idx = cl.findIndex((x) => c.classList.contains(x));
+      c.classList.remove(...cl);
+      if (idx === -1) c.classList.add(cl[0]);
+      else if (idx < 2) c.classList.add(cl[idx + 1]);
+    });
+  });
+
+  /* ═══════════════════════════════════════════════
+     MODO
+     ═══════════════════════════════════════════════ */
+  document.querySelectorAll('.perc-modo button').forEach((b) => {
+    b.addEventListener('click', () => {
+      b.parentNode.querySelectorAll('button').forEach((x) => x.classList.remove('is-active'));
+      b.classList.add('is-active');
+    });
+  });
+
+  /* ═══════════════════════════════════════════════
+     SHEETS
+     ═══════════════════════════════════════════════ */
+  let sheetActivo = null;
+
+  function cerrarSheet() {
+    if (!sheetActivo) return;
+    const s = sheetActivo;
+    s.classList.remove('is-open');
+    sheetActivo = null;
+    setTimeout(() => { if (s.parentNode) s.remove(); }, 320);
+  }
+
+  function abrirSheet(contenido) {
+    cerrarSheet();
+    const sheet = document.createElement('div');
+    sheet.className = 'sheet';
+    sheet.innerHTML = `
+      <div class="sheet__panel">
+        <div class="sheet__handle"></div>
+        <div class="sheet__cab">
+          <span class="sheet__titulo">${contenido.titulo}</span>
+          <button class="sheet__cerrar" data-cerrar aria-label="Cerrar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+              <path d="M6 6l12 12M18 6l-12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="sheet__cuerpo">${contenido.cuerpo}</div>
+      </div>
+    `;
+    document.querySelector('.phone').appendChild(sheet);
+    requestAnimationFrame(() => sheet.classList.add('is-open'));
+    sheetActivo = sheet;
+
+    sheet.addEventListener('click', (e) => {
+      if (e.target === sheet) cerrarSheet();
+    });
+    sheet.querySelectorAll('[data-cerrar]').forEach((b) => {
+      b.addEventListener('click', cerrarSheet);
+    });
+
+    if (contenido.onAbrir) contenido.onAbrir(sheet);
+  }
+
+  /* ── Sheet: elegir sonido ── */
+  function abrirSheetSonido(indiceFila) {
+    let html = '';
+    for (const cat of CATEGORIAS) {
+      const sonidos = SONIDOS.filter((s) => s.cat === cat);
+      html += `
+        <div class="categoria-sonidos">
+          <p class="categoria-sonidos__titulo">${cat}</p>
+          <div class="sonidos-grid">
+            ${sonidos.map((s) => `
+              <button class="sonido-chip" data-sonido="${s.id}">${s.nombre}</button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    abrirSheet({
+      titulo: 'Elegir sonido',
+      cuerpo: html,
+      onAbrir(sheet) {
+        sheet.querySelectorAll('.sonido-chip').forEach((chip) => {
+          chip.addEventListener('click', () => {
+            const sonido = SONIDOS.find((s) => s.id === chip.dataset.sonido);
+            if (!sonido) return;
+            // Actualizar el texto del selector.
+            const selector = document.querySelector(`.perc-voz__selector[data-fila="${indiceFila}"] .perc-voz__selector-texto`);
+            if (selector) selector.textContent = sonido.nombre;
+            cerrarSheet();
+          });
+        });
+      },
+    });
+  }
+
+  document.querySelectorAll('.perc-voz__selector').forEach((b) => {
+    b.addEventListener('click', () => abrirSheetSonido(b.dataset.fila));
+  });
+
+  /* ── Sheet: mezcla ── */
+  function abrirSheetMezcla() {
+    const voces = ['Bombo gordo', 'Caja seca', 'HH cerrado', 'Clap'];
+    const valores = [100, 80, 60, 90];
+
+    const filas = voces.map((v, i) => `
+      <div class="fila-slider">
+        <label>${v}</label>
+        <input type="range" value="${valores[i]}">
+        <div class="fila-slider__acciones">
+          <button class="mini-btn">M</button>
+          <button class="mini-btn">S</button>
+        </div>
+      </div>
+    `).join('');
+
+    abrirSheet({
+      titulo: 'Mezcla',
+      cuerpo: `
+        <p style="font-size: 9.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--tinta-tenue); margin-bottom: 10px;">
+          Volumen por voz
+        </p>
+        ${filas}
+      `,
+      onAbrir(sheet) {
+        sheet.querySelectorAll('.mini-btn').forEach((b) => {
+          b.addEventListener('click', () => b.classList.toggle('is-active'));
+        });
+      },
+    });
+  }
+
+  /* ── Sheet: efectos ── */
+  function abrirSheetEfectos() {
+    const efectos = [
+      { nombre: 'Reverb', valor: 24 },
+      { nombre: 'Eco', valor: 24 },
+      { nombre: 'Saturación', valor: 35 },
+      { nombre: 'Filtro', valor: 100 },
+    ];
+
+    const filas = efectos.map((e) => `
+      <div class="fila-slider">
+        <label>${e.nombre}</label>
+        <input type="range" value="${e.valor}">
+        <span class="valor">${e.valor}</span>
+      </div>
+    `).join('');
+
+    abrirSheet({
+      titulo: 'Efectos',
+      cuerpo: `
+        <p style="font-size: 9.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--tinta-tenue); margin-bottom: 10px;">
+          Globales
+        </p>
+        ${filas}
+      `,
+    });
+  }
+
+  /* ── Sheet: guardados ── */
+  function abrirSheetGuardados() {
+    const ritmos = [
+      { nombre: 'Base del domingo', meta: 'Simple · 90 bpm' },
+      { nombre: 'Rap underground', meta: 'Simple · 90 bpm' },
+      { nombre: 'Afro house largo', meta: 'Extendido · 122 bpm' },
+    ];
+
+    const lista = ritmos.map((r) => `
+      <div class="ritmo-item">
+        <div class="ritmo-item__cuerpo">
+          <div class="ritmo-item__nombre">${r.nombre}</div>
+          <div class="ritmo-item__meta">${r.meta}</div>
+        </div>
+        <div class="ritmo-item__acciones">
+          <button class="mini-btn">Cargar</button>
+          <button class="mini-btn">×</button>
+        </div>
+      </div>
+    `).join('');
+
+    abrirSheet({
+      titulo: 'Ritmos guardados',
+      cuerpo: `<div class="guardados-lista">${lista}</div>`,
+    });
+  }
+
+  document.querySelectorAll('[data-sheet]').forEach((b) => {
+    b.addEventListener('click', () => {
+      const tipo = b.dataset.sheet;
+      if (tipo === 'mezcla') abrirSheetMezcla();
+      else if (tipo === 'efectos') abrirSheetEfectos();
+      else if (tipo === 'guardados') abrirSheetGuardados();
+    });
+  });
+
+  /* ── Guardar: por ahora toast simple ── */
+  document.querySelectorAll('.boton-accion').forEach((b) => {
+    b.addEventListener('click', () => {
+      const texto = b.textContent.trim();
+      if (texto === 'Guardar') {
+        abrirSheet({
+          titulo: 'Guardar ritmo',
+          cuerpo: `
+            <input class="campo-nombre" type="text" placeholder="Nombre del ritmo" maxlength="100" value="">
+            <div style="display: flex; gap: 8px;">
+              <button class="boton-accion" data-cerrar>Cancelar</button>
+              <button class="boton-accion boton-accion--principal">Guardar</button>
+            </div>
+          `,
+        });
+      }
+    });
+  });
+
+})();
+</script>
+
+</body>
+</html>

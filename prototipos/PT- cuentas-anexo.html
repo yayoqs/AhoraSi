@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ahora Sí — Cuenta + Anexos · Prototipo</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --papel: #F7F1E8;
+  --papel-2: #EFE7DA;
+  --papel-3: #FCF8F0;
+  --papel-carta: #FBF4E6;
+  --borde: #E2D7C5;
+  --borde-fuerte: #D2C4AC;
+  --tinta: #1F1B16;
+  --tinta-suave: #6B6155;
+  --tinta-tenue: #A89B87;
+  --terracota: #C9613B;
+  --mostaza: #D9A421;
+  --musgo: #5A6B3E;
+  --rojo: #A03737;
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-full: 999px;
+  --fuente-titulo: 'Bricolage Grotesque', system-ui, sans-serif;
+  --fuente-cuerpo: 'Figtree', system-ui, sans-serif;
+  --fuente-carta: 'Fraunces', Georgia, serif;
+}
+
+body.modo-noche {
+  --papel: #14100C;
+  --papel-2: #241C14;
+  --papel-3: #3A2E22;
+  --papel-carta: #241C14;
+  --borde: rgba(242,230,208,.12);
+  --borde-fuerte: rgba(242,230,208,.22);
+  --tinta: #F2E6D0;
+  --tinta-suave: #B8A888;
+  --tinta-tenue: #6E5F48;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+h1, h2, h3, p, ul, li { margin: 0; padding: 0; }
+ul { list-style: none; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+input, textarea { font: inherit; }
+
+body {
+  font-family: var(--fuente-cuerpo);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--tinta);
+  background: radial-gradient(ellipse at top, #2C2620 0%, #13100D 100%);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  transition: background .3s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (max-width: 520px) { body { padding: 0; display: block; } }
+
+.phone {
+  width: 390px;
+  height: 844px;
+  max-height: calc(100vh - 48px);
+  background: var(--papel);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 0 0 10px #0E0B08,
+    0 0 0 12px #2A2318,
+    0 30px 80px rgba(0,0,0,.55);
+  transition: background .3s ease;
+}
+
+@media (max-width: 520px) {
+  .phone { width: 100%; height: 100dvh; max-height: none; border-radius: 0; box-shadow: none; }
+}
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  position: relative;
+}
+
+/* ─── Header ─────────────────────────────────────────── */
+
+.topbar {
+  flex-shrink: 0;
+  padding: 16px 20px 12px;
+  background: var(--papel);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  position: relative;
+  z-index: 20;
+  transition: background .3s ease;
+}
+.topbar__izq {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+.topbar__btn-volver {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-full);
+  background: var(--papel-2);
+  color: var(--tinta-suave);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  margin-top: 4px;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+.topbar__btn-volver:hover { background: var(--papel-3); color: var(--tinta); }
+.topbar__btn-volver svg { width: 15px; height: 15px; }
+
+.topbar__eyebrow {
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.topbar__title {
+  font-family: var(--fuente-titulo);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -.035em;
+  line-height: 1;
+  color: var(--terracota);
+}
+
+.topbar__btn-menu {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  color: var(--tinta-suave);
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition: background .15s ease;
+}
+.topbar__btn-menu:hover { background: var(--papel-2); }
+.topbar__btn-menu[hidden] { display: none; }
+
+/* ─── Menú del ⋮ ─────────────────────────────────────── */
+
+.menu {
+  position: absolute;
+  top: 56px;
+  right: 16px;
+  min-width: 200px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--r-md);
+  box-shadow: 0 12px 32px rgba(31, 27, 22, .18);
+  padding: 6px;
+  z-index: 100;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+}
+.menu.is-open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.menu__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: var(--r-sm);
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--tinta);
+  text-align: left;
+  transition: background .12s ease;
+}
+.menu__item:hover { background: var(--papel-2); }
+.menu__item svg { width: 18px; height: 18px; color: var(--tinta-suave); flex-shrink: 0; }
+.menu__item.is-activo { background: var(--papel-2); }
+.menu__item.is-activo svg { color: var(--terracota); }
+
+/* ─── Body ───────────────────────────────────────────── */
+
+.screen__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 20px 120px;
+  transition: background .3s ease;
+}
+.screen__body::-webkit-scrollbar { width: 0; }
+
+/* ─── Secciones (vista Cuenta) ───────────────────────── */
+
+.seccion { margin-bottom: 32px; }
+.seccion__cab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.seccion__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -.01em;
+  color: var(--tinta);
+}
+.seccion__nota {
+  font-size: 13px;
+  color: var(--tinta-suave);
+  line-height: 1.5;
+  margin-bottom: 12px;
+  max-width: 50ch;
+}
+
+.toggle-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+}
+.toggle-fila__texto { display: flex; flex-direction: column; gap: 2px; }
+.toggle-fila__titulo { font-weight: 600; font-size: 14.5px; color: var(--tinta); }
+.toggle-fila__sub { font-size: 12px; color: var(--tinta-suave); }
+
+.toggle {
+  position: relative;
+  width: 52px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: var(--r-full);
+  background: var(--borde-fuerte);
+  cursor: pointer;
+  transition: background .2s ease;
+}
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--papel);
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  transition: transform .2s ease;
+}
+.toggle[aria-pressed="true"] { background: var(--terracota); }
+.toggle[aria-pressed="true"]::after { transform: translateX(22px); }
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 420px;
+}
+.form input {
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--borde);
+  background: var(--papel-3);
+  color: var(--tinta);
+  font-size: 15px;
+  width: 100%;
+  transition: border-color .15s ease, background .15s ease;
+}
+.form input:focus {
+  border-color: var(--terracota);
+  background: var(--papel);
+  outline: none;
+}
+.form button[type="submit"] {
+  padding: 12px 28px;
+  border-radius: var(--r-md);
+  background: var(--terracota);
+  color: var(--papel);
+  font-weight: 700;
+  font-size: 15px;
+  align-self: flex-start;
+  transition: filter .15s ease, transform .15s ease;
+}
+.form button[type="submit"]:hover { filter: brightness(1.05); }
+.form button[type="submit"]:active { transform: translateY(1px); }
+
+.salir-bloque {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px dashed var(--borde-fuerte);
+}
+.salir-bloque__nota {
+  font-size: 12.5px;
+  color: var(--tinta-tenue);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+.btn-salir {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: var(--r-md);
+  border: 1.5px solid color-mix(in oklab, var(--rojo) 40%, var(--borde));
+  background: transparent;
+  color: var(--rojo);
+  font-weight: 700;
+  font-size: 14.5px;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.btn-salir:hover { background: var(--rojo); color: var(--papel); border-color: var(--rojo); }
+.btn-salir svg { width: 16px; height: 16px; }
+
+/* ─── Vista Anexos ───────────────────────────────────── */
+
+.btn-agregar-principal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px 24px;
+  border-radius: var(--r-md);
+  background: var(--terracota);
+  color: var(--papel);
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 20px;
+  transition: filter .15s ease, transform .15s ease;
+}
+.btn-agregar-principal:hover { filter: brightness(1.05); }
+.btn-agregar-principal:active { transform: translateY(1px); }
+
+.form-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+  background: var(--papel-2);
+  border: 1px dashed var(--borde-fuerte);
+  border-radius: var(--r-md);
+  margin-bottom: 20px;
+}
+.form-inline input,
+.form-inline textarea {
+  padding: 11px 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--borde);
+  background: var(--papel-3);
+  color: var(--tinta);
+  font-size: 14px;
+  font-family: inherit;
+  width: 100%;
+  transition: border-color .15s ease, background .15s ease;
+}
+.form-inline input:focus,
+.form-inline textarea:focus {
+  border-color: var(--terracota);
+  background: var(--papel-carta);
+  outline: none;
+}
+.form-inline textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: var(--fuente-carta);
+  font-size: 15px;
+  line-height: 1.55;
+}
+.form-inline__fila {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 10px 18px;
+  border-radius: var(--r-sm);
+  font-weight: 600;
+  font-size: 13.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  transition: background .15s ease, color .15s ease, filter .15s ease, transform .15s ease;
+  border: 0;
+  cursor: pointer;
+}
+.btn--primario { background: var(--terracota); color: var(--papel); }
+.btn--primario:hover { filter: brightness(1.05); }
+.btn--secundario {
+  background: transparent;
+  color: var(--tinta-suave);
+  border: 1px solid var(--borde-fuerte);
+}
+.btn--secundario:hover { background: var(--papel-3); color: var(--tinta); }
+
+.lista-anexos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.anexo {
+  padding: 18px 20px;
+  background: var(--papel-carta);
+  border: 1px solid var(--borde);
+  border-left: 3px solid var(--terracota);
+  border-radius: var(--r-md);
+}
+body.modo-noche .anexo { background: var(--papel-2); }
+
+.anexo__titulo {
+  font-family: var(--fuente-carta);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 17px;
+  color: var(--tinta);
+  letter-spacing: -.01em;
+  margin-bottom: 8px;
+}
+
+.anexo__contenido {
+  font-family: var(--fuente-carta);
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: var(--tinta);
+  white-space: pre-wrap;
+  margin-bottom: 12px;
+}
+
+.anexo__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 10px;
+  border-top: 1px dashed var(--borde);
+}
+
+.anexo__acciones {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.btn-mini {
+  padding: 5px 11px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  background: transparent;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.btn-mini:hover { background: var(--papel-3); color: var(--tinta); }
+.btn-mini--peligro:hover {
+  background: #FBE9E9;
+  color: var(--rojo);
+  border-color: #E3B6B6;
+}
+
+.autor {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px 2px 2px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.autor__inicial {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--papel);
+  font-family: var(--fuente-titulo);
+}
+.autor--luci { background: #F0E2E2; color: #8A5757; }
+.autor--luci .autor__inicial { background: #D89A9A; }
+.autor--yayo { background: #EFE4CC; color: #6B4F1F; }
+.autor--yayo .autor__inicial { background: #B8893C; }
+
+.vacio-caja {
+  padding: 40px 24px;
+  background: var(--papel-2);
+  border: 1px dashed var(--borde-fuerte);
+  border-radius: var(--r-lg);
+  text-align: center;
+}
+.vacio-caja__emoji { font-size: 38px; margin-bottom: 12px; line-height: 1; }
+.vacio-caja__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--tinta);
+  margin-bottom: 6px;
+}
+.vacio-caja__texto {
+  font-size: 13.5px;
+  color: var(--tinta-suave);
+  line-height: 1.55;
+}
+
+/* ─── Tabbar ─────────────────────────────────────────── */
+
+.tabbar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 78px;
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  background: color-mix(in oklab, var(--papel) 94%, transparent);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--borde);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 50;
+}
+.tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--tinta-tenue);
+  opacity: .55;
+  padding: 4px;
+}
+.tabbar__item svg { width: 22px; height: 22px; }
+.tabbar__label { font-size: 10px; font-weight: 600; }
+.tabbar__item.activo { color: var(--terracota); opacity: 1; }
+.tabbar__item.activo .tabbar__label { font-weight: 700; }
+
+/* ─── Debug nav ──────────────────────────────────────── */
+
+.debug-nav {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 200px;
+}
+.debug-nav__label {
+  font-size: 9px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+  font-weight: 700;
+}
+.debug-nav__btns {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 4px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--r-md);
+  backdrop-filter: blur(12px);
+}
+.debug-nav__btns button {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.55);
+  border-radius: 8px;
+  text-align: left;
+  transition: all .15s ease;
+}
+.debug-nav__btns button:hover { color: rgba(255,255,255,.9); }
+.debug-nav__btns button.is-active { background: rgba(255,255,255,.15); color: #fff; }
+@media (max-width: 720px) { .debug-nav { display: none; } }
+</style>
+</head>
+
+<body>
+
+<nav class="debug-nav">
+  <span class="debug-nav__label">Estado</span>
+  <div class="debug-nav__btns" id="estadoNav">
+    <button data-estado="cuenta" class="is-active">Cuenta</button>
+    <button data-estado="cuenta-menu">Cuenta · menú ⋮ abierto</button>
+    <button data-estado="anexos">Anexos</button>
+  </div>
+</nav>
+
+<div class="phone">
+  <main class="screen">
+
+    <!-- Header -->
+    <header class="topbar">
+      <div class="topbar__izq">
+        <button class="topbar__btn-volver" id="btnVolver" hidden aria-label="Volver">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 6l-6 6 6 6"/>
+          </svg>
+        </button>
+        <div>
+          <p class="topbar__eyebrow" id="eyebrow">Más</p>
+          <h1 class="topbar__title" id="titulo">Mi cuenta</h1>
+        </div>
+      </div>
+      <button class="topbar__btn-menu" id="btnMenu" aria-label="Opciones">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="5" cy="12" r="1.6"/>
+          <circle cx="12" cy="12" r="1.6"/>
+          <circle cx="19" cy="12" r="1.6"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Menú desplegable -->
+    <div class="menu" id="menu">
+      <button class="menu__item" data-destino="cuenta">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 20c0-3.5 3.5-6 8-6s8 2.5 8 6"/>
+        </svg>
+        <span>Mi cuenta</span>
+      </button>
+      <button class="menu__item" data-destino="anexos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>
+          <path d="M14 3v5h5"/>
+          <path d="M9 13h6M9 17h4"/>
+        </svg>
+        <span>Anexos</span>
+      </button>
+    </div>
+
+    <!-- Vista Cuenta -->
+    <div class="screen__body" id="bodyCuenta">
+      <section class="seccion">
+        <div class="seccion__cab"><h2 class="seccion__titulo">Modo noche</h2></div>
+        <p class="seccion__nota">Se guarda en este navegador. Cambia el tono de toda la app.</p>
+        <div class="toggle-fila">
+          <div class="toggle-fila__texto">
+            <span class="toggle-fila__titulo">Papel oscuro</span>
+            <span class="toggle-fila__sub">Ideal de noche o con poca luz</span>
+          </div>
+          <button type="button" class="toggle" id="toggleNoche" aria-pressed="false" aria-label="Activar modo noche"></button>
+        </div>
+      </section>
+
+      <section class="seccion">
+        <div class="seccion__cab"><h2 class="seccion__titulo">Nombre visible</h2></div>
+        <p class="seccion__nota">Es el nombre que aparece en los registros que tú creas.</p>
+        <form class="form" onsubmit="event.preventDefault();">
+          <input type="text" placeholder="Tu nombre visible" value="Yayo" maxlength="60">
+          <button type="submit">Guardar nombre</button>
+        </form>
+      </section>
+
+      <section class="seccion">
+        <div class="seccion__cab"><h2 class="seccion__titulo">Contraseña</h2></div>
+        <p class="seccion__nota">Tu contraseña es solo tuya. Puedes cambiarla cuando quieras.</p>
+        <form class="form" onsubmit="event.preventDefault();">
+          <input type="password" placeholder="Contraseña actual" autocomplete="current-password">
+          <input type="password" placeholder="Contraseña nueva (mínimo 8 caracteres)" autocomplete="new-password" minlength="8">
+          <input type="password" placeholder="Repetir contraseña nueva" autocomplete="new-password" minlength="8">
+          <button type="submit">Cambiar contraseña</button>
+        </form>
+      </section>
+
+      <section class="salir-bloque">
+        <p class="salir-bloque__nota">Vas a volver a la pantalla de inicio de sesión. No se borra nada de lo que hay guardado.</p>
+        <button type="button" class="btn-salir">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <path d="M16 17l5-5-5-5"/>
+            <path d="M21 12H9"/>
+          </svg>
+          Cerrar sesión
+        </button>
+      </section>
+    </div>
+
+    <!-- Vista Anexos -->
+    <div class="screen__body" id="bodyAnexos" hidden>
+      <button class="btn-agregar-principal" id="btnAbrirForm">+ Nuevo anexo</button>
+
+      <form class="form-inline" id="formAnexo" hidden onsubmit="event.preventDefault();">
+        <input type="text" placeholder="Título" maxlength="200" value="">
+        <textarea placeholder="Texto del anexo" maxlength="2000"></textarea>
+        <div class="form-inline__fila">
+          <button type="button" class="btn btn--secundario" id="btnCancelarForm">Cancelar</button>
+          <button type="submit" class="btn btn--primario">Guardar</button>
+        </div>
+      </form>
+
+      <div class="lista-anexos" id="listaAnexos">
+        <article class="anexo">
+          <h3 class="anexo__titulo">Después del viernes</h3>
+          <p class="anexo__contenido">Me quedé pensando en lo que dijiste. No era mi intención cortar la conversación, me pilló en mal momento. ¿Podemos retomarlo el sábado con calma?</p>
+          <div class="anexo__meta">
+            <span class="autor autor--yayo"><span class="autor__inicial">Y</span><span>Yayo</span></span>
+            <div class="anexo__acciones">
+              <button class="btn-mini">Editar</button>
+              <button class="btn-mini btn-mini--peligro">Eliminar</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="anexo">
+          <h3 class="anexo__titulo">Sobre lo del cerro</h3>
+          <p class="anexo__contenido">Encontré una ruta más corta por el lado de Las Trancas. Son como dos horas menos de subida. Podemos ir cuando quieras.</p>
+          <div class="anexo__meta">
+            <span class="autor autor--luci"><span class="autor__inicial">L</span><span>Luci</span></span>
+            <div class="anexo__acciones">
+              <button class="btn-mini">Editar</button>
+              <button class="btn-mini btn-mini--peligro">Eliminar</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="anexo">
+          <h3 class="anexo__titulo">Gracias</h3>
+          <p class="anexo__contenido">Por lo del otro día. No lo dije en su momento y quería dejarlo por acá.</p>
+          <div class="anexo__meta">
+            <span class="autor autor--yayo"><span class="autor__inicial">Y</span><span>Yayo</span></span>
+            <div class="anexo__acciones">
+              <button class="btn-mini">Editar</button>
+              <button class="btn-mini btn-mini--peligro">Eliminar</button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <!-- Tabbar -->
+    <nav class="tabbar">
+      <button class="tabbar__item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+        </svg>
+        <span class="tabbar__label">Nido</span>
+      </button>
+      <button class="tabbar__item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/>
+          <path d="M4 17a3 3 0 0 1 3-3h11"/>
+        </svg>
+        <span class="tabbar__label">Vida</span>
+      </button>
+      <button class="tabbar__item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 20h18L14 8l-3 5-2-3-6 10z"/>
+        </svg>
+        <span class="tabbar__label">Afuera</span>
+      </button>
+      <button class="tabbar__item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+          <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/>
+        </svg>
+        <span class="tabbar__label">Juegos</span>
+      </button>
+      <button class="tabbar__item activo">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="5" cy="12" r="1.6"/>
+          <circle cx="12" cy="12" r="1.6"/>
+          <circle cx="19" cy="12" r="1.6"/>
+        </svg>
+        <span class="tabbar__label">Más</span>
+      </button>
+    </nav>
+
+  </main>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const estado = {
+    actual: 'cuenta',
+    menuAbierto: false,
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  const eyebrow = $('eyebrow');
+  const titulo = $('titulo');
+  const btnVolver = $('btnVolver');
+  const btnMenu = $('btnMenu');
+  const menu = $('menu');
+  const bodyCuenta = $('bodyCuenta');
+  const bodyAnexos = $('bodyAnexos');
+
+  // ─── Estado y pintado ───────────────────────────────
+
+  function pintar() {
+    const esCuenta = estado.actual === 'cuenta';
+    bodyCuenta.hidden = !esCuenta;
+    bodyAnexos.hidden = esCuenta;
+
+    if (esCuenta) {
+      eyebrow.textContent = 'Más';
+      titulo.textContent = 'Mi cuenta';
+      btnVolver.hidden = true;
+      btnMenu.hidden = false;
+    } else {
+      eyebrow.textContent = 'Más · Anexos';
+      titulo.textContent = 'Anexos';
+      btnVolver.hidden = false;
+      btnMenu.hidden = true;
+    }
+
+    document.querySelectorAll('#estadoNav button').forEach((b) => {
+      const coincide = b.dataset.estado === estado.actual
+        || (b.dataset.estado === 'cuenta-menu' && estado.actual === 'cuenta' && estado.menuAbierto);
+      b.classList.toggle('is-active', coincide);
+    });
+
+    menu.classList.toggle('is-open', estado.menuAbierto);
+  }
+
+  // ─── Navegación ─────────────────────────────────────
+
+  function irA(destino) {
+    estado.actual = destino;
+    estado.menuAbierto = false;
+    pintar();
+  }
+
+  btnVolver.addEventListener('click', () => irA('cuenta'));
+
+  document.querySelectorAll('.menu__item').forEach((b) => {
+    b.addEventListener('click', () => irA(b.dataset.destino));
+  });
+
+  // ─── Menú ⋮ ─────────────────────────────────────────
+
+  btnMenu.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    estado.menuAbierto = !estado.menuAbierto;
+    pintar();
+  });
+
+  document.addEventListener('click', (ev) => {
+    if (!estado.menuAbierto) return;
+    if (ev.target.closest('#menu')) return;
+    if (ev.target.closest('#btnMenu')) return;
+    estado.menuAbierto = false;
+    pintar();
+  });
+
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape' && estado.menuAbierto) {
+      estado.menuAbierto = false;
+      pintar();
+    }
+  });
+
+  // ─── Modo noche ─────────────────────────────────────
+
+  const toggle = $('toggleNoche');
+  toggle.addEventListener('click', () => {
+    const nuevo = toggle.getAttribute('aria-pressed') !== 'true';
+    toggle.setAttribute('aria-pressed', String(nuevo));
+    document.body.classList.toggle('modo-noche', nuevo);
+  });
+
+  // ─── Formulario de anexos ───────────────────────────
+
+  const formAnexo = $('formAnexo');
+  $('btnAbrirForm').addEventListener('click', () => {
+    formAnexo.hidden = false;
+    formAnexo.querySelector('input').focus();
+  });
+  $('btnCancelarForm').addEventListener('click', () => {
+    formAnexo.hidden = true;
+    formAnexo.reset();
+  });
+
+  // ─── Debug nav ──────────────────────────────────────
+
+  document.querySelectorAll('#estadoNav button').forEach((b) => {
+    b.addEventListener('click', () => {
+      const e = b.dataset.estado;
+      if (e === 'cuenta') {
+        estado.actual = 'cuenta';
+        estado.menuAbierto = false;
+      } else if (e === 'cuenta-menu') {
+        estado.actual = 'cuenta';
+        estado.menuAbierto = true;
+      } else if (e === 'anexos') {
+        estado.actual = 'anexos';
+        estado.menuAbierto = false;
+      }
+      pintar();
+    });
+  });
+
+  pintar();
+})();
+</script>
+
+</body>
+</html>

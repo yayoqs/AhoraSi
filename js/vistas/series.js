@@ -1,11 +1,18 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/series.js
-   Versión: 2.0.0
+   Versión: 2.0.1
    Propósito: vista de series y películas. Dos modos (tarjeta y
               ranking) con toggle. Sección "Viendo ahora" arriba.
               Filtros con contador. Sheet de creación y edición.
               Reordenamiento por arrastre en modo ranking.
+              v2.0.1: se reemplaza la función local autorHTML() por
+                      distintivoAutor() del núcleo. La versión
+                      anterior comparaba contra 'luci' y 'yayo',
+                      pero los IDs reales de Appwrite son
+                      'ChicaLuci' y 'Elyayo', así que caía siempre
+                      en autor--ambos. Sin cambios visuales más
+                      allá de la corrección del color.
               v2.0.0: rediseño. Se adopta el prototipo del equipo
                       de diseño. Barra superior integrada con
                       progreso + toggle. Chips de filtro con
@@ -23,6 +30,7 @@
 
 import * as repoSeries from '../datos/repositorios/series.js';
 import { al } from '../nucleo/bus-eventos.js';
+import { distintivoAutor } from '../nucleo/autores.js';
 import { mostrarConfirmacion } from '../nucleo/dialogos.js';
 import { crearLogger } from '../nucleo/logger.js';
 import { h, limpiarContenedor } from '../nucleo/utils.js';
@@ -84,12 +92,6 @@ function tieneSeguimiento(it) {
 function etiquetaCap(it) {
   if (!tieneSeguimiento(it)) return '';
   return `T${it.temporadaActual} · E${it.capituloActual}`;
-}
-
-function autorHTML(id) {
-  if (id === 'luci') return `<span class="autor autor--luci"><span class="autor__ini">L</span></span>`;
-  if (id === 'yayo') return `<span class="autor autor--yayo"><span class="autor__ini">Y</span></span>`;
-  return `<span class="autor autor--ambos"><span class="autor__ini">A</span></span>`;
 }
 
 function intONull(v) {
@@ -287,7 +289,7 @@ function pintarTarjeta(it, esEnCurso = false) {
   if (it.donde) meta.append(h('span', {}, it.donde));
   if (it.donde && it.recomendadaPor) meta.append(h('span', { class: 'tarjeta__meta-sep' }, '·'));
   if (it.recomendadaPor) meta.append(h('span', {}, 'De ' + it.recomendadaPor));
-  meta.append(h('span', { html: autorHTML(it.creadoPor) }));
+  meta.append(distintivoAutor(it.creadoPor));
   cuerpo.append(meta);
 
   if (it.nota) {
@@ -380,7 +382,7 @@ function pintarFila(it, esEnCurso = false) {
     meta.append(h('span', { class: `chip-estado chip-estado--${it.estado}` }, etiquetaEstado(it.estado)));
   }
   if (it.donde) meta.append(h('span', {}, it.donde));
-  meta.append(h('span', { html: autorHTML(it.creadoPor) }));
+  meta.append(distintivoAutor(it.creadoPor));
   cuerpo.append(meta);
   el.append(cuerpo);
 

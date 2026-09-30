@@ -1,18 +1,20 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/repositorios/hitos.js
-   Versión: 1.7.0
+   Versión: 1.8.0
    Propósito: acceso a ahorasi_hitos. Un hito es un hecho
               biográfico, no un pendiente. Tiene título, fecha
               y un color elegido por el usuario que da contexto
               emocional al punto en la línea de tiempo.
+              v1.8.0: se elimina marcar(id, cumplido). Nadie la
+                      usaba desde el rediseño de hitos v1.7.0.
+                      La vista no la llama, el test no la llama,
+                      ningún otro módulo la llama. El campo
+                      `cumplido` de la tabla sigue existiendo pero
+                      el normalizador lo ignora. Sin cambios en
+                      las firmas públicas de listar, crear,
+                      actualizar ni eliminar.
               v1.7.0: se reemplaza el campo `tipo` por `color`.
-                      El usuario elige el color al crear/editar.
-                      Paleta: terracota, musgo, mostaza, azul,
-                      ciruela, gris. Se elimina la validación por
-                      tipos (encuentro/salida/distancia/...).
-                      La columna `cumplido` sigue en la tabla pero
-                      se ignora. La columna `tipo` se deja de usar.
               v1.6.0: se agrega tipo.
               v1.5.0: se agrega actualizar() con idempotencia.
               v1.3.0: crear() y marcar() con idempotencia.
@@ -160,35 +162,6 @@ export async function actualizar(id, cambios, opciones = {}) {
       }
     }
   );
-}
-
-/**
- * Se mantiene por compatibilidad con código viejo. La vista actual
- * ya no lo usa.
- */
-export async function marcar(id, cumplido, opciones = {}) {
-  if (!id) return Resultado.fallo('Falta el id del hito');
-  const ctx = obtenerContexto();
-  if (!ctx.exito) return ctx;
-
-  const data = { cumplido: !!cumplido };
-
-  return conIdempotenciaParaActualizar(TABLA, ctx.datos.usuarioId, id, data, opciones, async () => {
-    try {
-      const r = await obtenerTablesDB().updateRow({
-        databaseId: obtenerDatabaseId(),
-        tableId: TABLA,
-        rowId: id,
-        data,
-      });
-      const hito = normalizar(r);
-      emitir('hitos:actualizado', hito);
-      return Resultado.ok(hito);
-    } catch (e) {
-      log.error('marcar:', e.message);
-      return Resultado.fallo(`Error al actualizar hito: ${e.message}`);
-    }
-  });
 }
 
 export async function eliminar(id) {

@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ahora Sí — Percusión · Extendido</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --papel: #F7F1E8;
+  --papel-2: #EFE7DA;
+  --papel-3: #FCF8F0;
+  --borde: #E2D7C5;
+  --borde-fuerte: #D2C4AC;
+  --tinta: #1F1B16;
+  --tinta-suave: #6B6155;
+  --tinta-tenue: #A89B87;
+  --terracota: #C9613B;
+  --mostaza: #D9A421;
+  --musgo: #5A6B3E;
+  --azul: #4A6785;
+  --ciruela: #7A3E5C;
+  --rojo: #A03737;
+  --accent: var(--mostaza);
+
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-full: 999px;
+  --sombra-1: 0 1px 2px rgba(31,27,22,.06);
+  --sombra-2: 0 12px 28px rgba(31,27,22,.10);
+  --fuente-titulo: 'Bricolage Grotesque', system-ui, sans-serif;
+  --fuente-cuerpo: 'Figtree', system-ui, sans-serif;
+}
+body.modo-noche {
+  --papel: #14100C;
+  --papel-2: #241C14;
+  --papel-3: #3A2E22;
+  --borde: rgba(242,230,208,.12);
+  --borde-fuerte: rgba(242,230,208,.22);
+  --tinta: #F2E6D0;
+  --tinta-suave: #B8A888;
+  --tinta-tenue: #6E5F48;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+h1,h2,h3,h4,p,ul,ol,li { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+button { background: none; border: none; cursor: pointer; font: inherit; color: inherit; }
+
+body {
+  font-family: var(--fuente-cuerpo);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--tinta);
+  background: radial-gradient(ellipse at top, #2C2620 0%, #13100D 100%);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  -webkit-font-smoothing: antialiased;
+  transition: background .3s ease;
+}
+@media (max-width: 520px) { body { padding: 0; display: block; } }
+
+.phone {
+  width: 390px;
+  height: 844px;
+  max-height: calc(100vh - 48px);
+  background: var(--papel);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 0 0 10px #0E0B08,
+    0 0 0 12px #2A2318,
+    0 30px 80px rgba(0,0,0,.55);
+  transition: background .3s ease;
+}
+@media (max-width: 520px) {
+  .phone { width: 100%; height: 100dvh; max-height: none; border-radius: 0; box-shadow: none; }
+}
+
+.screen-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--papel);
+  display: flex;
+  flex-direction: column;
+  transition: background .3s ease;
+}
+.screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+.topbar {
+  flex-shrink: 0;
+  padding: 16px 20px 12px;
+  background: var(--papel);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  transition: background .3s ease;
+}
+.topbar__eyebrow {
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.topbar__title {
+  font-family: var(--fuente-titulo);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--mostaza);
+}
+.topbar__btn {
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  border-radius: var(--r-full);
+  color: var(--tinta-suave);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.subtabs {
+  display: flex;
+  gap: 6px;
+  padding: 0 20px 12px;
+  background: var(--papel);
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--borde);
+  transition: background .3s ease, border-color .3s ease;
+}
+.subtab {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  border-radius: var(--r-full);
+  white-space: nowrap;
+  transition: all .2s ease;
+}
+.subtab.is-active { background: var(--tinta); color: var(--papel); }
+.subtab__badge {
+  display: inline-block;
+  padding: 1px 6px;
+  margin-left: 6px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--papel-2);
+  color: var(--tinta-suave);
+}
+.subtab.is-active .subtab__badge {
+  background: rgba(247,241,232,.22);
+  color: var(--papel);
+}
+
+.screen__body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px 20px 120px;
+  transition: background .3s ease;
+}
+.screen__body::-webkit-scrollbar { width: 0; }
+
+/* Caja */
+.perc-caja {
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-lg);
+  padding: 16px 14px;
+  color: var(--tinta);
+  box-shadow: var(--sombra-2);
+  transition: background .3s ease, border-color .3s ease, color .3s ease;
+}
+.perc-caja * { color: inherit; }
+
+/* Modo */
+.perc-modo {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--papel-2);
+  border-radius: var(--r-full);
+  margin-bottom: 12px;
+  transition: background .3s ease;
+}
+.perc-modo button {
+  flex: 1;
+  padding: 8px;
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tinta-suave);
+  transition: all .2s ease;
+}
+.perc-modo button.is-active {
+  background: var(--mostaza);
+  color: #1a1410;
+}
+
+/* Chips de estilo */
+.perc-estilos {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.perc-estilos::-webkit-scrollbar { display: none; }
+.chip-estilo {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: var(--r-full);
+  border: 1px solid var(--borde-fuerte);
+  background: transparent;
+  color: var(--tinta-suave);
+  transition: all .15s ease;
+  white-space: nowrap;
+}
+.chip-estilo:hover {
+  background: var(--papel-2);
+  color: var(--tinta);
+}
+.chip-estilo.is-active {
+  background: var(--mostaza);
+  border-color: var(--mostaza);
+  color: #1a1410;
+}
+
+/* Info del estilo */
+.info-estilo {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--tinta-suave);
+  margin-bottom: 14px;
+  padding: 8px 12px;
+  background: var(--papel-2);
+  border-radius: var(--r-sm);
+  border-left: 2px solid var(--mostaza);
+}
+.info-estilo b { color: var(--tinta); font-weight: 700; }
+
+/* ════════════════════════════════════════════════════════
+   GRILLA EXTENDIDA — 7 voces, 16 pasos
+   ════════════════════════════════════════════════════════ */
+
+/* Variante A — 16 pasos en una fila */
+.vA .perc-grilla { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.vA .perc-voz { display: flex; align-items: center; gap: 8px; }
+.vA .perc-voz__label {
+  width: 56px;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.vA .perc-pasos {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 2px;
+}
+.vA .perc-celda {
+  aspect-ratio: 1;
+  border-radius: 4px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  transition: all .12s ease;
+  cursor: pointer;
+  min-height: 0;
+  padding: 0;
+  font-size: 7px;
+  font-weight: 800;
+  color: var(--tinta-tenue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.vA .perc-celda:active { transform: scale(.85); }
+.vA .perc-celda--marca { background: color-mix(in oklab, var(--tinta) 6%, var(--papel-2)); }
+.vA .perc-celda--n1 { background: color-mix(in oklab, var(--mostaza) 40%, var(--papel-2)); border-color: color-mix(in oklab, var(--mostaza) 50%, var(--borde)); }
+.vA .perc-celda--n2 { background: color-mix(in oklab, var(--mostaza) 70%, var(--papel-2)); border-color: var(--mostaza); }
+.vA .perc-celda--n3 { background: var(--mostaza); border-color: var(--mostaza); color: #1a1410; }
+.vA .perc-celda--nota {
+  background: var(--ciruela);
+  border-color: var(--ciruela);
+  color: #F2E6D0;
+}
+
+/* Variante B — dos bloques de 8, con gap central */
+.vB .perc-grilla { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.vB .perc-voz { display: flex; align-items: center; gap: 8px; }
+.vB .perc-voz__label {
+  width: 56px;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.vB .perc-pasos-wrap {
+  flex: 1;
+  display: flex;
+  gap: 6px;
+}
+.vB .perc-pasos {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 3px;
+  position: relative;
+}
+.vB .perc-pasos + .perc-pasos::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--borde);
+}
+.vB .perc-celda {
+  aspect-ratio: 1;
+  border-radius: 5px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  transition: all .12s ease;
+  cursor: pointer;
+  min-height: 0;
+  padding: 0;
+  font-size: 8px;
+  font-weight: 800;
+  color: var(--tinta-tenue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.vB .perc-celda:active { transform: scale(.85); }
+.vB .perc-celda--marca { background: color-mix(in oklab, var(--tinta) 6%, var(--papel-2)); }
+.vB .perc-celda--n1 { background: color-mix(in oklab, var(--mostaza) 40%, var(--papel-2)); border-color: color-mix(in oklab, var(--mostaza) 50%, var(--borde)); }
+.vB .perc-celda--n2 { background: color-mix(in oklab, var(--mostaza) 70%, var(--papel-2)); border-color: var(--mostaza); }
+.vB .perc-celda--n3 { background: var(--mostaza); border-color: var(--mostaza); color: #1a1410; }
+.vB .perc-celda--nota {
+  background: var(--ciruela);
+  border-color: var(--ciruela);
+  color: #F2E6D0;
+}
+
+/* Variante C — dos filas por voz */
+.vC .perc-grilla { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.vC .perc-voz {
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--borde);
+}
+.vC .perc-voz:last-child { border-bottom: none; padding-bottom: 0; }
+.vC .perc-voz__cab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.vC .perc-voz__label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--tinta-suave);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.vC .perc-voz__num {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--tinta-tenue);
+  font-variant-numeric: tabular-nums;
+}
+.vC .perc-pasos {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.vC .perc-celda {
+  aspect-ratio: 1.6 / 1;
+  border-radius: 5px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  transition: all .12s ease;
+  cursor: pointer;
+  padding: 0;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--tinta-tenue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vC .perc-celda:active { transform: scale(.9); }
+.vC .perc-celda--marca { background: color-mix(in oklab, var(--tinta) 6%, var(--papel-2)); }
+.vC .perc-celda--n1 { background: color-mix(in oklab, var(--mostaza) 40%, var(--papel-2)); border-color: color-mix(in oklab, var(--mostaza) 50%, var(--borde)); }
+.vC .perc-celda--n2 { background: color-mix(in oklab, var(--mostaza) 70%, var(--papel-2)); border-color: var(--mostaza); }
+.vC .perc-celda--n3 { background: var(--mostaza); border-color: var(--mostaza); color: #1a1410; }
+.vC .perc-celda--nota {
+  background: var(--ciruela);
+  border-color: var(--ciruela);
+  color: #F2E6D0;
+}
+
+/* Controles */
+.perc-controles {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  margin-bottom: 12px;
+  transition: background .3s ease, border-color .3s ease;
+}
+.perc-play {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-full);
+  background: var(--mostaza);
+  color: #1a1410;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: filter .15s ease, transform .15s ease;
+}
+.perc-play:hover { filter: brightness(1.05); }
+.perc-play:active { transform: scale(.92); }
+.perc-play svg { width: 20px; height: 20px; }
+.perc-sliders {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.perc-slider__label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+}
+.perc-slider__fila {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.perc-slider__input {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  background: var(--papel-3);
+  border-radius: 2px;
+  outline: none;
+}
+.perc-slider__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--mostaza);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,.15);
+}
+.perc-slider__valor {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 12px;
+  color: var(--tinta);
+  min-width: 32px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Botones de sheet */
+.perc-botones {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin-top: 12px;
+}
+.perc-boton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 6px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  color: var(--tinta-suave);
+  font-size: 11px;
+  font-weight: 600;
+  transition: all .15s ease;
+  min-height: 58px;
+}
+.perc-boton:hover {
+  background: var(--papel);
+  color: var(--tinta);
+  border-color: var(--borde-fuerte);
+}
+.perc-boton svg { width: 18px; height: 18px; }
+
+.botones-fila {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+.boton-accion {
+  flex: 1;
+  padding: 10px 12px;
+  background: transparent;
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--r-sm);
+  color: var(--tinta-suave);
+  font-size: 12px;
+  font-weight: 600;
+  transition: all .15s ease;
+}
+.boton-accion:hover { background: var(--papel-2); color: var(--tinta); }
+.boton-accion--principal {
+  background: var(--mostaza);
+  border-color: var(--mostaza);
+  color: #1a1410;
+}
+
+/* SHEET */
+.sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(10, 8, 5, .6);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s ease;
+}
+.sheet.is-open { opacity: 1; pointer-events: auto; }
+.sheet__panel {
+  width: 100%;
+  max-height: 82%;
+  background: var(--papel);
+  color: var(--tinta);
+  border-radius: 22px 22px 0 0;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform .3s cubic-bezier(.32,.72,0,1), background .3s ease;
+  overflow: hidden;
+  border: 1px solid var(--borde);
+  border-bottom: 0;
+}
+.sheet.is-open .sheet__panel { transform: translateY(0); }
+.sheet__handle {
+  width: 40px; height: 4px;
+  background: var(--borde-fuerte);
+  border-radius: 4px;
+  margin: 10px auto 4px;
+}
+.sheet__cab {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 18px 14px;
+  border-bottom: 1px solid var(--borde);
+}
+.sheet__titulo {
+  flex: 1;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 17px;
+}
+.sheet__cerrar {
+  width: 32px; height: 32px;
+  border-radius: var(--r-full);
+  background: var(--papel-2);
+  color: var(--tinta-suave);
+  display: grid; place-items: center;
+}
+.sheet__cerrar svg { width: 16px; height: 16px; }
+.sheet__cuerpo {
+  padding: 16px 18px 20px;
+  overflow-y: auto;
+}
+.sheet__cuerpo::-webkit-scrollbar { width: 0; }
+
+.fila-slider {
+  display: grid;
+  grid-template-columns: 96px 1fr 68px;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.fila-slider label {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--tinta);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fila-slider .valor {
+  font-size: 11px;
+  color: var(--tinta-suave);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.fila-slider input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  background: var(--papel-2);
+  border-radius: 2px;
+  outline: none;
+  width: 100%;
+}
+.fila-slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--mostaza);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,.15);
+}
+.fila-slider__acciones {
+  display: flex;
+  gap: 3px;
+  justify-content: flex-end;
+}
+.mini-btn {
+  padding: 3px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  background: transparent;
+  border: 1px solid var(--borde-fuerte);
+  border-radius: 4px;
+  color: var(--tinta-suave);
+  min-width: 24px;
+}
+.mini-btn.is-active {
+  background: var(--rojo);
+  border-color: var(--rojo);
+  color: #F2E6D0;
+}
+
+.guardados-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ritmo-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+}
+.ritmo-item__cuerpo { flex: 1; min-width: 0; }
+.ritmo-item__nombre {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--tinta);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+.ritmo-item__meta {
+  font-size: 11px;
+  color: var(--tinta-tenue);
+}
+.ritmo-item__acciones {
+  display: flex;
+  gap: 4px;
+}
+
+.campo-nombre {
+  padding: 11px 13px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--r-sm);
+  color: var(--tinta);
+  font-size: 14px;
+  width: 100%;
+  font-family: inherit;
+  margin-bottom: 12px;
+}
+.campo-nombre::placeholder { color: var(--tinta-tenue); }
+.campo-nombre:focus {
+  outline: none;
+  border-color: var(--mostaza);
+  background: var(--papel);
+}
+
+.tabbar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 78px;
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  background: color-mix(in oklab, var(--papel) 94%, transparent);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--borde);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 50;
+  transition: background .3s ease, border-color .3s ease;
+}
+.tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--tinta-tenue);
+  opacity: .55;
+  padding: 4px;
+}
+.tabbar__item svg { width: 22px; height: 22px; }
+.tabbar__label { font-size: 10px; font-weight: 600; }
+.tabbar__item.activo { color: var(--mostaza); opacity: 1; }
+.tabbar__item.activo .tabbar__label { font-weight: 700; }
+
+.debug-nav {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 240px;
+}
+.debug-nav__label {
+  font-size: 9px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+  font-weight: 700;
+}
+.debug-nav__btns {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 4px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--r-md);
+  backdrop-filter: blur(12px);
+}
+.debug-nav__btns button {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.55);
+  border-radius: 8px;
+  text-align: left;
+  transition: all .15s ease;
+}
+.debug-nav__btns button:hover { color: rgba(255,255,255,.9); }
+.debug-nav__btns button.is-active { background: rgba(255,255,255,.15); color: #fff; }
+@media (max-width: 720px) { .debug-nav { display: none; } }
+</style>
+</head>
+
+<body>
+
+<nav class="debug-nav">
+  <span class="debug-nav__label">Layout de grilla</span>
+  <div class="debug-nav__btns" id="layoutNav">
+    <button data-layout="A" class="is-active">A · 16 en una fila</button>
+    <button data-layout="B">B · Dos bloques 8+8</button>
+    <button data-layout="C">C · Dos filas por voz</button>
+  </div>
+</nav>
+
+<div class="phone">
+  <main class="screen-area">
+    <section class="screen">
+
+      <header class="topbar">
+        <div>
+          <p class="topbar__eyebrow">Juegos · Percusión</p>
+          <h1 class="topbar__title">Percusión</h1>
+        </div>
+        <button class="topbar__btn" aria-label="Opciones">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="5" cy="12" r="1.6"/>
+            <circle cx="12" cy="12" r="1.6"/>
+            <circle cx="19" cy="12" r="1.6"/>
+          </svg>
+        </button>
+      </header>
+
+      <nav class="subtabs">
+        <button class="subtab">Series</button>
+        <button class="subtab">Juegos <span class="subtab__badge">5</span></button>
+        <button class="subtab is-active">Percusión</button>
+      </nav>
+
+      <div class="screen__body">
+
+        <div class="perc-caja">
+
+          <div class="perc-modo">
+            <button>Simple</button>
+            <button class="is-active">Extendido</button>
+          </div>
+
+          <div class="perc-estilos">
+            <button class="chip-estilo is-active">Tumbé</button>
+            <button class="chip-estilo">Afrobeat</button>
+            <button class="chip-estilo">Afro house</button>
+          </div>
+
+          <div class="info-estilo">
+            <b>Afro Tumbé.</b> Polirritmia pura. Gankogui marcando clave cruzada contra el bombo.
+          </div>
+
+          <!-- ═══════════════════════════════════════════════
+               VARIANTE A — 16 pasos en una fila
+               ═══════════════════════════════════════════════ -->
+          <div class="vA layout is-active" data-layout="A">
+            <div class="perc-grilla">
+              <!-- 5 voces rítmicas -->
+              <div class="perc-voz">
+                <span class="perc-voz__label">Bombo</span>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda"></button>
+                </div>
+              </div>
+
+              <div class="perc-voz">
+                <span class="perc-voz__label">Slap djembé</span>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n3"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n3"></button>
+                  <button class="perc-celda"></button>
+                </div>
+              </div>
+
+              <div class="perc-voz">
+                <span class="perc-voz__label">Grave djembé</span>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca perc-celda--n2"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--marca perc-celda--n2"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda"></button>
+                </div>
+              </div>
+
+              <div class="perc-voz">
+                <span class="perc-voz__label">Shekere</span>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda"></button>
+                </div>
+              </div>
+
+              <div class="perc-voz">
+                <span class="perc-voz__label">Gankogui</span>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                </div>
+              </div>
+
+              <!-- 2 voces melódicas -->
+              <div class="perc-voz">
+                <span class="perc-voz__label">Log bajo</span>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca perc-celda--nota">DO</button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--nota">SOL</button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--nota">MI</button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--nota">RE</button>
+                  <button class="perc-celda"></button>
+                </div>
+              </div>
+
+              <div class="perc-voz">
+                <span class="perc-voz__label">Kalimba</span>
+                <div class="perc-pasos">
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--nota">DO</button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--nota">MI</button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--nota">SOL</button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--nota">LA</button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ═══════════════════════════════════════════════
+               VARIANTE B — dos bloques de 8
+               ═══════════════════════════════════════════════ -->
+          <div class="vB layout" data-layout="B">
+            <div class="perc-grilla">
+              <div class="perc-voz">
+                <span class="perc-voz__label">Bombo</span>
+                <div class="perc-pasos-wrap">
+                  <div class="perc-pasos">
+                    <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--n2"></button>
+                    <button class="perc-celda perc-celda--marca"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--n1"></button>
+                    <button class="perc-celda"></button>
+                  </div>
+                  <div class="perc-pasos">
+                    <button class="perc-celda perc-celda--marca"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--n2"></button>
+                    <button class="perc-celda perc-celda--marca"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--n1"></button>
+                    <button class="perc-celda"></button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="perc-voz">
+                <span class="perc-voz__label">Slap djembé</span>
+                <div class="perc-pasos-wrap">
+                  <div class="perc-pasos">
+                    <button class="perc-celda perc-celda--marca"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--n2"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--n3"></button>
+                    <button class="perc-celda"></button>
+                  </div>
+                  <div class="perc-pasos">
+                    <button class="perc-celda perc-celda--marca"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--n2"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--n3"></button>
+                    <button class="perc-celda"></button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="perc-voz">
+                <span class="perc-voz__label">Grave djembé</span>
+                <div class="perc-pasos-wrap">
+                  <div class="perc-pasos">
+                    <button class="perc-celda perc-celda--marca perc-celda--n2"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--marca"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--n1"></button>
+                    <button class="perc-celda"></button>
+                  </div>
+                  <div class="perc-pasos">
+                    <button class="perc-celda perc-celda--marca perc-celda--n2"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--marca"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--n1"></button>
+                    <button class="perc-celda"></button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="perc-voz">
+                <span class="perc-voz__label">Shekere</span>
+                <div class="perc-pasos-wrap">
+                  <div class="perc-pasos">
+                    <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                    <button class="perc-celda perc-celda--n1"></button>
+                    <button class="perc-celda perc-celda--n2"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                    <button class="perc-celda perc-celda--n1"></button>
+                    <button class="perc-celda perc-celda--n2"></button>
+                    <button class="perc-celda"></button>
+                  </div>
+                  <div class="perc-pasos">
+                    <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                    <button class="perc-celda perc-celda--n1"></button>
+                    <button class="perc-celda perc-celda--n2"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                    <button class="perc-celda perc-celda--n1"></button>
+                    <button class="perc-celda perc-celda--n2"></button>
+                    <button class="perc-celda"></button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="perc-voz">
+                <span class="perc-voz__label">Gankogui</span>
+                <div class="perc-pasos-wrap">
+                  <div class="perc-pasos">
+                    <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--n2"></button>
+                    <button class="perc-celda perc-celda--n1"></button>
+                    <button class="perc-celda perc-celda--marca"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--n2"></button>
+                    <button class="perc-celda perc-celda--n1"></button>
+                  </div>
+                  <div class="perc-pasos">
+                    <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--n2"></button>
+                    <button class="perc-celda perc-celda--n1"></button>
+                    <button class="perc-celda perc-celda--marca"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--n2"></button>
+                    <button class="perc-celda perc-celda--n1"></button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="perc-voz">
+                <span class="perc-voz__label">Log bajo</span>
+                <div class="perc-pasos-wrap">
+                  <div class="perc-pasos">
+                    <button class="perc-celda perc-celda--marca perc-celda--nota">DO</button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--nota">SOL</button>
+                    <button class="perc-celda"></button>
+                  </div>
+                  <div class="perc-pasos">
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--nota">MI</button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--nota">RE</button>
+                    <button class="perc-celda"></button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="perc-voz">
+                <span class="perc-voz__label">Kalimba</span>
+                <div class="perc-pasos-wrap">
+                  <div class="perc-pasos">
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--nota">DO</button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--nota">MI</button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                  </div>
+                  <div class="perc-pasos">
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--nota">SOL</button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda perc-celda--nota">LA</button>
+                    <button class="perc-celda"></button>
+                    <button class="perc-celda"></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ═══════════════════════════════════════════════
+               VARIANTE C — dos filas por voz
+               ═══════════════════════════════════════════════ -->
+          <div class="vC layout" data-layout="C">
+            <div class="perc-grilla">
+              <div class="perc-voz">
+                <div class="perc-voz__cab">
+                  <span class="perc-voz__num">1</span>
+                  <span class="perc-voz__label">Bombo</span>
+                </div>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda"></button>
+                </div>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda"></button>
+                </div>
+              </div>
+
+              <div class="perc-voz">
+                <div class="perc-voz__cab">
+                  <span class="perc-voz__num">2</span>
+                  <span class="perc-voz__label">Slap djembé</span>
+                </div>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n3"></button>
+                  <button class="perc-celda"></button>
+                </div>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n3"></button>
+                  <button class="perc-celda"></button>
+                </div>
+              </div>
+
+              <div class="perc-voz">
+                <div class="perc-voz__cab">
+                  <span class="perc-voz__num">3</span>
+                  <span class="perc-voz__label">Grave djembé</span>
+                </div>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca perc-celda--n2"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda"></button>
+                </div>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca perc-celda--n2"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda"></button>
+                </div>
+              </div>
+
+              <div class="perc-voz">
+                <div class="perc-voz__cab">
+                  <span class="perc-voz__num">4</span>
+                  <span class="perc-voz__label">Shekere</span>
+                </div>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda"></button>
+                </div>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda"></button>
+                </div>
+              </div>
+
+              <div class="perc-voz">
+                <div class="perc-voz__cab">
+                  <span class="perc-voz__num">5</span>
+                  <span class="perc-voz__label">Gankogui</span>
+                </div>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                </div>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca perc-celda--n3"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                  <button class="perc-celda perc-celda--marca"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--n2"></button>
+                  <button class="perc-celda perc-celda--n1"></button>
+                </div>
+              </div>
+
+              <div class="perc-voz">
+                <div class="perc-voz__cab">
+                  <span class="perc-voz__num">6</span>
+                  <span class="perc-voz__label">Log bajo</span>
+                </div>
+                <div class="perc-pasos">
+                  <button class="perc-celda perc-celda--marca perc-celda--nota">DO</button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--nota">SOL</button>
+                  <button class="perc-celda"></button>
+                </div>
+                <div class="perc-pasos">
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--nota">MI</button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--nota">RE</button>
+                  <button class="perc-celda"></button>
+                </div>
+              </div>
+
+              <div class="perc-voz">
+                <div class="perc-voz__cab">
+                  <span class="perc-voz__num">7</span>
+                  <span class="perc-voz__label">Kalimba</span>
+                </div>
+                <div class="perc-pasos">
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--nota">DO</button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--nota">MI</button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                </div>
+                <div class="perc-pasos">
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--nota">SOL</button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda perc-celda--nota">LA</button>
+                  <button class="perc-celda"></button>
+                  <button class="perc-celda"></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="perc-controles">
+            <button class="perc-play">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <div class="perc-sliders">
+              <span class="perc-slider__label">Tempo</span>
+              <div class="perc-slider__fila">
+                <input class="perc-slider__input" type="range" value="110">
+                <span class="perc-slider__valor">110</span>
+              </div>
+              <span class="perc-slider__label" style="margin-top: 4px;">Swing</span>
+              <div class="perc-slider__fila">
+                <input class="perc-slider__input" type="range" value="18">
+                <span class="perc-slider__valor">18%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="perc-botones">
+            <button class="perc-boton" data-sheet="mezcla">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 6h16M4 12h16M4 18h16"/>
+              </svg>
+              Mezcla
+            </button>
+            <button class="perc-boton" data-sheet="efectos">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M12 3v18M3 12h18"/>
+              </svg>
+              Efectos
+            </button>
+            <button class="perc-boton" data-sheet="guardados">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+              </svg>
+              Guardados
+            </button>
+          </div>
+
+          <div class="botones-fila">
+            <button class="boton-accion">Reset</button>
+            <button class="boton-accion">Limpiar</button>
+            <button class="boton-accion boton-accion--principal">Guardar</button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button class="tabbar__item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+      </svg>
+      <span class="tabbar__label">Nido</span>
+    </button>
+    <button class="tabbar__item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/>
+        <path d="M4 17a3 3 0 0 1 3-3h11"/>
+      </svg>
+      <span class="tabbar__label">Vida</span>
+    </button>
+    <button class="tabbar__item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 20h18L14 8l-3 5-2-3-6 10z"/>
+      </svg>
+      <span class="tabbar__label">Afuera</span>
+    </button>
+    <button class="tabbar__item activo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+        <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/>
+      </svg>
+      <span class="tabbar__label">Juegos</span>
+    </button>
+    <button class="tabbar__item">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="5" cy="12" r="1.6"/>
+        <circle cx="12" cy="12" r="1.6"/>
+        <circle cx="19" cy="12" r="1.6"/>
+      </svg>
+      <span class="tabbar__label">Más</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  document.querySelectorAll('#layoutNav button').forEach((b) => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#layoutNav button').forEach((x) => x.classList.remove('is-active'));
+      b.classList.add('is-active');
+      document.querySelectorAll('.layout').forEach((el) => {
+        el.classList.toggle('is-active', el.dataset.layout === b.dataset.layout);
+      });
+    });
+  });
+
+  // Modo
+  document.querySelectorAll('.perc-modo button').forEach((b) => {
+    b.addEventListener('click', () => {
+      b.parentNode.querySelectorAll('button').forEach((x) => x.classList.remove('is-active'));
+      b.classList.add('is-active');
+    });
+  });
+
+  // Chips estilo
+  document.querySelectorAll('.chip-estilo').forEach((c) => {
+    c.addEventListener('click', () => {
+      c.parentNode.querySelectorAll('.chip-estilo').forEach((x) => x.classList.remove('is-active'));
+      c.classList.add('is-active');
+    });
+  });
+
+  // Celdas ciclan nivel
+  document.querySelectorAll('.perc-celda').forEach((c) => {
+    c.addEventListener('click', () => {
+      const cl = ['perc-celda--n1', 'perc-celda--n2', 'perc-celda--n3'];
+      const idx = cl.findIndex((x) => c.classList.contains(x));
+      // No tocamos las celdas de nota (melódicas) en este prototipo.
+      if (c.classList.contains('perc-celda--nota')) return;
+      c.classList.remove(...cl);
+      if (idx === -1) c.classList.add(cl[0]);
+      else if (idx < 2) c.classList.add(cl[idx + 1]);
+    });
+  });
+
+  // Sheets (simplificados, solo demostración)
+  let sheetActivo = null;
+  function cerrarSheet() {
+    if (!sheetActivo) return;
+    const s = sheetActivo;
+    s.classList.remove('is-open');
+    sheetActivo = null;
+    setTimeout(() => { if (s.parentNode) s.remove(); }, 320);
+  }
+  function abrirSheet(titulo, cuerpo) {
+    cerrarSheet();
+    const sheet = document.createElement('div');
+    sheet.className = 'sheet';
+    sheet.innerHTML = `
+      <div class="sheet__panel">
+        <div class="sheet__handle"></div>
+        <div class="sheet__cab">
+          <span class="sheet__titulo">${titulo}</span>
+          <button class="sheet__cerrar" data-cerrar>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+              <path d="M6 6l12 12M18 6l-12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="sheet__cuerpo">${cuerpo}</div>
+      </div>
+    `;
+    document.querySelector('.phone').appendChild(sheet);
+    requestAnimationFrame(() => sheet.classList.add('is-open'));
+    sheetActivo = sheet;
+    sheet.addEventListener('click', (e) => {
+      if (e.target === sheet) cerrarSheet();
+    });
+    sheet.querySelectorAll('[data-cerrar]').forEach((b) => b.addEventListener('click', cerrarSheet));
+    sheet.querySelectorAll('.mini-btn').forEach((b) => {
+      b.addEventListener('click', () => b.classList.toggle('is-active'));
+    });
+  }
+
+  document.querySelectorAll('[data-sheet]').forEach((b) => {
+    b.addEventListener('click', () => {
+      const tipo = b.dataset.sheet;
+      if (tipo === 'mezcla') {
+        const voces = ['Bombo', 'Slap djembé', 'Grave djembé', 'Shekere', 'Gankogui', 'Log bajo', 'Kalimba'];
+        const vals = [100, 80, 80, 60, 55, 90, 55];
+        const filas = voces.map((v, i) => `
+          <div class="fila-slider">
+            <label>${v}</label>
+            <input type="range" value="${vals[i]}">
+            <div class="fila-slider__acciones">
+              <button class="mini-btn">M</button>
+              <button class="mini-btn">S</button>
+            </div>
+          </div>
+        `).join('');
+        abrirSheet('Mezcla', `<p style="font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta-tenue);margin-bottom:10px;">Volumen por voz · 7 voces</p>${filas}`);
+      } else if (tipo === 'efectos') {
+        const efectos = [
+          { n: 'Reverb', v: 24 },
+          { n: 'Eco', v: 24 },
+          { n: 'Saturación', v: 15 },
+          { n: 'Filtro', v: 100 },
+        ];
+        const filas = efectos.map((e) => `
+          <div class="fila-slider">
+            <label>${e.n}</label>
+            <input type="range" value="${e.v}">
+            <span class="valor">${e.v}</span>
+          </div>
+        `).join('');
+        abrirSheet('Efectos', `<p style="font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta-tenue);margin-bottom:10px;">Globales</p>${filas}`);
+      } else if (tipo === 'guardados') {
+        const ritmos = [
+          { n: 'Tumbé base', m: 'Extendido · Tumbé · 110 bpm' },
+          { n: 'Afrobeat lento', m: 'Extendido · Afrobeat · 114 bpm' },
+          { n: 'Rap underground', m: 'Simple · 90 bpm' },
+        ];
+        const lista = ritmos.map((r) => `
+          <div class="ritmo-item">
+            <div class="ritmo-item__cuerpo">
+              <div class="ritmo-item__nombre">${r.n}</div>
+              <div class="ritmo-item__meta">${r.m}</div>
+            </div>
+            <div class="ritmo-item__acciones">
+              <button class="mini-btn">Cargar</button>
+              <button class="mini-btn">×</button>
+            </div>
+          </div>
+        `).join('');
+        abrirSheet('Ritmos guardados', `<div class="guardados-lista">${lista}</div>`);
+      }
+    });
+  });
+
+  document.querySelectorAll('.boton-accion').forEach((b) => {
+    b.addEventListener('click', () => {
+      if (b.textContent.trim() === 'Guardar') {
+        abrirSheet('Guardar ritmo', `
+          <input class="campo-nombre" type="text" placeholder="Nombre del ritmo" maxlength="100">
+          <div style="display:flex;gap:8px;">
+            <button class="boton-accion" data-cerrar>Cancelar</button>
+            <button class="boton-accion boton-accion--principal">Guardar</button>
+          </div>
+        `);
+      }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

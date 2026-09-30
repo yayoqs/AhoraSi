@@ -1,22 +1,29 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/vistas/carta.js
-   Versión: 4.0.1
+   Versión: 4.0.2
    Propósito: vista de la carta fusionada con Respuesta. Cada
               usuario tiene su propia carta (manifiesto,
               compromisos personales y firma). La vista principal
               muestra la carta del otro más los compromisos
-              compartidos, los anexos y el bloque de respuesta.
-              El botón "Ver mi carta" lleva a la propia.
+              compartidos y el bloque de respuesta. El botón
+              "Ver mi carta" lleva a la propia.
+              v4.0.2: se elimina la sección "Anexos". Los anexos
+                      ahora viven en su propia sub-vista bajo
+                      Cuenta (anexos.js v1.0.0). Se eliminan del
+                      render la lista, el formulario y las
+                      funciones auxiliares: pintarListaAnexos,
+                      pintarAnexoEnEdicion, guardarAnexo, anexos,
+                      y los handlers de 'crear-anexo',
+                      'editar-anexo' y 'eliminar-anexo'. Se
+                      elimina la propiedad editandoAnexo del
+                      registro. Sin cambios en las firmas públicas.
+                      Los anexos existentes siguen en la tabla
+                      ahorasi_carta con tipo 'anexo' y son leídos
+                      por anexos.js.
               v4.0.1: el CTA "Ver mi carta" se mueve arriba del
-                      bloque de respuesta. Antes iba al final, tras
-                      las opciones. Ahora el flujo es: leer la
-                      carta → decidir si escribir la propia →
-                      responder. Sin cambios funcionales.
-              v4.0.0: fusión con Respuesta. La vista Carta ahora
-                      carga también el repositorio de respuestas
-                      y pinta el bloque "Tu respuesta" al final
-                      del scroll, antes del CTA "Ver mi carta".
+                      bloque de respuesta.
+              v4.0.0: fusión con Respuesta.
               v3.0.0: rediseño al nuevo lenguaje visual.
               v2.2.0: id="vista-carta" para CSS.
               v2.1.0: edición inline de anexos, CRUD de compartidos.
@@ -74,7 +81,6 @@ const registro = {
   borrador: null,
   toastMostrado: false,
   toastElemento: null,
-  editandoAnexo: null,
   editandoCompartido: null,
   respuestaSeleccionada: null,
   respuestaNota: '',
@@ -141,12 +147,6 @@ function cartaDe(userId) {
 function compartidos() {
   return registro.todasCarta
     .filter((p) => p.tipo === 'compromiso_compartido')
-    .sort((a, b) => (a.orden || 0) - (b.orden || 0));
-}
-
-function anexos() {
-  return registro.todasCarta
-    .filter((p) => p.tipo === 'anexo')
     .sort((a, b) => (a.orden || 0) - (b.orden || 0));
 }
 
@@ -343,65 +343,6 @@ async function guardarCompartido(id, titulo, contenido) {
   }
 }
 
-function pintarListaAnexos(items) {
-  const ul = h('ul', { class: 'anexos__lista' });
-  for (const a of items) {
-    if (registro.editandoAnexo === a.id) {
-      ul.append(pintarAnexoEnEdicion(a));
-    } else {
-      ul.append(h('li', { class: 'anexo', 'data-id': a.id },
-        h('p', { class: 'anexo__titulo' }, a.titulo),
-        h('p', { class: 'anexo__contenido' }, a.contenido),
-        h('div', { class: 'anexo__meta' },
-          distintivoAutorLocal(a.autor),
-          h('button', {
-            type: 'button', class: 'btn-mini',
-            'data-accion': 'editar-anexo', 'data-id': a.id,
-          }, 'Editar'),
-          h('button', {
-            type: 'button', class: 'btn-mini btn-mini--peligro',
-            'data-accion': 'eliminar-anexo', 'data-id': a.id,
-          }, 'Eliminar')
-        )
-      ));
-    }
-  }
-  return ul;
-}
-
-function pintarAnexoEnEdicion(a) {
-  const inputT = h('input', { value: a.titulo || '', placeholder: 'Título', maxlength: 200 });
-  const textarea = h('textarea', { placeholder: 'Contenido' }, a.contenido || '');
-  return h('li', { class: 'campo-editable', 'data-id': a.id },
-    inputT,
-    textarea,
-    h('div', { class: 'form-inline__fila' },
-      h('button', {
-        type: 'button', class: 'btn btn--secundario',
-        onclick: () => {
-          registro.editandoAnexo = null;
-          pintar();
-        },
-      }, 'Cancelar'),
-      h('button', {
-        type: 'button', class: 'btn btn--primario',
-        onclick: () => guardarAnexo(a.id, inputT.value, textarea.value),
-      }, 'Guardar')
-    )
-  );
-}
-
-async function guardarAnexo(id, titulo, contenido) {
-  const r = await repoCarta.actualizar(id, { titulo, contenido });
-  if (r.exito) {
-    registro.editandoAnexo = null;
-    await refrescar();
-    pintar();
-  } else {
-    pintarMensaje('error', r.error);
-  }
-}
-
 /* ---------- CTA "Ver mi carta" --------------------------------- */
 
 function pintarCtaVerMiCarta() {
@@ -549,7 +490,6 @@ function pintarVistaOtro(cont) {
   const otro = userIdOtro();
   const carta = cartaDe(otro);
   const comp = compartidos();
-  const anx = anexos();
 
   // Hoja de carta.
   if (!cartaVacia(otro)) {
@@ -605,24 +545,6 @@ function pintarVistaOtro(cont) {
       h('textarea', { name: 'contenido', placeholder: 'Descripción', required: true, rows: 2, maxlength: 500 }),
       h('div', { class: 'form-inline__fila' },
         h('button', { type: 'submit', class: 'btn btn--primario' }, 'Agregar compromiso')
-      )
-    )
-  ));
-
-  // Anexos.
-  cont.append(h('section', { class: 'seccion' },
-    h('div', { class: 'seccion__cab' },
-      h('h2', { class: 'seccion__titulo' }, 'Anexos'),
-      h('span', { class: 'seccion__contador' }, String(anx.length))
-    ),
-    anx.length > 0
-      ? pintarListaAnexos(anx)
-      : h('p', { class: 'vista__vacio' }, 'Aún sin anexos.'),
-    h('form', { class: 'form-inline', 'data-accion': 'crear-anexo' },
-      h('input', { name: 'titulo', placeholder: 'Título del anexo', required: true, maxlength: 200 }),
-      h('textarea', { name: 'contenido', placeholder: 'Contenido', required: true, rows: 3 }),
-      h('div', { class: 'form-inline__fila' },
-        h('button', { type: 'submit', class: 'btn btn--primario' }, 'Agregar anexo')
       )
     )
   ));
@@ -1078,21 +1000,7 @@ async function manejarSubmit(ev) {
   if (!accion) return;
   const fd = new FormData(form);
 
-  if (accion === 'crear-anexo') {
-    const r = await repoCarta.crear({
-      tipo: 'anexo',
-      titulo: String(fd.get('titulo') || '').trim() || '(sin título)',
-      contenido: String(fd.get('contenido') || '').trim(),
-      orden: anexos().length,
-    });
-    if (r.exito) {
-      form.reset();
-      await refrescar();
-      pintar();
-    } else {
-      pintarMensaje('error', r.error);
-    }
-  } else if (accion === 'crear-compartido') {
+  if (accion === 'crear-compartido') {
     const r = await repoCarta.crear({
       tipo: 'compromiso_compartido',
       titulo: String(fd.get('titulo') || '').trim() || '(sin título)',
@@ -1120,7 +1028,6 @@ async function manejarClick(ev) {
     registro.modo = 'vista';
     registro.borrador = null;
     registro.seccionesFijadas = new Set();
-    registro.editandoAnexo = null;
     registro.editandoCompartido = null;
     pintar();
   } else if (accion === 'volver-al-otro') {
@@ -1139,23 +1046,8 @@ async function manejarClick(ev) {
     empezarVacio();
   } else if (accion === 'cargar-guia') {
     cargarTextoGuia();
-  } else if (accion === 'editar-anexo') {
-    registro.editandoAnexo = id;
-    registro.editandoCompartido = null;
-    pintar();
-  } else if (accion === 'eliminar-anexo') {
-    const ok = await mostrarConfirmacion(
-      'Eliminar anexo',
-      '¿Seguro que quieres eliminar este anexo?',
-      { textoConfirmar: 'Eliminar' }
-    );
-    if (!ok) return;
-    const r = await repoCarta.eliminar(id);
-    if (r.exito) { await refrescar(); pintar(); }
-    else pintarMensaje('error', r.error);
   } else if (accion === 'editar-compartido') {
     registro.editandoCompartido = id;
-    registro.editandoAnexo = null;
     pintar();
   } else if (accion === 'eliminar-compartido') {
     const ok = await mostrarConfirmacion(
@@ -1237,7 +1129,6 @@ export async function activar(contenedor) {
   registro.borrador = null;
   registro.seccionesFijadas = new Set();
   registro.toastMostrado = false;
-  registro.editandoAnexo = null;
   registro.editandoCompartido = null;
   registro.respuestaSeleccionada = null;
   registro.respuestaNota = '';
@@ -1276,7 +1167,6 @@ export function limpiar() {
   registro.pantalla = 'otro';
   registro.modo = 'vista';
   registro.toastMostrado = false;
-  registro.editandoAnexo = null;
   registro.editandoCompartido = null;
   registro.respuestaSeleccionada = null;
   registro.respuestaNota = '';

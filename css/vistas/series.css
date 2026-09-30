@@ -1,12 +1,19 @@
 /* ================================================================
    Ahora Sí — CSS MODULAR
    Archivo: css/vistas/series.css
-   Versión: 2.0.0
+   Versión: 2.0.1
    Propósito: Estilos de la vista de series y películas. Dos
               modos (tarjeta y ranking) con toggle en barra
               superior. Chips de filtro con contador. Sección
               "Viendo ahora". Sheet de formulario con el mismo
               patrón que fauna y flora.
+              v2.0.1: se elimina la sección de estilos de autor
+                      de esta vista. Ahora el distintivo lo pinta
+                      distintivoAutor() del núcleo y hereda los
+                      estilos de componentes.css. La versión
+                      anterior usaba --luci/--yayo/--ambos, que
+                      nunca estuvieron definidas en base.css, y
+                      por eso los círculos salían sin color.
               v2.0.0: rediseño completo alineado al prototipo
                       del equipo de diseño. Se reemplaza la
                       estructura anterior. Barra superior
@@ -564,32 +571,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 8 — AUTOR
-   ═══════════════════════════════════════════════════════════════ */
-
-#vista-series .autor {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0;
-  border-radius: var(--r-full);
-}
-#vista-series .autor__ini {
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 9px;
-  font-weight: 800;
-  color: var(--papel);
-  font-family: var(--fuente-titulo);
-}
-#vista-series .autor--luci .autor__ini { background: var(--luci); }
-#vista-series .autor--yayo .autor__ini { background: var(--yayo); }
-#vista-series .autor--ambos .autor__ini { background: var(--ambos); }
-
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 9 — SHEET (formulario)
+   SECCIÓN 8 — SHEET (formulario)
    Vive fuera de #vista-series (se monta en body).
    ═══════════════════════════════════════════════════════════════ */
 
@@ -701,7 +683,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 10 — FORMULARIO DENTRO DEL SHEET
+   SECCIÓN 9 — FORMULARIO DENTRO DEL SHEET
    ═══════════════════════════════════════════════════════════════ */
 
 .sheet .series-fila-doble {

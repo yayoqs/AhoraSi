@@ -1,441 +1,450 @@
 /* ================================================================
    Ahora Sí — CSS MODULAR
    Archivo: css/vistas/juegos.css
-   Versión: 1.1.0
-   Propósito: Estilos de la vista de juegos. Cinco secciones con
-              tabs. Cabecera decorada con puntos, listas de items,
-              tarjetas de preguntas, apuestas con resultado, caja
-              de chiste al azar.
-              v1.1.0: se agrega el bloque del chiste al azar y el
-                      resaltado del chiste actual en la lista.
+   Versión: 2.0.0
+   Propósito: estilos del grupo Juegos: hub y las cinco sub-vistas
+              (chistes, retos, penitencias, preguntas, apuestas).
+              v2.0.0: reescritura completa. Se organiza en
+                      secciones por vista. El hub con cards.
+                      Cada sub-vista comparte los estilos de
+                      lista-item, dicho, chips de estado y
+                      botones mini. Formularios colapsables.
+              v1.1.0: bloque del chiste al azar.
               v1.0.0: versión inicial.
    ================================================================ */
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 1 — CABECERA DECORADA
+   SECCIÓN 1 — HUB (vista juegos)
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-juegos .juegos__cabecera {
-  padding: var(--sp-5) var(--sp-4);
-  margin: calc(var(--sp-2) * -1) calc(var(--sp-4) * -1) var(--sp-5);
-  border-radius: var(--r-lg);
-  background-color: var(--pcb3);
-  background-image:
-    radial-gradient(circle, rgba(227, 188, 85, .18) 1px, transparent 1.5px);
-  background-size: 22px 22px;
-  border: 1px solid rgba(227, 188, 85, .15);
+#vista-juegos .hub-lead {
+  font-size: 13.5px;
+  color: var(--tinta-suave);
+  line-height: 1.55;
+  margin-bottom: 18px;
 }
-#vista-juegos .juegos__cabecera h1 { color: var(--gold); }
 
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 2 — TABS
-   ═══════════════════════════════════════════════════════════════ */
+#vista-juegos .hub {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
 
-#vista-juegos .juegos__tabs {
+#vista-juegos .hub-card {
   display: flex;
-  gap: 4px;
-  background: var(--pcb3);
-  border: 1px solid rgba(238, 242, 232, .15);
-  border-radius: var(--r-pill);
-  padding: 4px;
-  margin-bottom: var(--sp-5);
-  overflow-x: auto;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-}
-#vista-juegos .juegos__tabs::-webkit-scrollbar { display: none; }
-
-#vista-juegos .juegos__tab {
-  flex: 1;
-  padding: 8px 16px;
-  border: 0;
-  border-radius: var(--r-pill);
-  background: transparent;
-  color: var(--dim);
-  font-size: 13px;
-  font-weight: 600;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  text-align: left;
+  transition: transform var(--t-rapida), border-color var(--t-rapida);
   cursor: pointer;
-  white-space: nowrap;
-  transition: background var(--t-rapida), color var(--t-rapida);
+  min-height: 110px;
+  position: relative;
+  overflow: hidden;
 }
-#vista-juegos .juegos__tab:hover { color: var(--paper); }
-#vista-juegos .juegos__tab[aria-pressed="true"] {
-  background: var(--gold);
-  color: var(--ink);
+#vista-juegos .hub-card:active { transform: scale(.97); }
+#vista-juegos .hub-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--tema);
+}
+#vista-juegos .hub-card--chiste     { --tema: var(--mostaza); }
+#vista-juegos .hub-card--reto       { --tema: var(--azul); }
+#vista-juegos .hub-card--penitencia { --tema: var(--terracota); }
+#vista-juegos .hub-card--pregunta   { --tema: var(--musgo); }
+#vista-juegos .hub-card--apuesta    { --tema: var(--ciruela); }
+#vista-juegos .hub-card--ancho { grid-column: 1 / -1; }
+
+#vista-juegos .hub-card__emoji {
+  font-size: 24px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+#vista-juegos .hub-card__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--tinta);
+}
+#vista-juegos .hub-card__cuenta {
+  font-size: 11px;
+  color: var(--tinta-tenue);
+  font-weight: 600;
+  margin-top: auto;
+}
+#vista-juegos .hub-card__pendientes {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  background: color-mix(in oklab, var(--tema) 15%, var(--papel-2));
+  color: var(--tema);
+  font-size: 10.5px;
+  font-weight: 700;
+  margin-top: 6px;
+  align-self: flex-start;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 3 — BOTÓN ABRIR FORMULARIO
+   SECCIÓN 2 — SUB-VISTAS: PATRONES COMUNES
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-juegos .juegos__abrir-form {
+.vista--chistes .subjuego__lead,
+.vista--retos .subjuego__lead,
+.vista--penitencias .subjuego__lead,
+.vista--preguntas .subjuego__lead,
+.vista--apuestas .subjuego__lead {
+  font-size: 13.5px;
+  color: var(--tinta-suave);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+
+/* Botón agregar principal. */
+.vista--retos .btn-agregar,
+.vista--penitencias .btn-agregar,
+.vista--apuestas .btn-agregar {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   width: 100%;
-  padding: 14px 24px;
+  padding: 14px 20px;
   border-radius: var(--r-md);
-  background: var(--gold);
-  color: var(--ink);
+  background: var(--tema-actual, var(--accent));
+  color: var(--papel);
   font-weight: 700;
-  font-size: 15px;
-  border: 0;
-  cursor: pointer;
-  margin-bottom: var(--sp-5);
+  font-size: 14px;
+  margin-bottom: 16px;
   transition: filter var(--t-rapida), transform var(--t-rapida);
 }
-#vista-juegos .juegos__abrir-form:hover { filter: brightness(1.05); }
-#vista-juegos .juegos__abrir-form:active { transform: translateY(1px); }
+.vista--retos .btn-agregar:hover,
+.vista--penitencias .btn-agregar:hover,
+.vista--apuestas .btn-agregar:hover { filter: brightness(1.05); }
+.vista--retos .btn-agregar:active,
+.vista--penitencias .btn-agregar:active,
+.vista--apuestas .btn-agregar:active { transform: translateY(1px); }
 
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 4 — FORMULARIO
-   ═══════════════════════════════════════════════════════════════ */
-
-#vista-juegos .juegos__form {
+/* Formulario colapsable. */
+.form-linea-full {
+  background: var(--papel-2);
+  border: 1px dashed var(--borde-fuerte);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  margin-bottom: 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  background: var(--pcb3);
-  padding: 16px;
-  border-radius: var(--r-md);
-  border-left: 3px solid var(--sky);
-  margin-bottom: var(--sp-5);
 }
-
-#vista-juegos .juegos__form input,
-#vista-juegos .juegos__form select,
-#vista-juegos .juegos__form textarea {
-  padding: 11px 14px;
-  border-radius: var(--r-md);
-  border: 1.5px solid rgba(238, 242, 232, .3);
-  background: rgba(238, 242, 232, .04);
-  color: var(--paper);
+.form-linea-full input,
+.form-linea-full textarea,
+.form-linea-full select {
+  padding: 10px 12px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
   font: inherit;
-  font-size: 15px;
-  font-family: inherit;
+  font-size: 14px;
+  color: var(--tinta);
   width: 100%;
-  transition: border-color var(--t-rapida), background var(--t-rapida);
+  font-family: var(--fuente-cuerpo);
 }
-#vista-juegos .juegos__form input:focus,
-#vista-juegos .juegos__form select:focus,
-#vista-juegos .juegos__form textarea:focus {
-  border-color: var(--sky);
+.form-linea-full input:focus,
+.form-linea-full textarea:focus,
+.form-linea-full select:focus {
   outline: none;
-  background: rgba(238, 242, 232, .08);
+  border-color: var(--accent);
+  background: var(--papel);
 }
-#vista-juegos .juegos__form textarea { min-height: 60px; resize: vertical; }
-
-#vista-juegos .juegos__form-botones {
+.form-linea-full textarea { min-height: 60px; resize: vertical; }
+.form-linea-full__botones {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
   margin-top: 4px;
 }
+.btn-form {
+  padding: 10px 16px;
+  border-radius: var(--r-sm);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  border: 0;
+  transition: all var(--t-rapida);
+}
+.btn-form--primario {
+  background: var(--accent);
+  color: var(--papel);
+}
+.btn-form--primario:hover { filter: brightness(1.05); }
+.btn-form--secundario {
+  background: transparent;
+  color: var(--tinta-suave);
+  border: 1px solid var(--borde-fuerte);
+}
+
+/* Formulario inline simple (chistes y preguntas). */
+.form-linea {
+  background: var(--papel-2);
+  border: 1px dashed var(--borde-fuerte);
+  border-radius: var(--r-md);
+  padding: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.form-linea textarea,
+.form-linea input {
+  flex: 1;
+  padding: 10px 12px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--tinta);
+  resize: none;
+  min-height: 40px;
+  line-height: 1.4;
+  width: 100%;
+  font-family: var(--fuente-cuerpo);
+}
+.form-linea textarea:focus,
+.form-linea input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--papel);
+}
+.form-linea button {
+  padding: 10px 14px;
+  background: var(--accent);
+  color: var(--papel);
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 40px;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 0;
+}
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 5 — LISTA E ITEMS
+   SECCIÓN 3 — DICHO (chistes y preguntas)
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-juegos .juegos__lista {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-3);
-}
-
-#vista-juegos .juegos__item {
-  padding: 16px;
-  background: var(--pcb2);
+.dicho {
+  padding: 24px 20px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
   border-radius: var(--r-md);
-  border-left: 3px solid var(--gris);
+  font-family: var(--fuente-carta);
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--tinta);
+  font-style: italic;
+  text-align: center;
+  margin-bottom: 12px;
+  position: relative;
+}
+.dicho--chiste {
+  background: linear-gradient(160deg,
+    color-mix(in oklab, var(--mostaza) 10%, var(--papel-3)) 0%,
+    var(--papel-3) 100%);
+  border-color: color-mix(in oklab, var(--mostaza) 30%, var(--borde));
+}
+.dicho--pregunta {
+  background: linear-gradient(160deg,
+    color-mix(in oklab, var(--musgo) 8%, var(--papel-3)) 0%,
+    var(--papel-3) 100%);
+  border-color: color-mix(in oklab, var(--musgo) 25%, var(--borde));
+}
+.dicho__eyebrow {
+  display: block;
+  font-family: var(--fuente-titulo);
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  margin-bottom: 12px;
+}
+
+.acciones-centro {
   display: flex;
-  flex-direction: column;
   gap: 8px;
+  justify-content: center;
+  margin-bottom: 20px;
 }
 
-#vista-juegos .juegos__item--propuesto  { border-left-color: var(--gold); }
-#vista-juegos .juegos__item--pendiente  { border-left-color: var(--gold); }
-#vista-juegos .juegos__item--aceptado   { border-left-color: var(--sky); }
-#vista-juegos .juegos__item--cumplido   { border-left-color: var(--verde); }
-#vista-juegos .juegos__item--cumplida   { border-left-color: var(--verde); }
-#vista-juegos .juegos__item--rechazado  { border-left-color: var(--gris); opacity: .7; }
-#vista-juegos .juegos__item--resuelta   { border-left-color: var(--verde); }
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 4 — LISTA ITEM (retos, penitencias, apuestas)
+   ═══════════════════════════════════════════════════════════════ */
 
-#vista-juegos .juegos__item--pregunta {
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 12px;
-  border-left-color: var(--sky);
+.lista-item {
+  padding: 14px 16px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-left: 4px solid var(--borde-fuerte);
+  border-radius: var(--r-md);
+  margin-bottom: 10px;
 }
+.lista-item--propuesto { border-left-color: var(--mostaza); }
+.lista-item--aceptado  { border-left-color: var(--azul); }
+.lista-item--cumplido  { border-left-color: var(--musgo); }
+.lista-item--cumplida  { border-left-color: var(--musgo); }
+.lista-item--pendiente { border-left-color: var(--mostaza); }
+.lista-item--rechazado { border-left-color: var(--tinta-tenue); opacity: .75; }
+.lista-item--resuelta  { border-left-color: var(--musgo); }
 
-#vista-juegos .juegos__item--actual {
-  border-left-color: var(--gold);
-  box-shadow: 0 0 0 1px rgba(227, 188, 85, .25);
-}
-
-#vista-juegos .juegos__item-cabecera {
+.lista-item__cab {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
+  margin-bottom: 8px;
 }
-
-#vista-juegos .juegos__flecha {
-  color: var(--dim);
-  font-size: 12px;
-}
-
-#vista-juegos .juegos__texto {
+.lista-item__texto {
+  font-family: var(--fuente-carta);
   font-size: 16px;
   line-height: 1.5;
-  color: var(--paper);
-  font-weight: 500;
+  color: var(--tinta);
+  letter-spacing: -0.005em;
   margin: 0;
 }
-
-#vista-juegos .juegos__contexto {
-  color: var(--dim);
+.lista-item__contexto {
   font-size: 13px;
+  color: var(--tinta-suave);
   font-style: italic;
-  margin: 0;
+  line-height: 1.5;
+  margin: 4px 0 0;
 }
-
-#vista-juegos .juegos__num {
-  color: var(--dim);
+.lista-item__resultado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: color-mix(in oklab, var(--musgo) 12%, var(--papel-2));
+  border-radius: var(--r-full);
   font-size: 12px;
-  min-width: 24px;
-  padding-top: 2px;
-  font-variant-numeric: tabular-nums;
-  flex-shrink: 0;
+  color: var(--tinta-suave);
+  margin-top: 8px;
 }
+.lista-item__ganador { color: var(--musgo); font-weight: 700; }
 
-#vista-juegos .juegos__acciones {
+.lista-item__acciones {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
-  margin-top: 4px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--borde);
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 6 — BADGES
+   SECCIÓN 5 — CHIPS DE ESTADO
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-juegos .badge {
+.estado-chip {
   display: inline-block;
   padding: 2px 8px;
-  border-radius: var(--r-pill);
+  border-radius: var(--r-full);
   font-size: 10px;
   font-weight: 700;
+  letter-spacing: .05em;
   text-transform: uppercase;
-  letter-spacing: .04em;
 }
-#vista-juegos .badge--propuesto  { background: rgba(227, 188, 85, .18); color: var(--gold); }
-#vista-juegos .badge--pendiente  { background: rgba(227, 188, 85, .18); color: var(--gold); }
-#vista-juegos .badge--aceptado   { background: rgba(141, 183, 216, .18); color: var(--sky); }
-#vista-juegos .badge--cumplido   { background: rgba(74, 222, 128, .18); color: var(--verde); }
-#vista-juegos .badge--cumplida   { background: rgba(74, 222, 128, .18); color: var(--verde); }
-#vista-juegos .badge--rechazado  { background: rgba(138, 154, 145, .18); color: var(--gris); }
-#vista-juegos .badge--resuelta   { background: rgba(74, 222, 128, .18); color: var(--verde); }
+.estado-chip--propuesto { background: color-mix(in oklab, var(--mostaza) 22%, var(--papel-2)); color: #8A6D0F; }
+.estado-chip--aceptado  { background: color-mix(in oklab, var(--azul) 18%, var(--papel-2)); color: #3D5876; }
+.estado-chip--cumplido  { background: color-mix(in oklab, var(--musgo) 18%, var(--papel-2)); color: var(--musgo); }
+.estado-chip--cumplida  { background: color-mix(in oklab, var(--musgo) 18%, var(--papel-2)); color: var(--musgo); }
+.estado-chip--pendiente { background: color-mix(in oklab, var(--mostaza) 22%, var(--papel-2)); color: #8A6D0F; }
+.estado-chip--rechazado { background: var(--papel-2); color: var(--tinta-tenue); }
+.estado-chip--resuelta  { background: color-mix(in oklab, var(--musgo) 18%, var(--papel-2)); color: var(--musgo); }
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 6 — AUTOR (chico, solo inicial)
+   ═══════════════════════════════════════════════════════════════ */
+
+.autor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px 2px 2px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.autor__inicial {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  font-family: var(--fuente-titulo);
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--papel);
+}
+.autor--yayo { background: #EFE4CC; color: #6B4F1F; }
+.autor--yayo .autor__inicial { background: #B8893C; }
+.autor--luci { background: #F0E2E2; color: #8A5757; }
+.autor--luci .autor__inicial { background: #D89A9A; }
+.autor--desconocido { background: var(--papel-2); color: var(--tinta-suave); }
+.autor--desconocido .autor__inicial { background: var(--tinta-tenue); }
+
+body.modo-noche .autor--yayo { background: rgba(184, 137, 60, .22); color: #D9B876; }
+body.modo-noche .autor--luci { background: rgba(216, 154, 154, .22); color: #E2B4B4; }
 
 /* ═══════════════════════════════════════════════════════════════
    SECCIÓN 7 — BOTONES MINI
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-juegos .btn-mini {
-  padding: 6px 14px;
+.btn-mini {
+  padding: 6px 12px;
   font-size: 12px;
-  font-weight: 500;
-  border-radius: var(--r-pill);
-  border: 1.5px solid rgba(238, 242, 232, .3);
+  font-weight: 600;
+  color: var(--tinta-suave);
   background: transparent;
-  color: var(--paper);
-  cursor: pointer;
-  transition: border-color var(--t-rapida), color var(--t-rapida), background var(--t-rapida);
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  transition: background var(--t-rapida), color var(--t-rapida), border-color var(--t-rapida);
   white-space: nowrap;
+  min-height: 30px;
+  cursor: pointer;
 }
-#vista-juegos .btn-mini:hover { border-color: var(--gold); color: var(--gold); }
-
-#vista-juegos .btn-mini--ok {
-  border-color: rgba(74, 222, 128, .5);
-  color: var(--verde);
+.btn-mini:hover { background: var(--papel-2); color: var(--tinta); }
+.btn-mini--ok {
+  color: var(--musgo);
+  border-color: color-mix(in oklab, var(--musgo) 40%, var(--borde));
 }
-#vista-juegos .btn-mini--ok:hover {
-  background: var(--verde);
-  color: var(--ink);
-  border-color: var(--verde);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 8 — PREGUNTAS
-   ═══════════════════════════════════════════════════════════════ */
-
-#vista-juegos .juegos__preguntas-caja {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  align-items: center;
-  text-align: center;
-  padding: 32px 20px;
-  background: var(--pcb2);
-  border-radius: var(--r-lg);
-  border: 1px solid rgba(238, 242, 232, .1);
-  margin-bottom: var(--sp-5);
-}
-
-#vista-juegos .juegos__subtitulo {
-  color: var(--dim);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  font-weight: 700;
-  margin: 0;
-}
-
-#vista-juegos .juegos__pregunta-actual {
-  font-family: var(--fuente-titulo);
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--paper);
-  letter-spacing: -.01em;
-  line-height: 1.3;
-  max-width: 44ch;
-  min-height: 3em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-}
-
-#vista-juegos .juegos__preguntas-botones {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-#vista-juegos .juegos__subtitulo-lista {
-  color: var(--sky);
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  margin: var(--sp-5) 0 var(--sp-3);
+.btn-mini--ok:hover { background: color-mix(in oklab, var(--musgo) 12%, transparent); }
+.btn-mini--peligro:hover {
+  background: #FBE9E9;
+  color: var(--rojo);
+  border-color: #E3B6B6;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 9 — CHISTES
+   SECCIÓN 8 — VACÍO Y MENSAJES
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-juegos .juegos__chiste-caja {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  align-items: center;
-  text-align: center;
-  padding: 36px 20px;
-  background: var(--pcb2);
-  border-radius: var(--r-lg);
-  border: 1px solid rgba(227, 188, 85, .15);
-  background-image:
-    radial-gradient(circle, rgba(227, 188, 85, .08) 1px, transparent 1.5px);
-  background-size: 18px 18px;
-  margin-bottom: var(--sp-5);
-}
-
-#vista-juegos .juegos__chiste-actual {
-  font-family: var(--fuente-titulo);
-  font-size: 20px;
-  font-weight: 500;
-  color: var(--paper);
-  letter-spacing: -.005em;
-  line-height: 1.45;
-  max-width: 46ch;
-  min-height: 2.4em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 10 — RESULTADO DE APUESTA
-   ═══════════════════════════════════════════════════════════════ */
-
-#vista-juegos .juegos__resultado {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 10px 14px;
-  background: var(--pcb3);
-  border-radius: var(--r-md);
-  font-size: 14px;
-  color: var(--dim);
-}
-
-#vista-juegos .juegos__ganador {
-  color: var(--verde);
-  font-weight: 700;
-  font-size: 15px;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 11 — VACÍO Y BOTONES GLOBALES
-   ═══════════════════════════════════════════════════════════════ */
-
-#vista-juegos .juegos__vacio {
-  color: var(--dim);
+.vista--chistes .vista__vacio,
+.vista--retos .vista__vacio,
+.vista--penitencias .vista__vacio,
+.vista--preguntas .vista__vacio,
+.vista--apuestas .vista__vacio {
+  color: var(--tinta-tenue);
   font-style: italic;
-  padding: var(--sp-5) 0;
+  padding: 24px 0;
   text-align: center;
-}
-
-#vista-juegos .btn-primario {
-  padding: 10px 22px;
-  border-radius: var(--r-md);
-  background: var(--gold);
-  color: var(--ink);
-  font-weight: 700;
-  font-size: 14px;
-  border: 0;
-  cursor: pointer;
-  transition: filter var(--t-rapida);
-}
-#vista-juegos .btn-primario:hover { filter: brightness(1.05); }
-
-#vista-juegos .btn-secundario {
-  padding: 10px 22px;
-  border-radius: var(--r-md);
-  background: transparent;
-  color: var(--paper);
-  border: 1.5px solid rgba(238, 242, 232, .35);
-  font-weight: 500;
-  font-size: 14px;
-  cursor: pointer;
-  transition: border-color var(--t-rapida), color var(--t-rapida);
-}
-#vista-juegos .btn-secundario:hover { border-color: var(--rojo); color: var(--rojo); }
-
-
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 12 — TOGGLE DE LISTA (preguntas)
-   Botón centrado que muestra u oculta la lista completa.
-   ═══════════════════════════════════════════════════════════════ */
-
-#vista-juegos .juegos__toggle-lista {
-  display: flex;
-  justify-content: center;
-  margin: var(--sp-4) 0;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 13 — RESPONSIVE
-   ═══════════════════════════════════════════════════════════════ */
-
-@media (max-width: 560px) {
-  #vista-juegos .juegos__tab { padding: 8px 10px; font-size: 12px; }
-  #vista-juegos .juegos__pregunta-actual { font-size: 18px; }
-  #vista-juegos .juegos__chiste-actual { font-size: 17px; }
 }

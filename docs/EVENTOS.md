@@ -1,7 +1,7 @@
 # EVENTOS.md — Catálogo de eventos de Ahora Sí
 
-**Versión:** 2.0.0
-**Fecha:** 28 de septiembre de 2026
+**Versión:** 2.2.0
+**Fecha:** 30 de septiembre de 2026
 **Propósito:** Catálogo canónico de eventos del sistema. Todo evento que un módulo emite debe estar acá. Todo evento que una vista consume debe estar acá. Si un evento no aparece en este documento, no existe.
 **Mantenedor:** Kiu.
 
@@ -28,11 +28,29 @@ Emitidos por los módulos del directorio `js/nucleo/`.
 | `almacen:<clave>` | `almacen.js` | `{ valor, anterior }` | Cualquier módulo suscrito al cambio de una clave específica |
 | `almacen:reiniciado` | `almacen.js` | *(sin payload)* | Módulos que necesitan saber cuándo se limpia el estado |
 
-Ejemplos de `<clave>`: `usuarioActual`, `espacio`, `planes`, `kit`, `hitos`, `carta`, `respuestas`, `fauna`, `flora`, `ritmos`, `perfil`, `cargando`, `error`.
+Claves vigentes en el almacén:
+
+| Clave | Tipo | Quién la escribe | Quién la lee |
+|-------|------|------------------|---------------|
+| `usuarioActual` | objeto Appwrite | `sesion-inicial.js`, `sesion.js` | repositorios vía `_contexto.js` |
+| `perfil` | objeto perfil | `sesion-inicial.js`, `cuenta.js` | `app.js` (title del botón cuenta), `cuenta.js` |
+| `espacio` | objeto espacio | `sesion-inicial.js`, `espacio-inicial.js` | repositorios vía `_contexto.js` |
+| `planes` | array | (no usado hoy; el repo lista directo) | — |
+| `kit` | array | (no usado hoy) | — |
+| `hitos` | array | (no usado hoy) | — |
+| `carta` | array | (no usado hoy) | — |
+| `respuestas` | array | (no usado hoy) | — |
+| `fauna` | array | (no usado hoy) | — |
+| `flora` | array | (no usado hoy) | — |
+| `ritmos` | array | (no usado hoy) | — |
+| `modoNoche` | boolean | `app.js` (al arrancar), `cuenta.js` (toggle) | `app.js` (aplica la clase al body) |
+| `cargando` | boolean | (no usado hoy) | — |
+| `error` | string/null | (no usado hoy) | — |
 
 **Consumidores activos notables:**
 
-- `almacen:perfil` → `app.js` (actualiza el nombre visible en el header).
+- `almacen:perfil` → `app.js` (actualiza el nombre visible en el botón de cuenta).
+- `almacen:modoNoche` → `app.js` (aplica o quita la clase `modo-noche` en el body).
 
 ### 2.2 Arranque
 
@@ -84,21 +102,21 @@ Para cada tabla suscrita, `realtime.js` emite también un evento específico por
 | `kit` | `ahorasi_kit` | `js/vistas/kit.js` |
 | `hitos` | `ahorasi_hitos` | `js/vistas/hitos.js` |
 | `carta` | `ahorasi_carta` | `js/vistas/carta.js` |
-| `respuestas` | `ahorasi_respuestas` | `js/vistas/respuesta.js` (solo `crear`) |
+| `respuestas` | `ahorasi_respuestas` | `js/vistas/carta.js` (solo `crear`) |
 | `fauna` | `ahorasi_fauna` | `js/vistas/fauna.js` |
 | `flora` | `ahorasi_flora` | `js/vistas/flora.js` |
 | `ritmos` | `ahorasi_ritmos` | `js/vistas/percusion.js` (solo `crear` y `eliminar`) |
 | `fotos` | `ahorasi_fotos` | `js/vistas/fauna.js`, `js/vistas/flora.js` |
 | `lugares` | `ahorasi_lugares` | `js/vistas/mapa.js` |
 | `series` | `ahorasi_series` | `js/vistas/series.js` |
-| `retos` | `ahorasi_retos` | `js/vistas/juegos.js` |
-| `penitencias` | `ahorasi_penitencias` | `js/vistas/juegos.js` |
-| `preguntas` | `ahorasi_preguntas` | `js/vistas/juegos.js` |
-| `apuestas` | `ahorasi_apuestas` | `js/vistas/juegos.js` |
-| `chistes` | `ahorasi_chistes` | `js/vistas/juegos.js` |
+| `retos` | `ahorasi_retos` | `js/vistas/retos.js`, `js/vistas/juegos.js` (hub) |
+| `penitencias` | `ahorasi_penitencias` | `js/vistas/penitencias.js`, `js/vistas/juegos.js` (hub) |
+| `preguntas` | `ahorasi_preguntas` | `js/vistas/preguntas.js`, `js/vistas/juegos.js` (hub) |
+| `apuestas` | `ahorasi_apuestas` | `js/vistas/apuestas.js`, `js/vistas/juegos.js` (hub) |
+| `chistes` | `ahorasi_chistes` | `js/vistas/chistes.js`, `js/vistas/juegos.js` (hub) |
 | `recetas` | `ahorasi_recetas` | `js/vistas/recetas.js` |
 
-**Nota:** la vista de Juegos se suscribe a las cinco tablas (retos, penitencias, preguntas, apuestas, chistes) y refresca según el tab activo.
+**Nota:** la vista de Juegos es solo un hub de navegación. Se suscribe a las cinco tablas de los mini-juegos para refrescar los contadores del hub, no para mostrar datos.
 
 ---
 
@@ -129,6 +147,8 @@ Emitidos por `js/datos/repositorios/*.js`. Se emiten **después** de que la oper
 | `hitos:creado` | `hitos.js` | `hito` (objeto normalizado) | Vistas, tests |
 | `hitos:actualizado` | `hitos.js` | `hito` (objeto normalizado) | Vistas, tests |
 | `hitos:eliminado` | `hitos.js` | `{ id }` | Vistas, tests |
+
+**Nota:** el repositorio v1.8.0 eliminó la función `marcar()`. El campo `cumplido` de la tabla sigue existiendo pero el normalizador lo ignora. El único evento que emite `actualizar` es `hitos:actualizado`.
 
 ### 5.4 Carta
 
@@ -169,7 +189,7 @@ Emitidos por `js/datos/repositorios/*.js`. Se emiten **después** de que la oper
 | `ritmos:creado` | `ritmos.js` | `ritmo` (objeto normalizado) | Vistas, tests |
 | `ritmos:eliminado` | `ritmos.js` | `{ id }` | Vistas, tests |
 
-**Nota:** el repo de ritmos no expone `actualizar()`. Solo crear y eliminar.
+**Nota:** el repo de ritmos no expone `actualizar()`. Solo crear y eliminar. Un ritmo guardado no se edita; se borra y se guarda de nuevo.
 
 ### 5.9 Perfiles
 
@@ -334,6 +354,58 @@ El orden va de arriba hacia abajo.
       creadoEn: '2026-09-25T...'
     }
 
+### 6.6 Ejemplo: `ritmos:creado` (modo extendido, con mezcla y efectos)
+
+    {
+      id: 'ritmo_xxxxx',
+      espacioId: 'esp_xxxxx',
+      nombre: 'Tumbé de prueba',
+      bpm: 110,
+      patron: [
+        [3,0,0,0, 0,0,2,0, 0,0,0,0, 0,0,0,0],
+        ... 7 filas de 16 pasos ...
+      ],
+      modo: 'extendido',
+      estiloId: 'tumbe',
+      familia: 'afr',
+      efectos: { reverb: 24, eco: 20, saturacion: 15, filtro: 100 },
+      volumen: [1, 0.8, 0.8, 0.6, 0.55, 0.9, 0.55],
+      silenciados: [false, false, false, false, false, false, false],
+      solistas: [false, false, false, false, false, false, false],
+      swing: 18,
+      creadoPor: 'Elyayo',
+      creadoEn: '2026-09-30T...'
+    }
+
+**Nota:** `efectos`, `volumen`, `silenciados`, `solistas` y `swing` se agregaron en la v1.6.0 del repositorio. Los ritmos guardados antes de esa versión devuelven `null` en esos campos; la vista los restituye con los defaults del estilo o del modo.
+
+### 6.7 Ejemplo: `ritmos:creado` (modo simple)
+
+    {
+      id: 'ritmo_xxxxx',
+      espacioId: 'esp_xxxxx',
+      nombre: 'Rap underground',
+      bpm: 90,
+      patron: [
+        { sonidoId: 'bombo_gordo', pasos: [3,0,2,0, 0,0,2,0] },
+        { sonidoId: 'caja_seca',   pasos: [0,0,2,0, 0,0,2,0] },
+        { sonidoId: 'hh_cerrado',  pasos: [2,2,2,2, 2,2,2,2] },
+        { sonidoId: 'clap',        pasos: [0,0,3,0, 0,0,3,0] }
+      ],
+      modo: 'simple',
+      estiloId: '',
+      familia: '',
+      efectos: null,
+      volumen: null,
+      silenciados: null,
+      solistas: null,
+      swing: 0,
+      creadoPor: 'Elyayo',
+      creadoEn: '2026-09-30T...'
+    }
+
+**Nota:** en modo simple, los campos de mezcla y efectos van en `null`. El modo simple no tiene efectos globales ni control de mezcla por voz.
+
 ---
 
 ## 7. Cómo suscribirse
@@ -382,9 +454,55 @@ Estos eventos fueron considerados y descartados explícitamente:
 - **`productos:*`, `comandas:*`, `mesas:*`, `turno:*`.** Son eventos de un POS. Ahora Sí no es un POS y no tiene esos conceptos.
 - **`fotos:actualizada`.** Una foto no se edita. Se borra y se sube de nuevo.
 - **`preguntas:actualizado`.** Las preguntas no se editan. Se crean y se eliminan.
-- **`ritmos:actualizado`.** Los ritmos guardados no se editan desde la UI.
+- **`ritmos:actualizado`.** Los ritmos guardados no se editan desde la UI. Se borran y se guardan de nuevo.
+- **`hitos:cumplido`.** El campo `cumplido` de hitos está deprecado desde la v1.7.0 del repositorio. La función `marcar()` fue eliminada en v1.8.0. No se emite ningún evento relacionado.
+- **`app:cerrar-sesion`.** No es un evento. Es un **comando** del bus de comandos. Ver sección 10.
+
+---
+
+## 10. Comandos registrados
+
+El bus de comandos (`js/nucleo/bus-comandos.js`) es un canal síncrono, separado del bus de eventos. Un módulo registra un comando; otro lo ejecuta y recibe el resultado. Se usa para operaciones puntuales que no necesitan emitir notificación.
+
+Comandos vigentes:
+
+| Comando | Registrado en | Ejecutado por | Qué hace |
+|---------|---------------|----------------|----------|
+| `app:cerrar-sesion` | `app.js` | `cuenta.js` | Muestra el diálogo de confirmación, detiene Realtime, cierra la sesión y recarga la app |
+
+**Reglas del bus de comandos:**
+
+1. `registrar(nombre, manejador)` — un solo manejador por nombre. Si se registra dos veces, se sobrescribe (con warning en consola).
+2. `ejecutar(nombre, ...args)` — lanza excepción si el comando no existe.
+3. `existe(nombre)` — boolean.
+4. `desregistrar(nombre)` — lo elimina.
+5. No hay desuscripción automática. Los comandos viven mientras la app viva.
+
+**Cuándo usar comandos en vez de eventos:**
+
+- El llamador necesita un valor de retorno.
+- El llamador necesita esperar a que la operación termine.
+- La operación es una acción puntual, no un cambio de estado global.
+
+**Cuándo usar eventos en vez de comandos:**
+
+- El emisor no sabe quién va a reaccionar.
+- Cualquier cantidad de suscriptores puede reaccionar.
+- La operación es un cambio de estado que interesa a varios módulos.
+
+---
+
+## 11. Cómo NO suscribirse
+
+Errores comunes que hay que evitar:
+
+1. **No suscribirse sin guardar la función de desuscripción.** Si no se limpia en `limpiar()`, el listener queda vivo y el próximo `activar()` duplica suscriptores.
+2. **No suscribirse dentro de un bucle sin salida.** Un `al()` dentro de un `.forEach()` que se ejecuta cada vez que se pinta la vista deja listeners acumulados.
+3. **No emitir con `undefined` de payload.** El contrato dice objeto. Si no hay datos, `{}`.
+4. **No emitir antes de que la escritura se confirme.** Un evento que dice "se creó" cuando todavía no se creó genera falsos positivos.
+5. **No usar el bus de eventos para llamar a métodos de otro módulo de vista.** Para eso está el bus de comandos.
 
 ---
 
 *Documento mantenido por Kiu.*
-*Versión 2.0.0 — 28 de septiembre de 2026*
+*Versión 2.2.0 — 30 de septiembre de 2026*

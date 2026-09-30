@@ -1,25 +1,21 @@
 /* ================================================================
    Ahora Sí — CSS
    Archivo: css/layout.css
-   Versión: 3.0.0
+   Versión: 3.0.2
    Propósito: estructura del shell. Header con topbar + chips de
               navegación, main con las vistas, tabbar inferior
               de cinco grupos, botón flotante contextual, y
               soporte de modo noche heredado de base.css.
-              v3.0.0: shell nuevo. Acento dinámico con var(--accent).
-                      Chips usan var(--tinta) sólido cuando están
-                      activos. Tabbar activo usa var(--accent).
-                      Se agrega .boton-flotante (para vistas
-                      contextuales: Recetas, Fauna, Flora, Series).
-                      Se agrega #cargando. Se migra el login a la
-                      paleta nueva. Sin cambios en las firmas
-                      externas: mismas clases que app.js espera.
-              v2.0.0: rediseño completo. Se reemplaza el nav
-                      horizontal por un tabbar inferior con cinco
-                      grupos (Nido, Vida, Afuera, Juegos, Más).
-                      Cada grupo tiene sus propias vistas, que se
-                      cambian con chips arriba del cuerpo.
-              v1.1.0: login rediseñado, Mi cuenta, nombre visible.
+              v3.0.2: se agregan los estilos del menú del botón
+                      "⋮" en el topbar. El botón ya no navega
+                      directo a Cuenta: abre un menú con dos
+                      opciones (Mi cuenta, Anexos). Se agrega el
+                      wrapper .shell__acciones-cuenta con position
+                      relative, y el menú .shell__menu con
+                      position absolute. Sin cambios en el resto.
+              v3.0.1: se agrega el botón volver en el header.
+              v3.0.0: shell nuevo con acento dinámico y tabbar.
+              v2.0.0: rediseño completo. Tabbar inferior.
               v1.0.0: versión inicial.
    ================================================================ */
 
@@ -28,12 +24,6 @@
   flex-direction: column;
   min-height: 100svh;
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 1 — HEADER (TOPBAR + CHIPS)
-   Sticky en la parte superior. Agrupa el topbar con eyebrow +
-   título + botón de cuenta, y los chips de navegación del grupo.
-   ═══════════════════════════════════════════════════════════════ */
 
 .shell__header {
   position: sticky;
@@ -55,6 +45,33 @@
   gap: 12px;
 }
 
+.shell__header-izq {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.shell__btn-volver {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-full);
+  background: var(--papel-2);
+  color: var(--tinta-suave);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  margin-top: 4px;
+  cursor: pointer;
+  transition: background var(--t-rapida), color var(--t-rapida);
+}
+.shell__btn-volver:hover {
+  background: var(--papel-3);
+  color: var(--tinta);
+}
+.shell__btn-volver[hidden] { display: none; }
+
 .shell__eyebrow {
   font-size: 11px;
   letter-spacing: .14em;
@@ -75,6 +92,13 @@
   transition: color var(--t-media);
 }
 
+/* ─── Botón "⋮" + menú ───────────────────────────────────────── */
+
+.shell__acciones-cuenta {
+  position: relative;
+  flex-shrink: 0;
+}
+
 .shell__btn-cuenta {
   width: 40px;
   height: 40px;
@@ -84,12 +108,70 @@
   color: var(--tinta-suave);
   flex-shrink: 0;
   margin-top: 2px;
-  transition: background var(--t-rapida);
+  cursor: pointer;
+  transition: background var(--t-rapida), color var(--t-rapida);
 }
-.shell__btn-cuenta:hover { background: var(--papel-2); }
+.shell__btn-cuenta:hover {
+  background: var(--papel-2);
+  color: var(--tinta);
+}
+.shell__btn-cuenta[hidden] { display: none; }
 .shell__btn-cuenta svg { width: 20px; height: 20px; }
 
-/* -------- Chips de navegación ---------------------------------- */
+.shell__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 200px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--r-md);
+  box-shadow: 0 12px 32px rgba(31, 27, 22, .18);
+  padding: 6px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity var(--t-rapida), transform var(--t-rapida);
+}
+body.modo-noche .shell__menu {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .5);
+}
+.shell__menu.is-open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.shell__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: var(--r-sm);
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--tinta);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--t-rapida);
+}
+.shell__menu-item:hover { background: var(--papel-2); }
+.shell__menu-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--tinta-suave);
+}
+.shell__menu-icono svg { width: 18px; height: 18px; }
+.shell__menu-item:hover .shell__menu-icono { color: var(--accent); }
+
+/* ─── Chips ─────────────────────────────────────────────────── */
 
 .shell__chips {
   display: flex;
@@ -124,9 +206,7 @@
   color: var(--papel);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 2 — MAIN
-   ═══════════════════════════════════════════════════════════════ */
+/* ─── Main ──────────────────────────────────────────────────── */
 
 .shell__main {
   flex: 1;
@@ -136,9 +216,7 @@
   width: 100%;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 3 — TABBAR INFERIOR
-   ═══════════════════════════════════════════════════════════════ */
+/* ─── Tabbar ────────────────────────────────────────────────── */
 
 .tabbar {
   position: fixed;
@@ -189,12 +267,7 @@
 .tabbar__item.activo svg { transform: translateY(-1px); }
 .tabbar__item.activo .tabbar__label { font-weight: 700; }
 
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 4 — BOTÓN FLOTANTE CONTEXTUAL
-   Solo se monta en las vistas que lo usan (Recetas, Fauna,
-   Flora, Series). La monta app.js. Acá solo se definen los
-   estilos.
-   ═══════════════════════════════════════════════════════════════ */
+/* ─── Botón flotante ───────────────────────────────────────── */
 
 .boton-flotante {
   position: fixed;
@@ -215,9 +288,7 @@
 .boton-flotante:active { transform: scale(.9); }
 .boton-flotante svg { width: 24px; height: 24px; }
 
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 5 — ESTADO DE CARGA
-   ═══════════════════════════════════════════════════════════════ */
+/* ─── Cargando ─────────────────────────────────────────────── */
 
 #cargando {
   display: grid;
@@ -230,11 +301,7 @@
   font-weight: 600;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 6 — LOGIN
-   Pantalla de bienvenida con la paleta nueva. Layout de dos
-   pasos (elegir usuario + contraseña).
-   ═══════════════════════════════════════════════════════════════ */
+/* ─── Login ────────────────────────────────────────────────── */
 
 .login {
   min-height: 100svh;
@@ -245,7 +312,6 @@
   padding: 24px 20px;
   background: var(--papel);
 }
-
 .login__caja {
   width: 100%;
   max-width: 420px;
@@ -253,14 +319,12 @@
   flex-direction: column;
   gap: 20px;
 }
-
 .login__cabecera {
   text-align: center;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-
 .login__titulo {
   font-family: var(--fuente-titulo);
   color: var(--terracota);
@@ -270,19 +334,8 @@
   line-height: 1;
   margin: 0;
 }
-
-.login__lead {
-  color: var(--tinta-suave);
-  font-size: 14px;
-  margin: 0;
-}
-
-.login__paso {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
+.login__lead { color: var(--tinta-suave); font-size: 14px; margin: 0; }
+.login__paso { display: flex; flex-direction: column; gap: 12px; }
 .login__etiqueta {
   color: var(--tinta-tenue);
   font-size: 11px;
@@ -291,13 +344,11 @@
   letter-spacing: .14em;
   margin: 0;
 }
-
 .login__eleccion {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
-
 .login__usuario {
   display: flex;
   flex-direction: column;
@@ -319,7 +370,6 @@
   border-color: var(--terracota);
   background: var(--terracota-papel);
 }
-
 .login__inicial {
   display: flex;
   align-items: center;
@@ -334,12 +384,7 @@
 }
 .login__usuario--luci .login__inicial { background: #D89A9A; }
 .login__usuario--yayo .login__inicial { background: #B8893C; }
-
-.login__usuario-nombre {
-  font-size: 15px;
-  font-weight: 600;
-}
-
+.login__usuario-nombre { font-size: 15px; font-weight: 600; }
 .login__campo-grupo {
   display: flex;
   flex-direction: column;
@@ -349,11 +394,7 @@
   overflow: hidden;
   transition: opacity var(--t-media), max-height var(--t-media);
 }
-.login__campo-grupo--visible {
-  opacity: 1;
-  max-height: 200px;
-}
-
+.login__campo-grupo--visible { opacity: 1; max-height: 200px; }
 .login__campo {
   padding: 12px 14px;
   border-radius: var(--r-md);
@@ -369,7 +410,6 @@
   background: var(--papel-carta);
   outline: none;
 }
-
 .login__boton {
   padding: 13px 18px;
   border-radius: var(--r-md);
@@ -381,7 +421,6 @@
 }
 .login__boton:hover { filter: brightness(1.05); }
 .login__boton:active { transform: translateY(1px); }
-
 .login__estado {
   min-height: 1.4em;
   font-size: 13px;
@@ -390,9 +429,7 @@
   margin: 0;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 7 — ERROR FATAL
-   ═══════════════════════════════════════════════════════════════ */
+/* ─── Error fatal ──────────────────────────────────────────── */
 
 .error-fatal {
   color: var(--rojo);
@@ -401,9 +438,7 @@
   font-size: 15px;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 8 — RESPONSIVE
-   ═══════════════════════════════════════════════════════════════ */
+/* ─── Responsive ───────────────────────────────────────────── */
 
 @media (min-width: 768px) {
   .shell__topbar { padding: 20px 24px 16px; }

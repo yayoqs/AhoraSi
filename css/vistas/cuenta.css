@@ -1,38 +1,234 @@
 /* ================================================================
    Ahora Sí — CSS MODULAR
    Archivo: css/vistas/cuenta.css
-   Versión: 2.0.0
-   Propósito: Estilos específicos de "Mi cuenta". Formularios para
-              nombre visible y contraseña. Todo encapsulado bajo
+   Versión: 3.0.0
+   Propósito: Estilos específicos de "Mi cuenta". Toggle de modo
+              noche, formularios de nombre visible y contraseña,
+              y botón de cerrar sesión. Todo encapsulado bajo
               #vista-cuenta.
+              v3.0.0: migración completa a la paleta nueva. Se
+                      agregan los estilos del toggle de modo
+                      noche y del botón de cerrar sesión. Se
+                      elimina el uso del alias viejo --dim. El
+                      nombre visible y el cambio de contraseña
+                      usan los mismos tokens que el resto del
+                      rediseño. Sin cambios en el JS que ya
+                      esperaba estas clases.
               v2.0.0: reescritura con el patrón de LaTaberna.
-              Se renombra la clase de la nota a cuenta__nota.
               v1.0.0: versión inicial.
    ================================================================ */
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 1 — FORMULARIOS
+   SECCIÓN 1 — SECCIONES DE LA VISTA
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-cuenta .vista__form {
-  max-width: 420px;
+#vista-cuenta .seccion {
+  margin-bottom: 32px;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 2 — NOTA BAJO CADA TÍTULO
-   ═══════════════════════════════════════════════════════════════ */
+#vista-cuenta .seccion__cab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
 
-#vista-cuenta .cuenta__nota {
-  color: var(--dim);
+#vista-cuenta .seccion__titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -.01em;
+  color: var(--tinta);
+  margin: 0;
+}
+
+#vista-cuenta .seccion__nota {
   font-size: 13px;
-  margin: -6px 0 var(--sp-3);
+  color: var(--tinta-suave);
+  line-height: 1.5;
+  margin: 0 0 12px;
   max-width: 50ch;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 3 — ESPACIADO ENTRE SECCIONES
+   SECCIÓN 2 — TOGGLE DE MODO NOCHE
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-cuenta .vista__subtitulo:not(:first-of-type) {
-  margin-top: var(--sp-10);
+#vista-cuenta .toggle-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  transition: background var(--t-media), border-color var(--t-media);
+}
+
+#vista-cuenta .toggle-fila__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+#vista-cuenta .toggle-fila__titulo {
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--tinta);
+}
+
+#vista-cuenta .toggle-fila__sub {
+  font-size: 12px;
+  color: var(--tinta-suave);
+}
+
+#vista-cuenta .toggle {
+  position: relative;
+  width: 52px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: var(--r-full);
+  background: var(--borde-fuerte);
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+  transition: background var(--t-media);
+  -webkit-tap-highlight-color: transparent;
+}
+
+#vista-cuenta .toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--papel);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+  transition: transform var(--t-media);
+}
+
+#vista-cuenta .toggle[aria-pressed="true"] {
+  background: var(--terracota);
+}
+
+#vista-cuenta .toggle[aria-pressed="true"]::after {
+  transform: translateX(22px);
+}
+
+#vista-cuenta .toggle:focus-visible {
+  outline: 3px solid var(--mostaza);
+  outline-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 3 — FORMULARIOS
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-cuenta .form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 420px;
+}
+
+#vista-cuenta .form input {
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--borde);
+  background: var(--papel-3);
+  color: var(--tinta);
+  font-size: 15px;
+  font-family: inherit;
+  width: 100%;
+  transition: border-color var(--t-rapida), background var(--t-rapida);
+}
+
+#vista-cuenta .form input:focus {
+  border-color: var(--terracota);
+  background: var(--papel);
+  outline: none;
+}
+
+#vista-cuenta .form button[type="submit"] {
+  padding: 12px 28px;
+  border-radius: var(--r-md);
+  background: var(--terracota);
+  color: var(--papel);
+  font-weight: 700;
+  font-size: 15px;
+  align-self: flex-start;
+  border: 0;
+  cursor: pointer;
+  transition: filter var(--t-rapida), transform var(--t-rapida);
+}
+
+#vista-cuenta .form button[type="submit"]:hover {
+  filter: brightness(1.05);
+}
+
+#vista-cuenta .form button[type="submit"]:active {
+  transform: translateY(1px);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 4 — BOTÓN CERRAR SESIÓN
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-cuenta .salir-bloque {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px dashed var(--borde-fuerte);
+}
+
+#vista-cuenta .salir-bloque__nota {
+  font-size: 12.5px;
+  color: var(--tinta-tenue);
+  margin: 0 0 12px;
+  line-height: 1.5;
+  max-width: 50ch;
+}
+
+#vista-cuenta .btn-salir {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: var(--r-md);
+  border: 1.5px solid color-mix(in oklab, var(--rojo) 40%, var(--borde));
+  background: transparent;
+  color: var(--rojo);
+  font-weight: 700;
+  font-size: 14.5px;
+  cursor: pointer;
+  transition: background var(--t-rapida), color var(--t-rapida), border-color var(--t-rapida);
+}
+
+#vista-cuenta .btn-salir:hover {
+  background: var(--rojo);
+  color: var(--papel);
+  border-color: var(--rojo);
+}
+
+#vista-cuenta .btn-salir svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 5 — RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 480px) {
+  #vista-cuenta .form button[type="submit"] {
+    align-self: stretch;
+  }
+  #vista-cuenta .toggle-fila {
+    padding: 14px 16px;
+  }
 }

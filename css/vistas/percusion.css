@@ -1,605 +1,750 @@
 /* ================================================================
    Ahora Sí — CSS MODULAR
    Archivo: css/vistas/percusion.css
-   Versión: 3.0.0
-   Propósito: Estilos del secuenciador. Dos modos: simple (4
-              filas con selector de sonido, 8 pasos) y extendido
-              (7 voces afro, 16 pasos, con paneles de mezcla y
-              efectos). Todo encapsulado bajo #vista-percusion.
-              v3.0.0: reescritura completa. Se introduce el
-                      selector de modo y el modal de selección de
-                      sonido del modo simple.
-              v2.0.0: beatmaker de 7 voces con familias.
+   Versión: 4.0.1
+   Propósito: estilos del secuenciador. Caja del instrumento que
+              usa los mismos tokens del shell (papel/terracota).
+              Cambia sola con modo-noche. Sheets para Mezcla,
+              Efectos, Guardados, Elegir sonido y Guardar.
+              v4.0.1: fix de layout. Las celdas del modo extendido
+                      usaban min-height: 26px, que combinado con
+                      aspect-ratio: 1 fijaba un ancho mínimo de
+                      26px por celda. Con 16 columnas, la grilla se
+                      desbordaba del contenedor. Se reemplaza por
+                      min-height: 0 y min-width: 0, para que cada
+                      celda ocupe el ancho real asignado por el
+                      grid. Se reduce el label de 74px a 56px,
+                      igual que en el prototipo B. Se reduce el gap
+                      entre celdas de 4px a 3px y entre bloques de
+                      8px a 6px. Mismo ajuste para el modo simple:
+                      celdas sin min-height forzado. Se agrega
+                      min-width: 0 a los contenedores flex para
+                      evitar que el min-content de los hijos rompa
+                      el layout.
+              v4.0.0: rediseño al patrón caja + sheets.
+              v3.0.0: modo simple + modo noche local.
+              v2.0.0: beatmaker de 7 voces.
               v1.0.0: versión anterior.
    ================================================================ */
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 1 — CABECERA DECORADA
+   SECCIÓN 1 — CAJA DEL INSTRUMENTO
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-percusion .perc__cabecera {
-  padding: var(--sp-5) var(--sp-4);
-  margin: calc(var(--sp-2) * -1) calc(var(--sp-4) * -1) var(--sp-5);
+#vista-percusion .perc-caja {
+  background: var(--papel-3);
+  border: 1px solid var(--borde);
   border-radius: var(--r-lg);
-  background-color: var(--pcb3);
-  background-image:
-    radial-gradient(circle, rgba(227, 188, 85, .14) 1px, transparent 1.5px);
-  background-size: 20px 20px;
-  border: 1px solid rgba(227, 188, 85, .15);
+  padding: 16px 14px;
+  color: var(--tinta);
+  box-shadow: var(--sombra-2);
+  transition: background var(--t-media), border-color var(--t-media), color var(--t-media);
 }
-#vista-percusion .perc__cabecera h1 { color: var(--gold); }
+#vista-percusion .perc-caja * { color: inherit; }
 
 /* ═══════════════════════════════════════════════════════════════
    SECCIÓN 2 — SELECTOR DE MODO
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-percusion .perc__modos {
+#vista-percusion .perc-modo {
   display: flex;
   gap: 4px;
-  background: var(--pcb3);
-  border: 1px solid rgba(238, 242, 232, .15);
-  border-radius: var(--r-pill);
   padding: 4px;
-  margin-bottom: var(--sp-4);
-  width: fit-content;
+  background: var(--papel-2);
+  border-radius: var(--r-full);
+  margin-bottom: 14px;
+  transition: background var(--t-media);
 }
-
-#vista-percusion .perc__modo-btn {
-  padding: 8px 18px;
-  border: 0;
-  border-radius: var(--r-pill);
-  background: transparent;
-  color: var(--dim);
-  font-size: 13px;
-  font-weight: 600;
+#vista-percusion .perc-modo-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tinta-suave);
   cursor: pointer;
+  border: 0;
   transition: background var(--t-rapida), color var(--t-rapida);
 }
-#vista-percusion .perc__modo-btn:hover { color: var(--paper); }
-#vista-percusion .perc__modo-btn--activo {
-  background: var(--gold);
-  color: var(--ink);
+#vista-percusion .perc-modo-btn:hover { color: var(--tinta); }
+#vista-percusion .perc-modo-btn.is-active {
+  background: var(--mostaza);
+  color: #1a1410;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 3 — NOTA Y SUBTÍTULOS
+   SECCIÓN 3 — CHIPS DE ESTILO (solo extendido)
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-percusion .perc__nota {
-  padding: 10px 14px;
-  margin-bottom: var(--sp-4);
-  background: var(--pcb2);
-  border-left: 3px solid var(--sky);
-  border-radius: var(--r-sm);
-  color: var(--dim);
-  font-size: 13px;
-  line-height: 1.5;
-}
-#vista-percusion .perc__nota b { color: var(--sky); }
-
-#vista-percusion .perc__subtitulo {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--sky);
-  margin: var(--sp-4) 0 var(--sp-2);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 4 — CHIPS (EXTENDIDO)
-   ═══════════════════════════════════════════════════════════════ */
-
-#vista-percusion .perc__chips {
+#vista-percusion .perc-chips-estilo {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+  margin-bottom: 10px;
 }
-
-#vista-percusion .chip {
-  padding: 8px 14px;
-  border-radius: var(--r-pill);
-  border: 1.5px solid rgba(238, 242, 232, .3);
-  background: transparent;
-  color: var(--paper);
-  font-size: 13px;
+#vista-percusion .chip-estilo {
+  padding: 6px 12px;
+  font-size: 12px;
   font-weight: 600;
+  border-radius: var(--r-full);
+  border: 1px solid var(--borde-fuerte);
+  background: transparent;
+  color: var(--tinta-suave);
   cursor: pointer;
-  transition: border-color var(--t-rapida), color var(--t-rapida), background var(--t-rapida);
+  transition: background var(--t-rapida), border-color var(--t-rapida), color var(--t-rapida);
 }
-#vista-percusion .chip:hover {
-  border-color: var(--gold);
-  color: var(--gold);
+#vista-percusion .chip-estilo:hover {
+  border-color: var(--mostaza);
+  color: var(--tinta);
 }
-#vista-percusion .chip[aria-pressed="true"] {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: var(--ink);
+#vista-percusion .chip-estilo.is-active {
+  background: var(--mostaza);
+  border-color: var(--mostaza);
+  color: #1a1410;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 5 — INFO DEL ESTILO (EXTENDIDO)
-   ═══════════════════════════════════════════════════════════════ */
-
-#vista-percusion .perc__info {
-  margin: var(--sp-4) 0;
-  padding: 10px 14px;
-  background: var(--pcb2);
-  border-left: 3px solid var(--sky);
-  border-radius: var(--r-sm);
-  color: var(--dim);
-  font-size: 13px;
+#vista-percusion .perc-info {
+  font-size: 11.5px;
   line-height: 1.5;
+  color: var(--tinta-suave);
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  background: var(--papel-2);
+  border-radius: var(--r-sm);
+  border-left: 2px solid var(--mostaza);
 }
-#vista-percusion .perc__info-titulo { color: var(--sky); font-weight: 700; }
-#vista-percusion .perc__info-detalle { font-size: 12px; }
+#vista-percusion .perc-info__nombre {
+  font-weight: 700;
+  color: var(--tinta);
+}
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 6 — GRILLA
+   SECCIÓN 4 — GRILLA
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-percusion .perc__grilla {
-  background: var(--pcb3);
-  border-radius: var(--r-md);
-  padding: var(--sp-3) 10px var(--sp-2);
-  margin-bottom: var(--sp-4);
+#vista-percusion .perc-grilla {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+  min-width: 0;
 }
 
-#vista-percusion .perc__voz {
-  margin-bottom: var(--sp-3);
-}
-#vista-percusion .perc__voz:last-child {
-  margin-bottom: 4px;
-}
-
-/* Modo simple: un poco más de aire entre filas para que
-   resalte el selector. */
-#vista-percusion .perc__grilla--simple .perc__voz--simple {
-  padding-bottom: var(--sp-3);
-  border-bottom: 1px dashed rgba(238, 242, 232, .1);
-}
-#vista-percusion .perc__grilla--simple .perc__voz--simple:last-child {
-  border-bottom: 0;
-  padding-bottom: 0;
-}
-
-/* Cabecera de voz (modo simple: número + selector + escuchar). */
-#vista-percusion .perc__voz-cab {
+#vista-percusion .perc-voz {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 10px;
+  min-width: 0;
 }
 
-#vista-percusion .perc__voz-numero {
+/* Selector de sonido (modo simple). */
+#vista-percusion .perc-voz__selector {
+  width: 96px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
+  color: var(--tinta);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--t-rapida), border-color var(--t-rapida);
+  min-height: 38px;
+}
+#vista-percusion .perc-voz__selector:hover {
+  background: var(--papel);
+  border-color: var(--borde-fuerte);
+}
+#vista-percusion .perc-voz__selector-texto {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+#vista-percusion .perc-voz__selector-flecha {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--ink);
   flex-shrink: 0;
+  color: var(--tinta-tenue);
+  transition: color var(--t-rapida);
 }
+#vista-percusion .perc-voz__selector:hover .perc-voz__selector-flecha {
+  color: var(--mostaza);
+}
+#vista-percusion .perc-voz__selector-flecha svg { width: 10px; height: 10px; }
 
-#vista-percusion .perc__selector-sonido {
-  flex: 1;
-  padding: 8px 12px;
-  border-radius: var(--r-sm);
-  border: 1.5px solid rgba(238, 242, 232, .25);
-  background: var(--pcb2);
-  color: var(--paper);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  text-align: left;
-  transition: border-color var(--t-rapida), color var(--t-rapida);
+/* Label del modo extendido (no clickeable). */
+#vista-percusion .perc-voz__label {
+  width: 74px;
+  flex-shrink: 0;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  line-height: 1.2;
+  min-width: 0;
 }
-#vista-percusion .perc__selector-sonido:hover {
-  border-color: var(--gold);
-  color: var(--gold);
-}
-
-#vista-percusion .perc__escuchar {
-  padding: 8px 14px;
-  border-radius: var(--r-sm);
-  border: 1.5px solid rgba(238, 242, 232, .25);
-  background: transparent;
-  color: var(--paper);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
+#vista-percusion .perc-voz__label-nombre {
+  display: block;
+  color: var(--tinta);
   white-space: nowrap;
-  transition: border-color var(--t-rapida), color var(--t-rapida);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-#vista-percusion .perc__escuchar:hover {
-  border-color: var(--gold);
-  color: var(--gold);
-}
-
-/* Nombre de voz en modo extendido. */
-#vista-percusion .perc__voz-nombre {
-  font-size: 12px;
-  font-weight: 700;
-  margin-bottom: 6px;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-}
-#vista-percusion .perc__voz-nombre small {
-  font-weight: 400;
-  color: var(--dim);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: .04em;
+#vista-percusion .perc-voz--melodica .perc-voz__label-nombre {
+  color: var(--mostaza);
 }
 
-/* Pasos */
-#vista-percusion .perc__pasos {
+/* Pasos. */
+#vista-percusion .perc-pasos {
+  flex: 1;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   gap: 4px;
-  margin-bottom: 4px;
+  min-width: 0;
 }
-#vista-percusion .perc__pasos:last-child { margin-bottom: 0; }
-
-/* En modo simple hay una sola fila de 8 pasos por voz. */
-#vista-percusion .perc__pasos--simple {
-  margin-bottom: 0;
-  margin-left: 30px;   /* alinear con el nombre, debajo del número */
-}
-@media (max-width: 480px) {
-  #vista-percusion .perc__pasos--simple {
-    margin-left: 0;
-  }
-}
-
-#vista-percusion .perc__pasos .perc__celda:nth-child(5) {
-  margin-left: 8px;
-}
-#vista-percusion .perc__pasos--simple .perc__celda:nth-child(5) {
-  margin-left: 8px;
-}
-
-#vista-percusion .perc__celda {
-  height: 38px;
-  border-radius: 8px;
-  border: 1.5px solid rgba(238, 242, 232, .16);
-  background: transparent;
-  color: var(--ink);
-  font: 700 11px var(--fuente-cuerpo);
-  padding: 0;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: background var(--t-rapida), border-color var(--t-rapida), box-shadow var(--t-rapida);
+#vista-percusion .perc-grilla--extendida .perc-pasos {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  gap: 6px;
+  min-width: 0;
 }
-#vista-percusion .perc__celda:hover {
-  border-color: rgba(238, 242, 232, .55);
-}
-#vista-percusion .perc__celda--marca {
-  border-color: rgba(238, 242, 232, .4);
-}
-#vista-percusion .perc__celda--actual {
-  box-shadow: 0 0 0 2px var(--sky) inset;
-  border-color: var(--sky);
+#vista-percusion .perc-pasos__bloque {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 3px;
+  min-width: 0;
 }
 
-#vista-percusion .perc__voz--notas .perc__celda {
-  height: 44px;
-  font-size: 12px;
+/* Celda. */
+#vista-percusion .perc-celda {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  transition: background var(--t-rapida), border-color var(--t-rapida), transform var(--t-rapida);
+  cursor: pointer;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+  color: var(--tinta);
+  display: grid;
+  place-items: center;
+  font-family: var(--fuente-titulo);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+}
+#vista-percusion .perc-grilla--extendida .perc-celda {
+  min-height: 0;
+  min-width: 0;
+  font-size: 8px;
+  border-radius: 4px;
+}
+#vista-percusion .perc-celda:hover { border-color: var(--borde-fuerte); }
+#vista-percusion .perc-celda:active { transform: scale(.88); }
+
+#vista-percusion .perc-celda--marca {
+  background: color-mix(in oklab, var(--tinta) 6%, var(--papel-2));
 }
 
-/* Modo simple: celdas un poco más grandes porque hay menos. */
-#vista-percusion .perc__grilla--simple .perc__celda {
-  height: 46px;
+#vista-percusion .perc-celda--n1 {
+  background: color-mix(in oklab, var(--mostaza) 40%, var(--papel-2));
+  border-color: color-mix(in oklab, var(--mostaza) 50%, var(--borde));
+}
+#vista-percusion .perc-celda--n2 {
+  background: color-mix(in oklab, var(--mostaza) 70%, var(--papel-2));
+  border-color: var(--mostaza);
+}
+#vista-percusion .perc-celda--n3 {
+  background: var(--mostaza);
+  border-color: var(--mostaza);
+}
+
+#vista-percusion .perc-celda--nota {
+  background: var(--mostaza);
+  color: #1a1410;
+  border-color: var(--mostaza);
+}
+
+#vista-percusion .perc-celda--actual {
+  box-shadow: 0 0 0 2px var(--azul) inset;
+  border-color: var(--azul);
+}
+
+/* Label del modo extendido: compacto, igual al prototipo B. */
+#vista-percusion .perc-grilla--extendida .perc-voz {
+  gap: 8px;
+}
+#vista-percusion .perc-grilla--extendida .perc-voz__label {
+  width: 56px;
+  font-size: 10px;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 7 — CONTROLES
+   SECCIÓN 5 — CONTROLES
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-percusion .perc__controles {
+#vista-percusion .perc-controles {
   display: flex;
-  gap: 10px 14px;
   align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: var(--sp-3);
+  gap: 12px;
+  padding: 12px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  margin-bottom: 12px;
+  transition: background var(--t-media), border-color var(--t-media);
 }
-#vista-percusion .perc__controles--fila { margin-bottom: var(--sp-4); }
 
-#vista-percusion .perc__play {
-  padding: 12px 30px;
-  border: 0;
-  border-radius: var(--r-pill);
-  background: var(--gold);
-  color: var(--ink);
-  font-weight: 700;
-  font-size: 15px;
+#vista-percusion .perc-play {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-full);
+  background: var(--mostaza);
+  color: #1a1410;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
   cursor: pointer;
+  border: 0;
   transition: filter var(--t-rapida), transform var(--t-rapida);
 }
-#vista-percusion .perc__play:hover { filter: brightness(1.05); }
-#vista-percusion .perc__play:active { transform: translateY(1px); }
+#vista-percusion .perc-play:hover { filter: brightness(1.05); }
+#vista-percusion .perc-play:active { transform: scale(.92); }
+#vista-percusion .perc-play svg { width: 20px; height: 20px; }
 
-#vista-percusion .perc__slider {
+#vista-percusion .perc-sliders {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+#vista-percusion .perc-slider__label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+}
+
+#vista-percusion .perc-slider__fila {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
-  color: var(--dim);
-}
-#vista-percusion .perc__slider input[type="range"] {
-  accent-color: var(--gold);
-  width: 130px;
-}
-#vista-percusion .perc__slider-valor {
-  color: var(--paper);
-  min-width: 56px;
-  font-variant-numeric: tabular-nums;
 }
 
-#vista-percusion .btn-sec {
-  padding: 9px 16px;
-  border-radius: var(--r-pill);
-  border: 1.5px solid rgba(238, 242, 232, .35);
-  background: transparent;
-  color: var(--paper);
-  font-size: 13px;
-  font-weight: 500;
+#vista-percusion .perc-slider__input {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  background: var(--papel-3);
+  border-radius: 2px;
+  outline: none;
+  min-width: 0;
+}
+#vista-percusion .perc-slider__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--mostaza);
   cursor: pointer;
-  transition: border-color var(--t-rapida), color var(--t-rapida), background var(--t-rapida);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .15);
 }
-#vista-percusion .btn-sec:hover {
-  border-color: var(--gold);
-  color: var(--gold);
-}
-#vista-percusion .btn-sec[aria-pressed="true"] {
-  background: var(--sky);
-  border-color: var(--sky);
-  color: var(--ink);
-}
-#vista-percusion .btn-sec--principal {
-  border-color: rgba(227, 188, 85, .6);
-  color: var(--gold);
-  font-weight: 600;
-}
-#vista-percusion .btn-sec--principal:hover {
-  background: var(--gold);
-  color: var(--ink);
-  border-color: var(--gold);
+#vista-percusion .perc-slider__input::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--mostaza);
+  border: none;
+  cursor: pointer;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 8 — PANELES (MEZCLA Y EFECTOS)
-   ═══════════════════════════════════════════════════════════════ */
-
-#vista-percusion .perc__panel {
-  background: var(--pcb2);
-  border-left: 3px solid var(--sky);
-  border-radius: var(--r-md);
-  padding: 12px 14px;
-  margin-bottom: var(--sp-4);
-}
-#vista-percusion .perc__panel[hidden] { display: none; }
-
-#vista-percusion .perc__panel-titulo {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--sky);
-  margin-bottom: var(--sp-2);
-}
-
-#vista-percusion .perc__mezcla-fila {
-  display: grid;
-  grid-template-columns: 100px 1fr 68px;
-  gap: 10px;
-  align-items: center;
-  padding: 3px 0;
-  font-size: 13px;
-}
-#vista-percusion .perc__mezcla-fila input[type="range"] {
-  accent-color: var(--gold);
-  width: 100%;
-}
-#vista-percusion .perc__mezcla-fila label { color: var(--paper); }
-
-#vista-percusion .perc__valor-efecto {
-  color: var(--paper);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
+#vista-percusion .perc-slider__valor {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
   font-size: 12px;
-}
-
-#vista-percusion .perc__mezcla-acciones {
-  display: flex;
-  justify-content: flex-end;
-  gap: 3px;
-}
-
-#vista-percusion .btn-mini {
-  border: 1px solid rgba(238, 242, 232, .25);
-  background: transparent;
-  color: var(--dim);
-  font-size: 11px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: border-color var(--t-rapida), color var(--t-rapida), background var(--t-rapida);
-}
-#vista-percusion .btn-mini:hover {
-  border-color: var(--gold);
-  color: var(--gold);
-}
-#vista-percusion .btn-mini--mute {
-  background: var(--rojo);
-  border-color: var(--rojo);
-  color: var(--ink);
-  font-weight: 700;
-}
-#vista-percusion .btn-mini--solo {
-  background: var(--gold);
-  border-color: var(--gold);
+  color: var(--tinta);
+  min-width: 32px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 9 — GUARDAR RITMO
+   SECCIÓN 6 — BOTONES DE SHEETS
    ═══════════════════════════════════════════════════════════════ */
 
-#vista-percusion .perc__guardar-zona { margin-bottom: var(--sp-3); }
+#vista-percusion .perc-botones {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 12px;
+}
 
-#vista-percusion .perc__guardar {
+#vista-percusion .perc-boton {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-2);
-  background: var(--pcb3);
-  padding: var(--sp-4);
-  border-radius: var(--r-md);
-  border-left: 3px solid var(--gold);
-}
-
-#vista-percusion .perc__guardar input {
-  padding: 11px 14px;
-  border-radius: var(--r-md);
-  border: 1.5px solid rgba(238, 242, 232, .3);
-  background: rgba(238, 242, 232, .04);
-  color: var(--paper);
-  font: inherit;
-  font-size: 15px;
-  font-family: inherit;
-  transition: border-color var(--t-rapida), background var(--t-rapida);
-}
-#vista-percusion .perc__guardar input:focus {
-  border-color: var(--sky);
-  outline: none;
-  background: rgba(238, 242, 232, .08);
-}
-
-#vista-percusion .perc__guardar-botones {
-  display: flex;
-  gap: var(--sp-2);
-  justify-content: flex-end;
-  flex-wrap: wrap;
-}
-
-#vista-percusion .perc__guardar-enviar {
-  padding: 10px 22px;
-  border-radius: var(--r-md);
-  background: var(--gold);
-  color: var(--ink);
-  font-weight: 700;
-  font-size: 14px;
-  border: 0;
-  cursor: pointer;
-  transition: filter var(--t-rapida);
-}
-#vista-percusion .perc__guardar-enviar:hover { filter: brightness(1.05); }
-
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 10 — RITMOS GUARDADOS
-   ═══════════════════════════════════════════════════════════════ */
-
-#vista-percusion .perc__guardados { margin-bottom: var(--sp-6); }
-
-#vista-percusion .perc__badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: var(--r-pill);
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
-#vista-percusion .perc__badge--simple {
-  background: rgba(227, 188, 85, .18);
-  color: var(--gold);
-}
-#vista-percusion .perc__badge--extendido {
-  background: rgba(141, 183, 216, .18);
-  color: var(--sky);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 11 — MODAL DE SELECCIÓN DE SONIDO
-   ═══════════════════════════════════════════════════════════════ */
-
-.perc__modal {
-  position: fixed;
-  inset: 0;
-  z-index: 9500;
-  display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
-  background: rgba(10, 31, 26, .85);
-  opacity: 0;
-  transition: opacity .18s ease;
-}
-.perc__modal--visible { opacity: 1; }
-
-.perc__modal-tarjeta {
-  background: var(--pcb2);
-  border: 1px solid rgba(238, 242, 232, .15);
-  border-radius: var(--r-lg);
-  padding: var(--sp-5);
-  max-width: 480px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: var(--sombra-media);
-}
-
-.perc__modal-titulo {
-  font-family: var(--fuente-titulo);
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--gold);
-  margin: 0 0 var(--sp-4);
-}
-
-.perc__modal-grupo { margin-bottom: var(--sp-4); }
-
-.perc__modal-categoria {
+  gap: 4px;
+  padding: 12px 6px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  color: var(--tinta-suave);
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--sky);
-  margin: 0 0 var(--sp-2);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--t-rapida), border-color var(--t-rapida), color var(--t-rapida);
+  min-height: 58px;
 }
+#vista-percusion .perc-boton:hover {
+  background: var(--papel);
+  color: var(--tinta);
+  border-color: var(--borde-fuerte);
+}
+#vista-percusion .perc-boton svg { width: 18px; height: 18px; }
 
-.perc__modal-chips {
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 7 — ACCIONES INFERIORES
+   ═══════════════════════════════════════════════════════════════ */
+
+#vista-percusion .botones-fila {
   display: flex;
   gap: 6px;
-  flex-wrap: wrap;
+  margin-top: 12px;
 }
 
-.perc__modal-pie {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: var(--sp-4);
+#vista-percusion .boton-accion {
+  flex: 1;
+  padding: 10px 12px;
+  background: transparent;
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--r-sm);
+  color: var(--tinta-suave);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--t-rapida), color var(--t-rapida), border-color var(--t-rapida);
+}
+#vista-percusion .boton-accion:hover {
+  background: var(--papel-2);
+  color: var(--tinta);
+}
+#vista-percusion .boton-accion--principal {
+  background: var(--mostaza);
+  border-color: var(--mostaza);
+  color: #1a1410;
+}
+#vista-percusion .boton-accion--principal:hover {
+  background: color-mix(in oklab, var(--mostaza) 90%, #000);
+  color: #1a1410;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECCIÓN 12 — RESPONSIVE
+   SECCIÓN 8 — SHEET
+   Vive fuera de #vista-percusion (se monta en body).
+   ═══════════════════════════════════════════════════════════════ */
+
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(10, 8, 5, .6);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s ease;
+}
+.sheet.is-open { opacity: 1; pointer-events: auto; }
+
+.sheet__panel {
+  width: 100%;
+  max-width: 620px;
+  max-height: 82vh;
+  background: var(--papel);
+  color: var(--tinta);
+  border-radius: 22px 22px 0 0;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform .3s cubic-bezier(.32, .72, 0, 1), background var(--t-media);
+  overflow: hidden;
+  border: 1px solid var(--borde);
+  border-bottom: 0;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, .25);
+}
+.sheet.is-open .sheet__panel { transform: translateY(0); }
+
+@media (min-width: 640px) {
+  .sheet { align-items: center; padding: 20px; }
+  .sheet__panel {
+    border-radius: var(--r-lg);
+    max-height: 88vh;
+    border-bottom: 1px solid var(--borde);
+  }
+}
+
+.sheet__handle {
+  width: 40px;
+  height: 4px;
+  background: var(--borde-fuerte);
+  border-radius: 4px;
+  margin: 10px auto 4px;
+}
+@media (min-width: 640px) { .sheet__handle { display: none; } }
+
+.sheet__cab {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 18px 14px;
+  border-bottom: 1px solid var(--borde);
+}
+.sheet__titulo {
+  flex: 1;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -.01em;
+}
+.sheet__cerrar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-full);
+  background: var(--papel-2);
+  color: var(--tinta-suave);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  border: 0;
+  transition: background var(--t-rapida), color var(--t-rapida);
+}
+.sheet__cerrar:hover { background: var(--papel-3); color: var(--tinta); }
+.sheet__cerrar svg { width: 16px; height: 16px; }
+
+.sheet__cuerpo {
+  padding: 16px 18px 20px;
+  overflow-y: auto;
+}
+.sheet__cuerpo::-webkit-scrollbar { width: 0; }
+
+.sheet-bloque-titulo {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  margin-bottom: 10px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 9 — SHEET: ELEGIR SONIDO
+   ═══════════════════════════════════════════════════════════════ */
+
+.categoria-sonidos { margin-bottom: 18px; }
+.categoria-sonidos:last-child { margin-bottom: 0; }
+
+.categoria-sonidos__titulo {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  margin-bottom: 8px;
+}
+
+.sonidos-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.sonido-chip {
+  padding: 10px 12px;
+  background: var(--papel-2);
+  border: 1.5px solid transparent;
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tinta);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--t-rapida), border-color var(--t-rapida);
+  line-height: 1.25;
+}
+.sonido-chip:hover { background: var(--papel-3); }
+.sonido-chip.is-active {
+  background: color-mix(in oklab, var(--mostaza) 18%, var(--papel-2));
+  border-color: var(--mostaza);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 10 — SHEET: MEZCLA Y EFECTOS
+   ═══════════════════════════════════════════════════════════════ */
+
+.fila-slider {
+  display: grid;
+  grid-template-columns: 96px 1fr 68px;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.fila-slider label {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--tinta);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fila-slider .valor {
+  font-size: 11px;
+  color: var(--tinta-suave);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.fila-slider input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  background: var(--papel-2);
+  border-radius: 2px;
+  outline: none;
+  width: 100%;
+}
+.fila-slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--mostaza);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .15);
+}
+.fila-slider input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--mostaza);
+  border: none;
+  cursor: pointer;
+}
+
+.fila-slider__acciones {
+  display: flex;
+  gap: 3px;
+  justify-content: flex-end;
+}
+.mini-btn {
+  padding: 3px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  background: transparent;
+  border: 1px solid var(--borde-fuerte);
+  border-radius: 4px;
+  color: var(--tinta-suave);
+  cursor: pointer;
+  transition: background var(--t-rapida), color var(--t-rapida), border-color var(--t-rapida);
+  min-width: 24px;
+}
+.mini-btn:hover { background: var(--papel-2); color: var(--tinta); }
+.mini-btn.is-active {
+  background: var(--rojo);
+  border-color: var(--rojo);
+  color: #F2E6D0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 11 — SHEET: GUARDADOS
+   ═══════════════════════════════════════════════════════════════ */
+
+.guardados-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ritmo-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+}
+.ritmo-item__cuerpo { flex: 1; min-width: 0; }
+.ritmo-item__nombre {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--tinta);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+.ritmo-item__meta {
+  font-size: 11px;
+  color: var(--tinta-tenue);
+}
+.ritmo-item__acciones {
+  display: flex;
+  gap: 4px;
+}
+.perc-vacio {
+  color: var(--tinta-tenue);
+  font-style: italic;
+  text-align: center;
+  padding: 20px 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 12 — SHEET: GUARDAR NOMBRE
+   ═══════════════════════════════════════════════════════════════ */
+
+.campo-nombre {
+  padding: 11px 13px;
+  background: var(--papel-2);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--r-sm);
+  color: var(--tinta);
+  font-size: 14px;
+  width: 100%;
+  font-family: inherit;
+  margin-bottom: 12px;
+}
+.campo-nombre::placeholder { color: var(--tinta-tenue); }
+.campo-nombre:focus {
+  outline: none;
+  border-color: var(--mostaza);
+  background: var(--papel);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECCIÓN 13 — RESPONSIVE
    ═══════════════════════════════════════════════════════════════ */
 
 @media (max-width: 480px) {
-  #vista-percusion .perc__slider input[type="range"] { width: 90px; }
-  #vista-percusion .perc__mezcla-fila { grid-template-columns: 82px 1fr 64px; }
-  #vista-percusion .perc__celda { height: 34px; font-size: 10px; }
-  #vista-percusion .perc__voz--notas .perc__celda { height: 40px; font-size: 11px; }
-  #vista-percusion .perc__grilla--simple .perc__celda { height: 40px; }
-  #vista-percusion .perc__pasos .perc__celda:nth-child(5) { margin-left: 5px; }
-  #vista-percusion .perc__pasos--simple .perc__celda:nth-child(5) { margin-left: 5px; }
-  #vista-percusion .perc__modo-btn { padding: 8px 14px; font-size: 12px; }
+  #vista-percusion .perc-voz__selector { width: 84px; }
+  #vista-percusion .perc-voz__label { width: 62px; font-size: 10px; }
+  #vista-percusion .perc-grilla--extendida .perc-voz__label { width: 52px; font-size: 9.5px; }
+  #vista-percusion .perc-celda { min-height: 0; }
+  #vista-percusion .perc-grilla--extendida .perc-celda { min-height: 0; font-size: 7.5px; }
+  #vista-percusion .perc-slider__input { min-width: 80px; }
+  #vista-percusion .perc-boton { font-size: 10px; padding: 10px 4px; min-height: 52px; }
+  #vista-percusion .perc-boton svg { width: 16px; height: 16px; }
 }

@@ -1,21 +1,18 @@
 <!--
   Ahora Sí — Test unificado
   Archivo: Test.html (raíz)
-  Versión: 2.0.3
+  Versión: 2.3.0
   Propósito: batería completa del núcleo, configuración, sesión,
              repositorios, vistas, audio, realtime, eventos e
              idempotencia.
-  v2.0.3: corrige bug de contexto. La suite B llama a
-          reiniciarAlmacen(), que borraba usuarioActual y espacio
-          del almacén. Eso dejaba sin contexto a todas las suites
-          siguientes. Ahora se guarda el contexto al prepararlo y
-          se restaura después de la suite B.
-  v2.0.2: corrige colisión de nombres. El import "ejecutar" de
-          bus-comandos.js chocaba con la función local
-          "ejecutar(usuario)". Se renombra el import a
-          "ejecutarComando".
+  v2.3.0: se agrega la vista anexos a la suite AD de vistas.
+          Total de casos: 152.
+  v2.2.0: se agregan tres casos a la suite AB (audio) para
+          cubrir el catálogo del modo simple del beatmaker.
+  v2.1.0: se agregan cinco casos a la suite P (ritmos).
+  v2.0.3: corrige bug de contexto en la suite B.
+  v2.0.2: corrige colisión de nombres.
   v2.0.1: corrige bug del parser de HTML (</script> literal).
-          Se agrega detección de sesión activa al cargar.
   v2.0.0: reescritura completa.
   v1.1.0: agrega suite L. Idempotencia.
   v1.0.0: versión inicial.
@@ -257,6 +254,7 @@ import * as vistaRecetas from './js/vistas/recetas.js';
 import * as vistaPercusion from './js/vistas/percusion.js';
 import * as vistaRespuesta from './js/vistas/respuesta.js';
 import * as vistaCuenta from './js/vistas/cuenta.js';
+import * as vistaAnexos from './js/vistas/anexos.js';
 import * as vistaHero from './js/vistas/hero.js';
 
 import * as audioBeatmaker from './js/audio/beatmaker.js';
@@ -275,8 +273,6 @@ const btnRerun = document.getElementById('rerun');
 let pasaron = 0;
 let fallaron = 0;
 
-/* Contexto guardado. Lo usa restaurarContexto() después de las
-   suites que borran el almacén (la suite B llama reiniciar). */
 let contextoGuardado = null;
 
 const creados = {
@@ -367,8 +363,6 @@ async function prepararContexto(usuario) {
   exigir(r.exito, 'No se pudo crear el espacio de prueba: ' + r.error);
   const espacioPrueba = r.datos;
 
-  // Guardo el contexto para poder restaurarlo si alguna suite
-  // borra el almacén (como hace la suite B con reiniciar).
   contextoGuardado = { usuario, espacio: espacioPrueba };
 
   establecer('usuarioActual', usuario);
@@ -442,12 +436,9 @@ async function suiteAlmacen() {
   });
 
   await caso('reiniciar limpia el estado', () => {
-    // Uso una clave que NO pisa el contexto. Después de reiniciar,
-    // restauro el contexto para las suites siguientes.
     establecer('testReinicio', { x: 1 });
     reiniciarAlmacen();
     exigir(obtener('testReinicio') === null, 'no se limpió');
-    // Restaurar el contexto para las suites siguientes.
     restaurarContexto();
   });
 }
@@ -504,7 +495,6 @@ async function suiteUtilidades() {
   });
 
   await caso('escaparHtml', () => {
-    // Uso <\/script> para que el parser de HTML no corte el bloque.
     const s = escaparHtml('<\/script>');
     exigir(!s.includes('<\/script>'), 'no escapó');
     exigir(s.includes('&lt;'), 'no usó entidades');
@@ -730,24 +720,45 @@ async function suiteHitos() {
 
   let id = null;
 
-  await caso('crear hito', async () => {
-    const r = await repoHitos.crear({ titulo: 'Hito ' + marca() });
+  await caso('crear hito con color', async () => {
+    const r = await repoHitos.crear({
+      titulo: 'Hito ' + marca(),
+      fecha: new Date().toISOString(),
+      color: 'terracota',
+    });
     exigir(r.exito, r.error);
-    exigir(r.datos.cumplido === false, 'debería empezar no cumplido');
+    exigir(r.datos.color === 'terracota', 'no guardó el color');
+    exigir(!('cumplido' in r.datos), 'el normalizador no debería exponer cumplido');
     id = r.datos.id;
     creados.hitos.push(id);
   });
 
-  await caso('marcar cumplido', async () => {
-    const r = await repoHitos.marcar(id, true);
-    exigir(r.exito, r.error);
-    exigir(r.datos.cumplido === true, 'no quedó cumplido');
+  await caso('crear hito sin color falla', async () => {
+    const r = await repoHitos.crear({ titulo: 'Sin color ' + marca() });
+    exigir(!r.exito, 'debería haber fallado sin color');
   });
 
-  await caso('actualizar hito', async () => {
-    const r = await repoHitos.actualizar(id, { titulo: 'Hito editado' });
+  await caso('crear hito con color inválido falla', async () => {
+    const r = await repoHitos.crear({
+      titulo: 'Mal color ' + marca(),
+      color: 'turquesa',
+    });
+    exigir(!r.exito, 'debería haber fallado con color inválido');
+  });
+
+  await caso('actualizar hito cambia color y título', async () => {
+    const r = await repoHitos.actualizar(id, {
+      titulo: 'Hito editado',
+      color: 'musgo',
+    });
     exigir(r.exito, r.error);
-    exigir(r.datos.titulo === 'Hito editado', 'no cambió');
+    exigir(r.datos.titulo === 'Hito editado', 'no cambió el título');
+    exigir(r.datos.color === 'musgo', 'no cambió el color');
+  });
+
+  await caso('actualizar con color inválido falla', async () => {
+    const r = await repoHitos.actualizar(id, { color: 'fucsia' });
+    exigir(!r.exito, 'debería haber fallado con color inválido');
   });
 
   await caso('eliminar hito', async () => {
@@ -968,6 +979,115 @@ async function suiteRitmos() {
     exigir(r.datos.modo === 'extendido', 'modo incorrecto');
     idExt = r.datos.id;
     creados.ritmos.push(idExt);
+  });
+
+  await caso('ritmo extendido guarda efectos y mezcla', async () => {
+    const fila = Array(16).fill(0);
+    const filaNotas = Array(16).fill(-1);
+    const patron = [
+      fila.slice(), fila.slice(), fila.slice(), fila.slice(), fila.slice(),
+      filaNotas.slice(), filaNotas.slice(),
+    ];
+    const efectos = { reverb: 24, eco: 20, saturacion: 15, filtro: 100 };
+    const volumen = [1.0, 0.8, 0.7, 0.5, 0.6, 0.9, 0.4];
+    const silenciados = [false, true, false, false, false, false, false];
+    const solistas = [false, false, false, false, false, false, false];
+
+    const r = await repoRitmos.crear({
+      nombre: 'Con mezcla ' + marca(),
+      bpm: 118,
+      patron,
+      modo: 'extendido',
+      estiloId: 'tumbe',
+      familia: 'afr',
+      efectos,
+      volumen,
+      silenciados,
+      solistas,
+      swing: 14,
+    });
+
+    exigir(r.exito, r.error);
+    exigir(r.datos.efectos?.reverb === 24, 'efectos.reverb no se guardó');
+    exigir(r.datos.efectos?.filtro === 100, 'efectos.filtro no se guardó');
+    exigir(Array.isArray(r.datos.volumen) && r.datos.volumen[1] === 0.8, 'volumen no se guardó');
+    exigir(Array.isArray(r.datos.silenciados) && r.datos.silenciados[1] === true, 'silenciados no se guardó');
+    exigir(Array.isArray(r.datos.solistas) && r.datos.solistas.length === 7, 'solistas no se guardó');
+    exigir(r.datos.swing === 14, 'swing no se guardó');
+    creados.ritmos.push(r.datos.id);
+  });
+
+  await caso('ritmo simple guarda swing', async () => {
+    const patron = [
+      { sonidoId: 'bombo_gordo', pasos: [3,0,2,0, 0,0,2,0] },
+      { sonidoId: 'caja_seca',   pasos: [0,0,2,0, 0,0,2,0] },
+      { sonidoId: 'hh_cerrado',  pasos: [2,2,2,2, 2,2,2,2] },
+      { sonidoId: 'clap',        pasos: [0,0,3,0, 0,0,3,0] },
+    ];
+    const r = await repoRitmos.crear({
+      nombre: 'Simple swing ' + marca(),
+      bpm: 92,
+      patron,
+      modo: 'simple',
+      swing: 12,
+    });
+    exigir(r.exito, r.error);
+    exigir(r.datos.swing === 12, 'swing del modo simple no se guardó');
+    exigir(r.datos.efectos === null, 'efectos no debería tener valor en simple');
+    creados.ritmos.push(r.datos.id);
+  });
+
+  await caso('swing fuera de rango falla', async () => {
+    const patron = [
+      { sonidoId: 'bombo_gordo', pasos: [0,0,0,0, 0,0,0,0] },
+      { sonidoId: 'caja_seca',   pasos: [0,0,0,0, 0,0,0,0] },
+      { sonidoId: 'hh_cerrado',  pasos: [0,0,0,0, 0,0,0,0] },
+      { sonidoId: 'clap',        pasos: [0,0,0,0, 0,0,0,0] },
+    ];
+    const r = await repoRitmos.crear({
+      nombre: 'Mal swing ' + marca(),
+      bpm: 90,
+      patron,
+      modo: 'simple',
+      swing: 999,
+    });
+    exigir(!r.exito, 'debería haber fallado por swing fuera de rango');
+  });
+
+  await caso('efectos con valor fuera de rango falla', async () => {
+    const fila = Array(16).fill(0);
+    const filaNotas = Array(16).fill(-1);
+    const patron = [
+      fila.slice(), fila.slice(), fila.slice(), fila.slice(), fila.slice(),
+      filaNotas.slice(), filaNotas.slice(),
+    ];
+    const r = await repoRitmos.crear({
+      nombre: 'Mal efectos ' + marca(),
+      bpm: 100,
+      patron,
+      modo: 'extendido',
+      estiloId: 'tumbe',
+      efectos: { reverb: 999, eco: 0, saturacion: 0, filtro: 100 },
+    });
+    exigir(!r.exito, 'debería haber fallado por reverb fuera de rango');
+  });
+
+  await caso('volumen con valor fuera de rango falla', async () => {
+    const fila = Array(16).fill(0);
+    const filaNotas = Array(16).fill(-1);
+    const patron = [
+      fila.slice(), fila.slice(), fila.slice(), fila.slice(), fila.slice(),
+      filaNotas.slice(), filaNotas.slice(),
+    ];
+    const r = await repoRitmos.crear({
+      nombre: 'Mal volumen ' + marca(),
+      bpm: 100,
+      patron,
+      modo: 'extendido',
+      estiloId: 'tumbe',
+      volumen: [1.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
+    });
+    exigir(!r.exito, 'debería haber fallado por volumen fuera de rango');
   });
 
   await caso('eliminar ritmo simple', async () => {
@@ -1352,6 +1472,27 @@ async function suiteAudio() {
     exigir(p[0].length === audioBeatmaker.PASOS_EXTENDIDO, 'pasos incorrectos');
   });
 
+  await caso('beatmaker: SONIDOS_SIMPLES tiene 13', () => {
+    const total = audioBeatmaker.SONIDOS_SIMPLES.length;
+    exigir(total === 13, `deberían ser 13, son ${total}`);
+  });
+
+  await caso('beatmaker: clap está en el catálogo simple', () => {
+    const clap = audioBeatmaker.buscarSonidoSimple('clap');
+    exigir(clap, 'clap no está en el catálogo');
+    exigir(clap.cat === 'Medios', `clap debería estar en Medios, está en ${clap.cat}`);
+  });
+
+  await caso('beatmaker: PATRON_INICIAL_SIMPLE usa sonidos del catálogo', () => {
+    const idsCatalogo = new Set(audioBeatmaker.SONIDOS_SIMPLES.map((s) => s.id));
+    for (const fila of audioBeatmaker.PATRON_INICIAL_SIMPLE) {
+      exigir(
+        idsCatalogo.has(fila.sonidoId),
+        `el patrón usa "${fila.sonidoId}" que no está en el catálogo`
+      );
+    }
+  });
+
   await caso('sintetizador: voces', () => {
     const v = audioSintetizador.voces();
     exigir(Array.isArray(v) && v.length === 4, 'deberían ser 4 voces');
@@ -1442,6 +1583,7 @@ async function suiteVistas() {
     { nombre: 'percusion', modulo: vistaPercusion },
     { nombre: 'respuesta', modulo: vistaRespuesta },
     { nombre: 'cuenta', modulo: vistaCuenta },
+    { nombre: 'anexos', modulo: vistaAnexos },
     { nombre: 'hero', modulo: vistaHero },
   ];
 
@@ -1648,7 +1790,6 @@ document.getElementById('password').addEventListener('keydown', (ev) => {
 });
 
 btnRerun.addEventListener('click', () => {
-  // Recarga sin cerrar sesión.
   location.reload();
 });
 
@@ -1660,14 +1801,12 @@ btnRerun.addEventListener('click', () => {
   try {
     const usuario = await cargarSesion();
     if (usuario) {
-      // Ya hay sesión. Saltamos el login y corremos directo.
       document.getElementById('login').hidden = true;
       sectionTests.hidden = false;
       await ejecutar(usuario);
     }
-    // Si no hay usuario, se queda mostrando el login.
   } catch (e) {
-    // Silencioso: si falla, se muestra el login normal.
+    // Silencioso.
   }
 })();
 </script>
