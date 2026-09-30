@@ -1,22 +1,20 @@
 /* ================================================================
    Ahora Sí — MÓDULO JS (ES6)
    Archivo: js/datos/repositorios/apuestas.js
-   Versión: 1.1.0
+   Versión: 1.0.1
    Propósito: acceso a ahorasi_apuestas. Cada apuesta tiene texto,
               quien (apostador), contra (el otro), estado
-              (pendiente, resuelta) y ganador opcional (userId
-              de quien ganó, o la palabra "empate").
-              v1.1.0: fix en resolver(). Antes validaba el ganador
-                      contra una lista hardcodeada ['yayo', 'luci',
-                      'empate'], pero el resto del repositorio
-                      guarda los userIds reales de Appwrite
-                      (Elyayo, ChicaLuci). Cualquier intento de
-                      resolver una apuesta fallaba con "Ganador
-                      inválido". Ahora se cargan los contendientes
-                      reales de la fila y se valida contra ellos,
-                      más "empate". Se elimina la constante
-                      GANADORES_VALIDOS, que ya no tiene uso. Sin
-                      cambios en las firmas públicas.
+              (pendiente, resuelta) y ganador opcional (yayo,
+              luci, empate).
+              v1.0.1: se arregla la resolución del contrincante.
+                      El ternario anterior dejaba `contra` en null
+                      cuando quien coincidía con el usuario actual,
+                      lo que hacía fallar la creación siempre con
+                      "Falta el contrincante". Ahora se usa un mapa
+                      fijo de contrincantes porque el espacio tiene
+                      dos usuarios (yayo ↔ luci). Si algún día se
+                      agrega un tercer usuario, el mapa no lo cubre
+                      y el guard avisa.
               v1.0.0: versión inicial.
    ================================================================ */
 
@@ -29,6 +27,7 @@ import { Resultado } from '../../dominio/resultado.js';
 import { emitir } from '../../nucleo/bus-eventos.js';
 import { crearLogger } from '../../nucleo/logger.js';
 import { generarId } from '../../nucleo/utils.js';
+import { CONFIG } from '../../config/config.js';
 import {
   obtenerContexto,
   conIdempotenciaParaCrear,
@@ -38,6 +37,18 @@ import {
 const log = crearLogger('repo:apuestas');
 const TABLA = 'ahorasi_apuestas';
 const ESTADOS = ['pendiente', 'resuelta'];
+const GANADORES_VALIDOS = ['yayo', 'luci', 'empate'];
+
+/**
+ * Mapa fijo de contrincantes. Como el espacio tiene exactamente
+ * dos usuarios, el "otro" de cada uno es siempre el mismo. Si
+ * algún día se agrega un tercer usuario, este mapa se queda
+ * corto y el guard de crear() lo avisa con "Falta el contrincante".
+ */
+const CONTRINCANTES = {
+  [CONFIG.usuarios.yayo]: CONFIG.usuarios.luci,
+  [CONFIG.usuarios.luci]: CONFIG.usuarios.yayo,
+};
 
 function normalizar(fila) {
   if (!fila) return null;
@@ -81,11 +92,11 @@ export async function crear(datos, opciones = {}) {
   const ctx = obtenerContexto();
   if (!ctx.exito) return ctx;
 
-  // Si "quien" es el usuario actual, "contra" es el otro. Si el
-  // llamador no pasa "contra", se resuelve comparando con el
-  // usuario del contexto.
-  const contra = datos.contra
-    || (datos.quien === ctx.datos.usuarioId ? null : ctx.datos.usuarioId);
+  // El contrincante es el otro usuario. Si el llamador pasa
+  // "contra" explícito, se respeta; si no, se resuelve por el
+  // mapa fijo (dos usuarios). Si el mapa no cubre a `quien`, el
+  // guard corta y devuelve el error.
+  const contra = datos.contra || CONTRINCANTES[datos.quien];
   if (!contra) return Resultado.fallo('Falta el contrincante');
 
   const payload = {
@@ -117,30 +128,12 @@ export async function crear(datos, opciones = {}) {
 
 export async function resolver(id, ganador, opciones = {}) {
   if (!id) return Resultado.fallo('Falta el id');
-  if (!ganador) return Resultado.fallo('Falta el ganador');
+  if (!GANADORES_VALIDOS.includes(ganador)) {
+    return Resultado.fallo(`Ganador inválido: ${ganador}`);
+  }
 
   const ctx = obtenerContexto();
   if (!ctx.exito) return ctx;
-
-  // Cargar la fila para saber quiénes son los contendientes reales.
-  // Validamos contra esos userIds (más "empate"), no contra una
-  // lista hardcodeada.
-  let fila;
-  try {
-    fila = await obtenerTablesDB().getRow({
-      databaseId: obtenerDatabaseId(),
-      tableId: TABLA,
-      rowId: id,
-    });
-  } catch (e) {
-    log.error('resolver (cargar):', e.message);
-    return Resultado.fallo(`Error al cargar la apuesta: ${e.message}`);
-  }
-
-  const validos = [fila.quien, fila.contra, 'empate'];
-  if (!validos.includes(ganador)) {
-    return Resultado.fallo(`Ganador inválido: ${ganador}`);
-  }
 
   const data = { estado: 'resuelta', ganador };
 
